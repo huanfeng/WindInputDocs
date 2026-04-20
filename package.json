@@ -1,0 +1,27 @@
+{
+  "name": "wind-input-docs",
+  "version": "1.0.0",
+  "description": "清风输入法文档",
+  "type": "module",
+  "scripts": {
+    "dev": "cd docs && pnpm dev",
+    "build": "cd docs && pnpm build",
+    "preview": "cd docs && pnpm preview",
+    "format": "prettier --write \"**/*.{md,json,ts}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  },
+  "keywords": [
+    "documentation",
+    "vitepress",
+    "输入法"
+  ],
+  "author": "huanfeng",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/huanfeng/WindInputDocs"
+  },
+  "homepage": "https://huanfeng.github.io/WindInputDocs/"
+}

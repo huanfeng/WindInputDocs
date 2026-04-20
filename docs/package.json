@@ -1,0 +1,14 @@
+{
+  "name": "windinput-docs",
+  "version": "1.0.0",
+  "description": "清风输入法文档",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.3.0"
+  }
+}

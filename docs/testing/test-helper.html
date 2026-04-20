@@ -1,0 +1,1806 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>清风输入法 - 测试辅助工具</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --bg2: #1e293b;
+        --bg3: #334155;
+        --bgh: #475569;
+        --tx: #e2e8f0;
+        --tx2: #94a3b8;
+        --tx3: #64748b;
+        --ac: #38bdf8;
+        --gn: #22c55e;
+        --gnb: #14532d;
+        --rd: #ef4444;
+        --rdb: #450a0a;
+        --yw: #eab308;
+        --ywb: #422006;
+        --bd: #334155;
+        --r: 8px;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, "Microsoft YaHei", "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--tx);
+        height: 100vh;
+        overflow: hidden;
+      }
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      .hdr {
+        background: var(--bg2);
+        border-bottom: 1px solid var(--bd);
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-shrink: 0;
+      }
+      .hdr h1 {
+        font-size: 17px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .hdr h1 b {
+        color: var(--ac);
+        font-weight: 700;
+      }
+      .stats {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        font-size: 12px;
+        color: var(--tx2);
+        margin-left: auto;
+      }
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .dot-p {
+        background: var(--gn);
+      }
+      .dot-f {
+        background: var(--rd);
+      }
+      .dot-s {
+        background: var(--yw);
+      }
+      .dot-w {
+        background: var(--tx3);
+      }
+      .pbar {
+        height: 3px;
+        background: var(--bg3);
+        flex: 1;
+        min-width: 100px;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .pfill {
+        height: 100%;
+        display: flex;
+      }
+      .pfill > div {
+        height: 100%;
+        transition: width 0.3s;
+      }
+      .seg-p {
+        background: var(--gn);
+      }
+      .seg-f {
+        background: var(--rd);
+      }
+      .seg-s {
+        background: var(--yw);
+      }
+      .main {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      .side {
+        width: 370px;
+        min-width: 300px;
+        border-right: 1px solid var(--bd);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        background: var(--bg);
+      }
+      .cnt {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sctl {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--bd);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .sinp {
+        width: 100%;
+        padding: 7px 12px;
+        background: var(--bg2);
+        border: 1px solid var(--bd);
+        border-radius: var(--r);
+        color: var(--tx);
+        font-size: 13px;
+        outline: 0;
+      }
+      .sinp:focus {
+        border-color: var(--ac);
+      }
+      .sinp::placeholder {
+        color: var(--tx3);
+      }
+      .frow {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .fbtn {
+        padding: 3px 9px;
+        font-size: 11px;
+        border: 1px solid var(--bd);
+        border-radius: 14px;
+        background: 0;
+        color: var(--tx2);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .fbtn:hover {
+        border-color: var(--ac);
+        color: var(--ac);
+      }
+      .fbtn.on {
+        background: var(--ac);
+        border-color: var(--ac);
+        color: #000;
+        font-weight: 600;
+      }
+      .cats {
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 0;
+      }
+      .cats::-webkit-scrollbar {
+        width: 5px;
+      }
+      .cats::-webkit-scrollbar-thumb {
+        background: var(--bg3);
+        border-radius: 3px;
+      }
+      .cath {
+        padding: 7px 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--tx2);
+        user-select: none;
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        z-index: 1;
+      }
+      .cath:hover {
+        color: var(--tx);
+      }
+      .catarr {
+        font-size: 10px;
+        transition: transform 0.2s;
+        width: 14px;
+        text-align: center;
+      }
+      .catarr.open {
+        transform: rotate(90deg);
+      }
+      .catpg {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--tx3);
+      }
+      .catpb {
+        width: 50px;
+        height: 3px;
+        background: var(--bg3);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-left: 5px;
+      }
+      .catpf {
+        height: 100%;
+        background: var(--gn);
+        transition: width 0.3s;
+      }
+      .ti {
+        padding: 6px 14px 6px 36px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        transition: background 0.1s;
+        border-left: 3px solid transparent;
+      }
+      .ti:hover {
+        background: var(--bg2);
+      }
+      .ti.act {
+        background: var(--bg2);
+        border-left-color: var(--ac);
+      }
+      .ti .ico {
+        font-size: 13px;
+        flex-shrink: 0;
+        width: 18px;
+        text-align: center;
+      }
+      .ti .tid {
+        color: var(--tx3);
+        font-size: 11px;
+        font-family: monospace;
+        min-width: 42px;
+      }
+      .ti .ttl {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .td {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 32px;
+      }
+      .td::-webkit-scrollbar {
+        width: 5px;
+      }
+      .td::-webkit-scrollbar-thumb {
+        background: var(--bg3);
+        border-radius: 3px;
+      }
+      .dhd {
+        margin-bottom: 18px;
+      }
+      .did {
+        font-size: 12px;
+        color: var(--ac);
+        font-family: monospace;
+        margin-bottom: 4px;
+      }
+      .dtt {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .dca {
+        font-size: 13px;
+        color: var(--tx2);
+      }
+      .dsec {
+        margin-bottom: 18px;
+      }
+      .dlb {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--tx2);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 7px;
+      }
+      .dbx {
+        background: var(--bg2);
+        border: 1px solid var(--bd);
+        border-radius: var(--r);
+        padding: 12px 14px;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      .dbx.exp {
+        color: var(--gn);
+      }
+      .dbx.pre {
+        color: var(--yw);
+      }
+      kbd {
+        display: inline-block;
+        background: var(--bg3);
+        border: 1px solid var(--bgh);
+        padding: 1px 7px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 13px;
+        margin: 0 1px;
+      }
+      .acts {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      .abtn {
+        padding: 7px 18px;
+        border-radius: var(--r);
+        border: 2px solid var(--bd);
+        background: 0;
+        color: var(--tx);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .abtn:hover {
+        transform: translateY(-1px);
+      }
+      .abtn.p {
+        border-color: var(--gn);
+        color: var(--gn);
+      }
+      .abtn.p:hover,
+      .abtn.p.on {
+        background: var(--gnb);
+      }
+      .abtn.f {
+        border-color: var(--rd);
+        color: var(--rd);
+      }
+      .abtn.f:hover,
+      .abtn.f.on {
+        background: var(--rdb);
+      }
+      .abtn.s {
+        border-color: var(--yw);
+        color: var(--yw);
+      }
+      .abtn.s:hover,
+      .abtn.s.on {
+        background: var(--ywb);
+      }
+      .abtn.r {
+        border-color: var(--tx3);
+        color: var(--tx3);
+      }
+      .abtn.r:hover {
+        background: var(--bg3);
+      }
+      .nav {
+        display: flex;
+        gap: 6px;
+        margin-left: auto;
+      }
+      .nbtn {
+        padding: 4px 10px;
+        border-radius: var(--r);
+        border: 1px solid var(--bd);
+        background: 0;
+        color: var(--tx2);
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .nbtn:hover {
+        border-color: var(--ac);
+        color: var(--ac);
+      }
+      .nbtn:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      .nta {
+        width: 100%;
+        min-height: 55px;
+        background: var(--bg2);
+        border: 1px solid var(--bd);
+        border-radius: var(--r);
+        padding: 9px 12px;
+        color: var(--tx);
+        font-size: 13px;
+        font-family: inherit;
+        resize: vertical;
+        outline: 0;
+      }
+      .nta:focus {
+        border-color: var(--ac);
+      }
+      .nta::placeholder {
+        color: var(--tx3);
+      }
+      .iz {
+        border-top: 1px solid var(--bd);
+        padding: 14px 32px;
+        flex-shrink: 0;
+        background: var(--bg2);
+      }
+      .izl {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--tx2);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 7px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .clr {
+        font-size: 11px;
+        color: var(--tx3);
+        cursor: pointer;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 400;
+        padding: 2px 8px;
+        border: 1px solid var(--bd);
+        border-radius: 4px;
+      }
+      .clr:hover {
+        color: var(--tx);
+        border-color: var(--tx3);
+      }
+      .tinp {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--bg);
+        border: 2px solid var(--bd);
+        border-radius: var(--r);
+        color: var(--tx);
+        font-size: 18px;
+        outline: 0;
+        font-family: "Microsoft YaHei", sans-serif;
+      }
+      .tinp:focus {
+        border-color: var(--ac);
+      }
+      .tinp::placeholder {
+        color: var(--tx3);
+        font-size: 14px;
+      }
+      .iinf {
+        margin-top: 5px;
+        font-size: 11px;
+        color: var(--tx3);
+      }
+      .empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--tx3);
+        gap: 10px;
+      }
+      .empty .ic {
+        font-size: 48px;
+      }
+      .tbar {
+        padding: 7px 12px;
+        border-bottom: 1px solid var(--bd);
+        display: flex;
+        gap: 7px;
+        flex-shrink: 0;
+        background: var(--bg2);
+        align-items: center;
+      }
+      .tbtn {
+        padding: 4px 10px;
+        border: 1px solid var(--bd);
+        border-radius: var(--r);
+        background: 0;
+        color: var(--tx2);
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .tbtn:hover {
+        border-color: var(--ac);
+        color: var(--ac);
+      }
+      .tbtn.dg:hover {
+        border-color: var(--rd);
+        color: var(--rd);
+      }
+      .kh {
+        font-size: 11px;
+        color: var(--tx3);
+        margin-left: auto;
+        display: flex;
+        gap: 10px;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg2);
+        border: 1px solid var(--gn);
+        color: var(--gn);
+        padding: 9px 18px;
+        border-radius: var(--r);
+        font-size: 13px;
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.hide {
+        display: none;
+      }
+      .mdl {
+        background: var(--bg2);
+        border: 1px solid var(--bd);
+        border-radius: 12px;
+        padding: 22px;
+        width: 500px;
+        max-width: 90vw;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .mdl h3 {
+        margin-bottom: 14px;
+        font-size: 16px;
+      }
+      .mdl pre {
+        background: var(--bg);
+        border: 1px solid var(--bd);
+        border-radius: var(--r);
+        padding: 12px;
+        font-size: 12px;
+        overflow-x: auto;
+        max-height: 400px;
+        overflow-y: auto;
+        color: var(--tx2);
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .mbtn {
+        padding: 6px 14px;
+        border: 0;
+        border-radius: var(--r);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        margin-right: 8px;
+      }
+      .mbtn.ok {
+        background: var(--gn);
+        color: #000;
+      }
+      .mbtn.cc {
+        background: var(--bg3);
+        color: var(--tx);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="hdr">
+        <h1><b>清风输入法</b> 测试辅助工具</h1>
+        <div class="pbar"><div class="pfill" id="hpbar"></div></div>
+        <div class="stats" id="hstats"></div>
+      </div>
+      <div class="main">
+        <div class="side">
+          <div class="sctl">
+            <input class="sinp" id="search" placeholder="搜索测试用例..." />
+            <div class="frow" id="filters"></div>
+          </div>
+          <div class="cats" id="catlist"></div>
+          <div class="tbar">
+            <button class="tbtn" onclick="doExport()">导出结果</button>
+            <button class="tbtn" onclick="showModal('imp')">导入结果</button>
+            <button class="tbtn dg" onclick="resetAll()">重置全部</button>
+            <div class="kh">
+              <span><kbd>P</kbd> 通过</span><span><kbd>F</kbd> 失败</span
+              ><span><kbd>S</kbd> 跳过</span>
+            </div>
+          </div>
+        </div>
+        <div class="cnt" id="content"></div>
+      </div>
+    </div>
+    <div id="toastEl" class="toast"></div>
+    <div id="modalExp" class="modal hide">
+      <div class="mdl">
+        <h3>导出测试结果</h3>
+        <p
+          id="expInfo"
+          style="font-size: 13px; color: var(--tx2); margin-bottom: 10px"
+        ></p>
+        <pre id="expData"></pre>
+        <div style="margin-top: 14px">
+          <button class="mbtn ok" onclick="copyExp()">复制到剪贴板</button
+          ><button class="mbtn cc" onclick="downloadExp()">下载 JSON</button
+          ><button class="mbtn cc" onclick="hideModals()">关闭</button>
+        </div>
+      </div>
+    </div>
+    <div id="modalImp" class="modal hide">
+      <div class="mdl">
+        <h3>导入测试结果</h3>
+        <p style="font-size: 13px; color: var(--tx2); margin-bottom: 10px">
+          粘贴之前导出的 JSON，或直接选择本地文件：
+        </p>
+        <textarea
+          id="impData"
+          class="nta"
+          style="min-height: 180px; font-family: monospace; font-size: 12px"
+          placeholder='{"results":{...}}'
+        ></textarea>
+        <div style="margin-top: 14px">
+          <button class="mbtn ok" onclick="doImport()">导入</button
+          ><button class="mbtn cc" onclick="pickImportFile()">选择文件</button
+          ><button class="mbtn cc" onclick="hideModals()">取消</button>
+        </div>
+      </div>
+    </div>
+    <input id="impFile" type="file" accept=".json,application/json" hidden />
+
+    <script type="text/plain" id="legacySource">
+      var T=[
+      {id:"1.1.1",c:"1. 基础输入",t:"拼音输入 nihao",o:"中文模式下输入 `nihao`",e:"预编辑区显示 ni'hao（带音节分隔符），候选窗出现"你好"等候选"},
+      {id:"1.1.2",c:"1. 基础输入",t:"空格上屏首选",o:"输入拼音后按 `空格`",e:"上屏第一个候选词，预编辑区和候选窗消失"},
+      {id:"1.1.3",c:"1. 基础输入",t:"数字键选候选",o:"输入 `zhongguo` 后按 `1`",e:"上屏第 1 个候选（通常为"中国"）"},
+      {id:"1.1.4",c:"1. 基础输入",t:"数字2选候选",o:"输入 `beijing` 后按 `2`",e:"上屏第 2 个候选"},
+      {id:"1.1.5",c:"1. 基础输入",t:"回车上屏原文",o:"输入 `wo` 后按 `回车`",e:"上屏原始拼音字母 wo（非候选词）"},
+      {id:"1.2.1",c:"1. 基础输入",t:"五笔基础输入",o:"切换到五笔引擎，输入 `ggtt`",e:"预编辑区显示 ggtt（无分隔符），出现候选词",p:"五笔引擎"},
+      {id:"1.2.2",c:"1. 基础输入",t:"五笔空格上屏",o:"输入五笔编码后按 `空格`",e:"上屏第一个候选",p:"五笔引擎"},
+      {id:"1.2.3",c:"1. 基础输入",t:"五笔回车上屏原文",o:"输入 `iiii` 后按 `回车`",e:"上屏原始编码 iiii",p:"五笔引擎"},
+      {id:"1.3.1",c:"1. 基础输入",t:"空缓冲区输入数字0",o:"中文模式，缓冲区为空，输入 `0`",e:"数字 0 直接输出到应用（透传）"},
+      {id:"1.3.2",c:"1. 基础输入",t:"连续数字输入",o:"缓冲区为空，输入 `123456`",e:"数字全部直接输出"},
+      {id:"1.3.3",c:"1. 基础输入",t:"有候选时按数字选词",o:"先输入 `wo`（有候选），再按 `1`",e:"选择第 1 个候选上屏"},
+      {id:"1.3.4",c:"1. 基础输入",t:"有候选时按0",o:"先输入 `wo`（有候选），再按 `0`",e:"0 不触发候选选择（仅 1-9 有效），按键透传"},
+      {id:"1.4.1",c:"1. 基础输入",t:"英文模式字母",o:"切换到英文模式，输入字母",e:"字母直接输出，无候选窗"},
+      {id:"1.4.2",c:"1. 基础输入",t:"英文模式数字",o:"英文模式输入数字",e:"数字直接输出"},
+      {id:"1.4.3",c:"1. 基础输入",t:"英文模式标点",o:"英文模式输入标点",e:"英文标点直接输出（不转换）"},
+      {id:"2.1.1",c:"2. 中英文切换",t:"左Shift切换到英文",o:"中文模式下按 `左Shift`（按下并松开）",e:"切换到英文模式，显示指示器 En"},
+      {id:"2.1.2",c:"2. 中英文切换",t:"左Shift切回中文",o:"英文模式下按 `左Shift`",e:"切换到中文模式，显示指示器"中·拼音"或"中·五笔""},
+      {id:"2.1.3",c:"2. 中英文切换",t:"右Shift切换",o:"按 `右Shift`",e:"同样触发中英文切换"},
+      {id:"2.2.1",c:"2. 中英文切换",t:"有缓冲区时切换（清空）",o:"输入 `zhong`（有候选），按 `Shift` 切换",e:"缓冲区清空，候选窗消失，切换到英文模式"},
+      {id:"2.2.2",c:"2. 中英文切换",t:"CommitOnSwitch上屏",o:"启用 commit_on_switch，输入 `zhong`，按 `Shift`",e:"原始编码 zhong 上屏，切换到英文模式",p:"commit_on_switch = true"},
+      {id:"2.2.3",c:"2. 中英文切换",t:"禁用CommitOnSwitch",o:"禁用 commit_on_switch，输入 `zhong`，按 `Shift`",e:"缓冲区清空（不上屏），切换到英文模式",p:"commit_on_switch = false"},
+      {id:"2.3.1",c:"2. 中英文切换",t:"标点跟随-切到英文",o:"启用 punct_follow_mode，中文模式切到英文",e:"标点同时切换为英文标点",p:"punct_follow_mode = true"},
+      {id:"2.3.2",c:"2. 中英文切换",t:"标点跟随-切回中文",o:"上述状态切回中文",e:"标点恢复为中文标点",p:"punct_follow_mode = true"},
+      {id:"2.3.3",c:"2. 中英文切换",t:"禁用标点跟随",o:"禁用 punct_follow_mode，切换中英文",e:"标点模式不随之改变",p:"punct_follow_mode = false"},
+      {id:"2.4.1",c:"2. 中英文切换",t:"仅左Shift配置",o:"配置 toggle_mode_keys: [lshift]，按 `右Shift`",e:"不触发切换（仅左 Shift 生效）",p:"toggle_mode_keys: [lshift]"},
+      {id:"2.4.2",c:"2. 中英文切换",t:"CapsLock切换",o:"配置 toggle_mode_keys: [capslock]，按 `CapsLock`",e:"触发中英文切换",p:"toggle_mode_keys: [capslock]"},
+      {id:"3.1.1",c:"3. CapsLock",t:"CapsLock ON 输入字母",o:"中文模式，CapsLock ON，输入 `a`",e:"直接输出大写 A（不进入拼音/五笔）",p:"CapsLock ON"},
+      {id:"3.1.2",c:"3. CapsLock",t:"CapsLock ON Shift+字母",o:"CapsLock ON，`Shift+a`",e:"输出小写 a",p:"CapsLock ON"},
+      {id:"3.1.3",c:"3. CapsLock",t:"CapsLock ON 连续输入",o:"CapsLock ON，连续输入字母",e:"全部为大写英文字母，无候选窗",p:"CapsLock ON"},
+      {id:"3.1.4",c:"3. CapsLock",t:"CapsLock ON 指示器",o:"CapsLock ON 时观察指示器",e:"显示大写 A 指示",p:"CapsLock ON"},
+      {id:"3.2.1",c:"3. CapsLock",t:"CapsLock OFF 正常输入",o:"CapsLock OFF，输入字母",e:"正常进入中文输入（拼音/五笔）",p:"CapsLock OFF"},
+      {id:"3.3.1",c:"3. CapsLock",t:"焦点恢复同步CapsLock",o:"切换窗口后回来，检查 CapsLock 状态",e:"与系统 CapsLock 状态保持同步"},
+      {id:"4.1.1",c:"4. 标点符号",t:"逗号 , \u2192 \uff0c",o:"中文标点模式，缓冲区为空，输入 `,`",e:"\u8f93\u51fa\u4e2d\u6587\u9017\u53f7 \uff0c",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.2",c:"4. 标点符号",t:"句号 . \u2192 \u3002",o:"输入 `.`",e:"\u8f93\u51fa\u4e2d\u6587\u53e5\u53f7 \u3002",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.3",c:"4. 标点符号",t:"问号 ? \u2192 \uff1f",o:"输入 `?`（Shift+/）",e:"\u8f93\u51fa\u4e2d\u6587\u95ee\u53f7 \uff1f",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.4",c:"4. 标点符号",t:"感叹号 ! \u2192 \uff01",o:"输入 `!`（Shift+1）",e:"\u8f93\u51fa\u4e2d\u6587\u611f\u53f9\u53f7 \uff01",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.5",c:"4. 标点符号",t:"冒号 : \u2192 \uff1a",o:"输入 `:`（Shift+;）",e:"\u8f93\u51fa\u4e2d\u6587\u5192\u53f7 \uff1a",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.6",c:"4. 标点符号",t:"分号 ; \u2192 \uff1b",o:"输入 `;`\uff08\u65e0\u5019\u9009\u65f6\uff09",e:"\u8f93\u51fa\u4e2d\u6587\u5206\u53f7 \uff1b",p:"\u4e2d\u6587\u6807\u70b9\uff0c\u7f13\u51b2\u533a\u4e3a\u7a7a"},
+      {id:"4.1.7",c:"4. 标点符号",t:"左括号 ( \u2192 \uff08",o:"输入 `(`",e:"\u8f93\u51fa\u4e2d\u6587\u5de6\u62ec\u53f7 \uff08",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.8",c:"4. 标点符号",t:"右括号 ) \u2192 \uff09",o:"输入 `)`",e:"\u8f93\u51fa\u4e2d\u6587\u53f3\u62ec\u53f7 \uff09",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.9",c:"4. 标点符号",t:"左方括号 [ \u2192 \u3010",o:"输入 `[`",e:"\u8f93\u51fa\u4e2d\u6587\u5de6\u65b9\u62ec\u53f7 \u3010",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.10",c:"4. 标点符号",t:"右方括号 ] \u2192 \u3011",o:"输入 `]`",e:"\u8f93\u51fa\u4e2d\u6587\u53f3\u65b9\u62ec\u53f7 \u3011",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.11",c:"4. 标点符号",t:"左花括号 { \u2192 \uff5b",o:"输入 `{`",e:"\u8f93\u51fa\u4e2d\u6587\u5de6\u82b1\u62ec\u53f7 \uff5b",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.12",c:"4. 标点符号",t:"右花括号 } \u2192 \uff5d",o:"输入 `}`",e:"\u8f93\u51fa\u4e2d\u6587\u53f3\u82b1\u62ec\u53f7 \uff5d",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.13",c:"4. 标点符号",t:"左书名号 < \u2192 \u300a",o:"输入 `<`（Shift+,）",e:"\u8f93\u51fa\u5de6\u4e66\u540d\u53f7 \u300a",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.14",c:"4. 标点符号",t:"右书名号 > \u2192 \u300b",o:"输入 `>`（Shift+.）",e:"\u8f93\u51fa\u53f3\u4e66\u540d\u53f7 \u300b",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.15",c:"4. 标点符号",t:"波浪号 ~ \u2192 \uff5e",o:"输入 `~`",e:"\u8f93\u51fa\u4e2d\u6587\u6ce2\u6d6a\u53f7 \uff5e",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.16",c:"4. 标点符号",t:"@ \u2192 \u00b7",o:"输入 `@`",e:"\u8f93\u51fa\u95f4\u9694\u53f7 \u00b7",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.17",c:"4. 标点符号",t:"$ \u2192 \uffe5",o:"输入 `$`",e:"\u8f93\u51fa\u4eba\u6c11\u5e01\u7b26\u53f7 \uffe5",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.18",c:"4. 标点符号",t:"反引号 ` \u2192 \u3001",o:"\u8f93\u5165\u53cd\u5f15\u53f7",e:"\u8f93\u51fa\u987f\u53f7 \u3001",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.19",c:"4. 标点符号",t:"^ \u2192 \u2026\u2026",o:"输入 `^`（Shift+6）",e:"\u8f93\u51fa\u7701\u7565\u53f7 \u2026\u2026\uff08\u4e24\u4e2a\u2026\uff09",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.1.20",c:"4. 标点符号",t:"_ \u2192 \u2014\u2014",o:"输入 `_`（Shift+-）",e:"\u8f93\u51fa\u7834\u6298\u53f7 \u2014\u2014\uff08\u4e24\u4e2a\u2014\uff09",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.1",c:"4. 标点符号",t:"单引号配对-第1次",o:"第 1 次按 `'`",e:"\u8f93\u51fa\u5de6\u5355\u5f15\u53f7 \u2018",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.2",c:"4. 标点符号",t:"单引号配对-第2次",o:"第 2 次按 `'`",e:"\u8f93\u51fa\u53f3\u5355\u5f15\u53f7 \u2019",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.3",c:"4. 标点符号",t:"单引号配对-第3次",o:"第 3 次按 `'`",e:"\u91cd\u65b0\u5faa\u73af\u4e3a\u5de6\u5355\u5f15\u53f7 \u2018",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.4",c:"4. 标点符号",t:"双引号配对-第1次",o:"第 1 次按 `\"`",e:"\u8f93\u51fa\u5de6\u53cc\u5f15\u53f7 \u201c",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.5",c:"4. 标点符号",t:"双引号配对-第2次",o:"第 2 次按 `\"`",e:"\u8f93\u51fa\u53f3\u53cc\u5f15\u53f7 \u201d",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.6",c:"4. 标点符号",t:"双引号配对-第3次",o:"第 3 次按 `\"`",e:"\u91cd\u65b0\u5faa\u73af\u4e3a\u5de6\u53cc\u5f15\u53f7 \u201c",p:"\u4e2d\u6587\u6807\u70b9\u6a21\u5f0f"},
+      {id:"4.2.7",c:"4. 标点符号",t:"引号状态重置",o:"按 `'` 后切英文再切回中文，再按 `'`",e:"验证引号状态是否重置为左引号"},
+      {id:"4.3.1",c:"4. 标点符号",t:"英文标点-逗号",o:"切换为英文标点模式，输入 `,`",e:"输出英文逗号 ,",p:"英文标点模式"},
+      {id:"4.3.2",c:"4. 标点符号",t:"英文标点-句号",o:"英文标点模式，输入 `.`",e:"输出英文句号 .",p:"英文标点模式"},
+      {id:"4.4.1",c:"4. 标点符号",t:"拼音有缓冲区输入标点",o:"拼音模式，输入 `wo`（有候选），按 `,`",e:"标点透传给应用（拼音无标点顶字）",p:"拼音引擎"},
+      {id:"4.4.2",c:"4. 标点符号",t:"五笔标点顶字(开)",o:"五笔(punct_commit=true)，输入编码有候选，按 `,`",e:"上屏首选候选 + 中文逗号",p:"五笔引擎，punct_commit=true"},
+      {id:"4.4.3",c:"4. 标点符号",t:"五笔标点顶字(关)",o:"五笔(punct_commit=false)，有候选按 `,`",e:"标点透传给应用",p:"五笔引擎，punct_commit=false"},
+      {id:"5.1.1",c:"5. 全角半角",t:"全角字母",o:"开启全角模式，输入英文字母 `a`",e:"\u8f93\u51fa\u5168\u89d2 \uff41",p:"全角模式"},
+      {id:"5.1.2",c:"5. 全角半角",t:"全角数字",o:"全角模式，输入数字 `1`",e:"\u8f93\u51fa\u5168\u89d2 \uff11",p:"全角模式"},
+      {id:"5.1.3",c:"5. 全角半角",t:"全角空格",o:"全角模式，输入 `空格`（缓冲区为空）",e:"\u8f93\u51fa\u5168\u89d2\u7a7a\u683c",p:"全角模式"},
+      {id:"5.1.4",c:"5. 全角半角",t:"关闭全角恢复",o:"关闭全角模式，输入字符",e:"所有字符恢复正常半角输出"},
+      {id:"5.2.1",c:"5. 全角半角",t:"全角回车上屏编码",o:"全角模式，有缓冲区，按 `回车` 上屏原始编码",e:"编码字符不做全角转换",p:"全角模式"},
+      {id:"6.1.1",c:"6. 候选词与翻页",t:"数字1选词",o:"输入拼音有候选，按 `1`",e:"上屏第 1 个候选"},
+      {id:"6.1.2",c:"6. 候选词与翻页",t:"数字5选词",o:"按 `5`",e:"上屏第 5 个候选（如有）"},
+      {id:"6.1.3",c:"6. 候选词与翻页",t:"数字9选词",o:"按 `9`",e:"上屏第 9 个候选（如有）"},
+      {id:"6.1.4",c:"6. 候选词与翻页",t:"候选不足时按9",o:"候选不足 9 个时按 `9`",e:"无反应（不上屏，不出错）"},
+      {id:"6.2.1",c:"6. 候选词与翻页",t:"分号选第2候选",o:"有 3+ 候选时按 `;`",e:"上屏第 2 个候选",p:"select_key_groups 含 semicolon_quote"},
+      {id:"6.2.2",c:"6. 候选词与翻页",t:"引号选第3候选",o:"有 3+ 候选时按 `'`",e:"上屏第 3 个候选",p:"select_key_groups 含 semicolon_quote"},
+      {id:"6.2.3",c:"6. 候选词与翻页",t:"仅1候选时按分号",o:"仅 1 个候选时按 `;`",e:"作为标点符号处理（不选择）",p:"select_key_groups 含 semicolon_quote"},
+      {id:"6.3.1",c:"6. 候选词与翻页",t:"PageDown翻页",o:"输入拼音产生多页候选，按 `PageDown`",e:"翻到第 2 页"},
+      {id:"6.3.2",c:"6. 候选词与翻页",t:"PageUp翻回",o:"在第 2 页按 `PageUp`",e:"翻回第 1 页"},
+      {id:"6.3.3",c:"6. 候选词与翻页",t:"末页PageDown",o:"在最后一页按 `PageDown`",e:"无变化（消耗按键，不翻页）"},
+      {id:"6.3.4",c:"6. 候选词与翻页",t:"首页PageUp",o:"在第 1 页按 `PageUp`",e:"无变化（消耗按键，不翻页）"},
+      {id:"6.3.5",c:"6. 候选词与翻页",t:"空缓冲区翻页键",o:"缓冲区为空时按 `PageDown`",e:"按键透传给应用"},
+      {id:"6.4.1",c:"6. 候选词与翻页",t:"减号翻页",o:"有候选时按 `-`",e:"向前翻页",p:"page_keys 含 minus_equal"},
+      {id:"6.4.2",c:"6. 候选词与翻页",t:"等号翻页",o:"有候选时按 `=`",e:"向后翻页",p:"page_keys 含 minus_equal"},
+      {id:"6.5.1",c:"6. 候选词与翻页",t:"拼音部分上屏",o:"输入 `womenshidaxuesheng`，选择候选"我们"",e:""我们"上屏，剩余部分保留在缓冲区，重新获取候选"},
+      {id:"6.5.2",c:"6. 候选词与翻页",t:"连续部分上屏",o:"继续选择候选",e:"逐步上屏，缓冲区逐步缩短"},
+      {id:"7.1.1",c:"7. 光标与编辑",t:"左箭头移动光标",o:"输入 `nihao`，按左箭头",e:"光标从末尾左移一位"},
+      {id:"7.1.2",c:"7. 光标与编辑",t:"光标到最左",o:"连按左箭头直到最左",e:"光标到达位置 0"},
+      {id:"7.1.3",c:"7. 光标与编辑",t:"最左再按左箭头",o:"光标在最左时再按左箭头",e:"无移动（按键被消耗，不透传）"},
+      {id:"7.1.4",c:"7. 光标与编辑",t:"Home键",o:"按 `Home` 键",e:"光标跳到最左"},
+      {id:"7.1.5",c:"7. 光标与编辑",t:"End键",o:"按 `End` 键",e:"光标跳到最右"},
+      {id:"7.1.6",c:"7. 光标与编辑",t:"光标中间插入",o:"光标移到中间，输入字母",e:"字母插入到光标位置，候选更新"},
+      {id:"7.1.7",c:"7. 光标与编辑",t:"光标中间删除",o:"光标在中间，按 `Backspace`",e:"删除光标前的字符，候选更新"},
+      {id:"7.2.1",c:"7. 光标与编辑",t:"空缓冲区箭头键",o:"缓冲区为空，按左/右箭头",e:"透传给应用（光标移动）"},
+      {id:"7.2.2",c:"7. 光标与编辑",t:"空缓冲区Home/End",o:"缓冲区为空，按 `Home` / `End`",e:"透传给应用"},
+      {id:"8.1.1",c:"8. 特殊按键",t:"Backspace删除",o:"有缓冲区，按 `Backspace`",e:"删除光标前一个字符，候选更新"},
+      {id:"8.1.2",c:"8. 特殊按键",t:"Backspace清空缓冲",o:"缓冲区仅剩 1 字符，按 `Backspace`",e:"缓冲区清空，候选窗消失"},
+      {id:"8.1.3",c:"8. 特殊按键",t:"空缓冲Backspace",o:"缓冲区为空，按 `Backspace`",e:"透传给应用（删除已输入文字）"},
+      {id:"8.2.1",c:"8. 特殊按键",t:"Escape清空",o:"有缓冲区（有候选），按 `Escape`",e:"清空缓冲区，候选窗消失，不上屏"},
+      {id:"8.2.2",c:"8. 特殊按键",t:"空缓冲Escape",o:"缓冲区为空，按 `Escape`",e:"返回 ClearComposition 信号"},
+      {id:"8.3.1",c:"8. 特殊按键",t:"Enter上屏原文",o:"有缓冲区 `nihao`，按 `Enter`",e:"上屏原始编码 nihao（非候选词）"},
+      {id:"8.3.2",c:"8. 特殊按键",t:"空缓冲Enter",o:"缓冲区为空，按 `Enter`",e:"透传给应用（换行）"},
+      {id:"8.4.1",c:"8. 特殊按键",t:"Space选首候选",o:"有候选词时按 `空格`",e:"上屏第一个候选"},
+      {id:"8.4.2",c:"8. 特殊按键",t:"无候选Space上屏",o:"有缓冲区但无候选时按 `空格`",e:"上屏原始编码"},
+      {id:"8.4.3",c:"8. 特殊按键",t:"空缓冲Space",o:"缓冲区为空时按 `空格`",e:"透传给应用（输出空格）"},
+      {id:"8.5.1",c:"8. 特殊按键",t:"Ctrl+C透传",o:"按 `Ctrl+C`",e:"透传给应用（复制）"},
+      {id:"8.5.2",c:"8. 特殊按键",t:"Ctrl+V透传",o:"按 `Ctrl+V`",e:"透传给应用（粘贴）"},
+      {id:"9.1.1",c:"9. 临时英文",t:"Shift+字母进入",o:"`Shift+A`（按住 Shift 同时按 A）",e:"进入临时英文模式，显示 A（首字母大写）",p:"中文模式，CapsLock OFF，shift_temp_english.enabled=true"},
+      {id:"9.1.2",c:"9. 临时英文",t:"后续字母小写",o:"松开 Shift，继续输入 `pple`",e:"显示 Apple"},
+      {id:"9.1.3",c:"9. 临时英文",t:"空格上屏退出",o:"按 `空格`",e:"上屏 Apple，退出临时英文模式"},
+      {id:"9.1.4",c:"9. 临时英文",t:"Enter上屏退出",o:"Shift+H，输入 `ello`，按 `Enter`",e:"上屏 Hello，退出"},
+      {id:"9.2.1",c:"9. 临时英文",t:"Backspace删除",o:"临时英文模式中按 `Backspace`",e:"删除最后一个字符"},
+      {id:"9.2.2",c:"9. 临时英文",t:"删到空自动退出",o:"逐字删除直到为空",e:"自动退出临时英文模式"},
+      {id:"9.2.3",c:"9. 临时英文",t:"Escape退出",o:"临时英文模式中按 `Escape`",e:"不上屏，直接退出"},
+      {id:"9.2.4",c:"9. 临时英文",t:"数字退出",o:"临时英文中输入数字 `3`",e:"上屏当前缓冲 + 数字 3，退出"},
+      {id:"9.2.5",c:"9. 临时英文",t:"标点退出",o:"临时英文中输入标点 `,`",e:"上屏当前缓冲，处理标点，退出"},
+      {id:"9.3.1",c:"9. 临时英文",t:"Shift控制大小写",o:"Shift+A 进入，松开输入 `bc`，按住 Shift 输入 `DE`",e:"显示 AbcDE"},
+      {id:"9.4.1",c:"9. 临时英文",t:"缓冲非空不触发",o:"缓冲区非空时 Shift+字母",e:"不进入临时英文（正常处理）"},
+      {id:"9.4.2",c:"9. 临时英文",t:"CapsLock ON 不触发",o:"CapsLock ON 时 Shift+字母",e:"不进入临时英文（CapsLock 优先）",p:"CapsLock ON"},
+      {id:"9.4.3",c:"9. 临时英文",t:"英文模式不触发",o:"英文模式下 Shift+字母",e:"不进入临时英文"},
+      {id:"10.1.1",c:"10. 临时拼音",t:"反引号进入",o:"五笔引擎，缓冲区为空，按反引号",e:"进入临时拼音模式，UI 显示前缀",p:"五笔引擎"},
+      {id:"10.1.2",c:"10. 临时拼音",t:"拼音查询",o:"输入 `nihao`",e:"使用拼音引擎查询，显示拼音候选",p:"五笔引擎，临时拼音模式"},
+      {id:"10.1.3",c:"10. 临时拼音",t:"选词退出",o:"按空格或数字选择候选",e:"上屏候选词，退出临时拼音模式"},
+      {id:"10.1.4",c:"10. 临时拼音",t:"Escape退出",o:"按 `Escape`",e:"不上屏，直接退出"},
+      {id:"10.1.5",c:"10. 临时拼音",t:"Enter上屏原文",o:"按 `Enter`",e:"上屏拼音原文字母，退出"},
+      {id:"10.2.1",c:"10. 临时拼音",t:"拼音引擎不触发",o:"拼音引擎下按反引号",e:"作为标点处理（输出顿号）",p:"拼音引擎"},
+      {id:"10.2.2",c:"10. 临时拼音",t:"有缓冲不触发",o:"五笔引擎，缓冲区非空时按反引号",e:"不进入临时拼音",p:"五笔引擎"},
+      {id:"11.1.1",c:"11. 五笔专项",t:"四码唯一自动上屏",o:"输入 4 码，恰好唯一候选",e:"自动上屏该候选",p:"五笔，auto_commit_at_4=true"},
+      {id:"11.1.2",c:"11. 五笔专项",t:"四码多候选不上屏",o:"输入 4 码，多个候选",e:"不自动上屏，等待用户选择",p:"五笔，auto_commit_at_4=true"},
+      {id:"11.2.1",c:"11. 五笔专项",t:"五码顶字上屏",o:"输入 4 码有候选，输入第 5 码",e:"先上屏 4 码首选，第 5 码作为新编码开始",p:"五笔，top_code_commit=true"},
+      {id:"11.2.2",c:"11. 五笔专项",t:"禁用顶字第5码",o:"top_code_commit=false，输入第 5 码",e:"第 5 码被拒绝",p:"五笔，top_code_commit=false"},
+      {id:"11.3.1",c:"11. 五笔专项",t:"四码空码清空",o:"输入 4 码无候选",e:"缓冲区自动清空",p:"五笔，clear_on_empty_at_4=true"},
+      {id:"11.3.2",c:"11. 五笔专项",t:"四码空码保留",o:"输入 4 码无候选",e:"缓冲区保留，可 Backspace 修改",p:"五笔，clear_on_empty_at_4=false"},
+      {id:"11.4.1",c:"11. 五笔专项",t:"标点顶字-逗号",o:"有候选按 `,`",e:"首选上屏 + 中文逗号",p:"五笔，punct_commit=true"},
+      {id:"11.4.2",c:"11. 五笔专项",t:"标点顶字-句号",o:"有候选按 `.`",e:"首选上屏 + 中文句号",p:"五笔，punct_commit=true"},
+      {id:"12.1.1",c:"12. 拼音专项",t:"音节分隔 nihao",o:"输入 `nihao`",e:"预编辑显示 ni'hao",p:"拼音引擎"},
+      {id:"12.1.2",c:"12. 拼音专项",t:"音节分隔 zhongguo",o:"输入 `zhongguo`",e:"预编辑显示 zhong'guo",p:"拼音引擎"},
+      {id:"12.1.3",c:"12. 拼音专项",t:"未完成音节",o:"输入 `zh`",e:"显示 zh（未完成音节，有候选）",p:"拼音引擎"},
+      {id:"12.2.1",c:"12. 拼音专项",t:"模糊音 zh_z",o:"启用 zh_z，输入 `zi`",e:"候选中包含"知"等 zhi 的字",p:"拼音，fuzzy.zh_z=true"},
+      {id:"12.2.2",c:"12. 拼音专项",t:"模糊音 n_l",o:"启用 n_l，输入 `nv`",e:"候选中包含"绿"等 lv 的字",p:"拼音，fuzzy.n_l=true"},
+      {id:"12.2.3",c:"12. 拼音专项",t:"模糊音 an_ang",o:"启用 an_ang，输入 `fang`",e:"候选中包含"饭"等 fan 的字",p:"拼音，fuzzy.an_ang=true"},
+      {id:"12.2.4",c:"12. 拼音专项",t:"关闭模糊音",o:"关闭所有模糊音",e:"严格匹配，不显示模糊结果",p:"拼音引擎"},
+      {id:"13.1.1",c:"13. 快捷键",t:"Ctrl+`切换引擎",o:"拼音模式下按 `Ctrl+反引号`",e:"切换到五笔，指示器显示"中·五笔""},
+      {id:"13.1.2",c:"13. 快捷键",t:"再次切回拼音",o:"五笔模式下按 `Ctrl+反引号`",e:"切换到拼音，指示器显示"中·拼音""},
+      {id:"13.1.3",c:"13. 快捷键",t:"有缓冲切引擎",o:"有缓冲区时按 `Ctrl+反引号`",e:"缓冲区清空，切换引擎"},
+      {id:"13.2.1",c:"13. 快捷键",t:"Shift+Space全角",o:"按 `Shift+Space`",e:"切换全角/半角，指示器显示"全"或"半""},
+      {id:"13.3.1",c:"13. 快捷键",t:"Ctrl+.标点切换",o:"按 `Ctrl+.`",e:"切换中英标点，指示器显示"中，"或"英.""},
+      {id:"14.1.1",c:"14. 焦点与生命周期",t:"切换窗口清状态",o:"输入中途（有缓冲），切换到其他窗口",e:"缓冲区清空，候选窗消失，工具栏隐藏"},
+      {id:"14.1.2",c:"14. 焦点与生命周期",t:"回来重新输入",o:"切换回原窗口",e:"从空缓冲区重新开始，工具栏恢复"},
+      {id:"14.1.3",c:"14. 焦点与生命周期",t:"点击输入框其他位置",o:"输入中途点击同一输入框其他位置",e:"缓冲区清空（组合终止），工具栏保持"},
+      {id:"14.2.1",c:"14. 焦点与生命周期",t:"切换到其他输入法",o:"切换到其他输入法",e:"清空输入，隐藏所有 UI"},
+      {id:"14.2.2",c:"14. 焦点与生命周期",t:"切回清风输入法",o:"切换回清风输入法",e:"恢复上次模式，CapsLock 同步"},
+      {id:"14.3.1",c:"14. 焦点与生命周期",t:"记忆英文模式",o:"切到英文，重启服务",e:"启动时为英文模式",p:"remember_last_state=true"},
+      {id:"14.3.2",c:"14. 焦点与生命周期",t:"不记忆状态",o:"重启服务",e:"使用默认配置",p:"remember_last_state=false"},
+      {id:"15.1.1",c:"15. 工具栏与菜单",t:"点击中/英按钮",o:"点击工具栏"中/英"按钮",e:"切换中英文模式"},
+      {id:"15.1.2",c:"15. 工具栏与菜单",t:"点击全/半按钮",o:"点击"全/半"按钮",e:"切换全角/半角"},
+      {id:"15.1.3",c:"15. 工具栏与菜单",t:"点击标点按钮",o:"点击标点按钮",e:"切换中/英标点"},
+      {id:"15.1.4",c:"15. 工具栏与菜单",t:"右键菜单",o:"右键工具栏",e:"弹出统一菜单"},
+      {id:"15.2.1",c:"15. 工具栏与菜单",t:"菜单-设置",o:"选择菜单中的"设置"",e:"打开设置程序"},
+      {id:"15.2.2",c:"15. 工具栏与菜单",t:"菜单-主题",o:"选择菜单中的主题选项",e:"应用新主题"},
+      {id:"15.2.3",c:"15. 工具栏与菜单",t:"菜单-退出",o:"选择菜单中的"退出"",e:"服务进程正常退出"},
+      {id:"15.3.1",c:"15. 工具栏与菜单",t:"指示器显示时长",o:"切换模式观察指示器",e:"约 800ms 后自动消失"},
+      {id:"16.1.1",c:"16. 词库功能",t:"用户词频学习",o:"拼音选词后，再次输入相同拼音",e:"之前选过的词排名靠前"},
+      {id:"16.1.2",c:"16. 词库功能",t:"添加用户词条",o:"在设置界面添加用户词条",e:"输入时该词条出现在候选中"},
+      {id:"16.1.3",c:"16. 词库功能",t:"删除用户词条",o:"在设置界面删除用户词条",e:"该词条不再优先"},
+      {id:"16.2.1",c:"16. 词库功能",t:"自定义短语",o:"添加短语 yx \u2192 your@email.com",e:"输入 yx 时候选中出现该邮箱"},
+      {id:"16.3.1",c:"16. 词库功能",t:"Shadow替换规则",o:"添加替换规则 A\u2192B",e:"输入时 A 被替换为 B"},
+      {id:"17.1",c:"17. 配置热重载",t:"修改候选数",o:"在设置界面修改候选数",e:"无需重启服务，立即生效"},
+      {id:"17.2",c:"17. 配置热重载",t:"修改翻页键",o:"修改翻页键配置",e:"新的翻页键立即生效"},
+      {id:"17.3",c:"17. 配置热重载",t:"修改主题",o:"修改主题",e:"候选窗样式立即更新"},
+      {id:"18.1",c:"18. 多显示器与DPI",t:"主显示器候选窗",o:"在主显示器输入",e:"候选窗在光标附近正确显示"},
+      {id:"18.2",c:"18. 多显示器与DPI",t:"副显示器候选窗",o:"将窗口拖到副显示器输入",e:"候选窗跟随光标到副显示器"},
+      {id:"18.3",c:"18. 多显示器与DPI",t:"高DPI显示",o:"高 DPI 显示器（150%/200% 缩放）测试",e:"候选窗字体清晰，无模糊"},
+      {id:"19.1.1",c:"19. 边界与异常",t:"快速输入",o:"非常快速地输入长拼音字符串",e:"所有字符正确进入缓冲区"},
+      {id:"19.1.2",c:"19. 边界与异常",t:"快速选词连续输入",o:"快速选词后立即输入下一个词",e:"无丢字、无延迟"},
+      {id:"19.1.3",c:"19. 边界与异常",t:"快速连续切换模式",o:"快速连续切换模式多次",e:"模式正确切换，指示器正确"},
+      {id:"19.2.1",c:"19. 边界与异常",t:"记事本兼容性",o:"在记事本中使用",e:"正常工作"},
+      {id:"19.2.2",c:"19. 边界与异常",t:"浏览器兼容性",o:"在浏览器网页文本框中使用",e:"正常工作"},
+      {id:"19.2.3",c:"19. 边界与异常",t:"命令提示符兼容性",o:"在命令提示符/PowerShell 中使用",e:"正常工作"},
+      {id:"19.3.1",c:"19. 边界与异常",t:"长时间使用稳定性",o:"长时间使用（1 小时以上）",e:"内存稳定，无泄漏"},
+      {id:"19.3.2",c:"19. 边界与异常",t:"休眠唤醒",o:"系统休眠后唤醒",e:"输入法正常工作"},
+      {id:"19.3.3",c:"19. 边界与异常",t:"重复启动服务",o:"重复启动服务",e:"单实例检测，不会启动多个进程"}
+      ];
+
+      var KEY="windinput-test-v2",R={},cur=null,flt="all",openC={},tval="";
+      function load(){try{R=JSON.parse(localStorage.getItem(KEY)||"{}");return}catch(e){R={}}}
+      function save(){try{localStorage.setItem(KEY,JSON.stringify(R))}catch(e){}}
+      load();
+
+      // Build category structure
+      var cats=[];
+      (function(){
+        var seen={};
+        T.forEach(function(t){
+          if(!seen[t.c]){seen[t.c]=1;cats.push({n:t.c,ts:[]});openC[t.c]=true}
+          cats[cats.length-1].ts.push(t);
+        });
+      })();
+
+      function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+      function fmtKbd(s){return esc(s).replace(/`([^`]+)`/g,"<kbd>$1</kbd>")}
+      function ico(s){return s==="pass"?"\u2705":s==="fail"?"\u274c":s==="skip"?"\u23ed\ufe0f":"\u2b1c"}
+
+      function getStats(){
+        var p=0,f=0,s=0;
+        T.forEach(function(t){var st=R[t.id]&&R[t.id].s;if(st==="pass")p++;else if(st==="fail")f++;else if(st==="skip")s++});
+        var tot=T.length,dn=p+f+s;
+        return{p:p,f:f,s:s,w:tot-dn,tot:tot,pct:tot?(dn/tot*100).toFixed(0):"0"}
+      }
+      function catSt(cat){
+        var dn=0;cat.ts.forEach(function(t){if(R[t.id]&&R[t.id].s)dn++});
+        return{dn:dn,tot:cat.ts.length,pct:cat.ts.length?(dn/cat.ts.length*100).toFixed(0):"0"}
+      }
+
+      function getFiltered(){
+        var q=document.getElementById("search").value.toLowerCase();
+        return T.filter(function(t){
+          if(flt!=="all"){var st=(R[t.id]&&R[t.id].s)||"pending";if(st!==flt)return false}
+          if(q){return t.id.toLowerCase().indexOf(q)>=0||t.t.toLowerCase().indexOf(q)>=0||t.o.toLowerCase().indexOf(q)>=0||t.e.toLowerCase().indexOf(q)>=0}
+          return true;
+        });
+      }
+
+      function renderStats(){
+        var s=getStats();
+        document.getElementById("hstats").innerHTML=
+          '<div class="stat"><span class="dot dot-p"></span>'+s.p+' \u901a\u8fc7</div>'+
+          '<div class="stat"><span class="dot dot-f"></span>'+s.f+' \u5931\u8d25</div>'+
+          '<div class="stat"><span class="dot dot-s"></span>'+s.s+' \u8df3\u8fc7</div>'+
+          '<div class="stat"><span class="dot dot-w"></span>'+s.w+' \u5f85\u6d4b</div>'+
+          '<div class="stat" style="font-weight:700;color:var(--tx)">'+s.pct+'%</div>';
+        var tot=s.tot||1;
+        document.getElementById("hpbar").innerHTML=
+          '<div class="seg-p" style="width:'+(s.p/tot*100)+'%"></div>'+
+          '<div class="seg-f" style="width:'+(s.f/tot*100)+'%"></div>'+
+          '<div class="seg-s" style="width:'+(s.s/tot*100)+'%"></div>';
+      }
+
+      function renderFilters(){
+        var s=getStats();
+        var items=[
+          ["all","\u5168\u90e8 ("+s.tot+")"],
+          ["pending","\u2b1c \u5f85\u6d4b ("+s.w+")"],
+          ["pass","\u2705 \u901a\u8fc7 ("+s.p+")"],
+          ["fail","\u274c \u5931\u8d25 ("+s.f+")"],
+          ["skip","\u23ed\ufe0f \u8df3\u8fc7 ("+s.s+")"]
+        ];
+        document.getElementById("filters").innerHTML=items.map(function(x){
+          return '<button class="fbtn'+(flt===x[0]?" on":"")+'" onclick="setFilter(\''+x[0]+'\')">'+x[1]+'</button>';
+        }).join("");
+      }
+
+      function renderSidebar(){
+        var fl=getFiltered(),flIds={};
+        fl.forEach(function(t){flIds[t.id]=1});
+        var html="";
+        cats.forEach(function(cat){
+          var vis=cat.ts.filter(function(t){return flIds[t.id]});
+          if(!vis.length)return;
+          var cs=catSt(cat);
+          html+='<div class="cath" onclick="toggleCat(\''+esc(cat.n)+'\')">';
+          html+='<span class="catarr'+(openC[cat.n]?" open":"")+'">&#9654;</span>';
+          html+=esc(cat.n);
+          html+='<span class="catpg">'+cs.dn+'/'+cs.tot+'</span>';
+          html+='<div class="catpb"><div class="catpf" style="width:'+cs.pct+'%"></div></div>';
+          html+='</div>';
+          if(openC[cat.n]){
+            vis.forEach(function(t){
+              var st=(R[t.id]&&R[t.id].s)||"pending";
+              html+='<div class="ti'+(cur&&cur.id===t.id?" act":"")+'" onclick="sel(\''+t.id+'\')">';
+              html+='<span class="ico">'+ico(st)+'</span>';
+              html+='<span class="tid">'+t.id+'</span>';
+              html+='<span class="ttl">'+esc(t.t)+'</span></div>';
+            });
+          }
+        });
+        document.getElementById("catlist").innerHTML=html;
+      }
+
+      function renderContent(){
+        var el=document.getElementById("content");
+        if(!cur){
+          el.innerHTML='<div class="empty"><div class="ic">\ud83d\udccb</div><p>\u9009\u62e9\u5de6\u4fa7\u7684\u6d4b\u8bd5\u7528\u4f8b\u5f00\u59cb\u6d4b\u8bd5</p><p style="font-size:12px">\u5171 '+T.length+' \u4e2a\u6d4b\u8bd5\u7528\u4f8b\uff0c\u8986\u76d6 '+cats.length+' \u4e2a\u529f\u80fd\u7c7b\u522b</p></div>';
+          return;
+        }
+        var st=(R[cur.id]&&R[cur.id].s)||"";
+        var note=(R[cur.id]&&R[cur.id].n)||"";
+        var h='<div class="td">';
+        h+='<div class="dhd"><div class="did">'+cur.id+'</div><div class="dtt">'+esc(cur.t)+'</div><div class="dca">'+esc(cur.c)+'</div></div>';
+        h+='<div class="dsec"><div class="dlb">\ud83d\udccb \u64cd\u4f5c\u6b65\u9aa4</div><div class="dbx">'+fmtKbd(cur.o)+'</div></div>';
+        h+='<div class="dsec"><div class="dlb">\u2705 \u9884\u671f\u7ed3\u679c</div><div class="dbx exp">'+fmtKbd(cur.e)+'</div></div>';
+        if(cur.p){h+='<div class="dsec"><div class="dlb">\u2699\ufe0f \u524d\u63d0\u6761\u4ef6</div><div class="dbx pre">'+esc(cur.p)+'</div></div>';}
+        h+='<div class="acts">';
+        h+='<button class="abtn p'+(st==="pass"?" on":"")+'" onclick="mark(\'pass\')">\u2713 \u901a\u8fc7 <kbd>P</kbd></button>';
+        h+='<button class="abtn f'+(st==="fail"?" on":"")+'" onclick="mark(\'fail\')">\u2717 \u5931\u8d25 <kbd>F</kbd></button>';
+        h+='<button class="abtn s'+(st==="skip"?" on":"")+'" onclick="mark(\'skip\')">\u23ed \u8df3\u8fc7 <kbd>S</kbd></button>';
+        h+='<button class="abtn r" onclick="mark(null)">\u21ba \u6e05\u9664</button>';
+        h+='<div class="nav">';
+        var pr=getPrev(),nx=getNext();
+        h+='<button class="nbtn"'+(pr?'onclick="sel(\''+pr.id+'\')"':' disabled')+'">\u2190 \u4e0a\u4e00\u4e2a</button>';
+        h+='<button class="nbtn"'+(nx?'onclick="sel(\''+nx.id+'\')"':' disabled')+'">\u4e0b\u4e00\u4e2a \u2192</button>';
+        h+='</div></div>';
+        h+='<div class="dsec"><div class="dlb">\ud83d\udcdd \u5907\u6ce8</div><textarea class="nta" id="noteArea" placeholder="\u8bb0\u5f55\u5b9e\u9645\u7ed3\u679c\u3001Bug \u63cf\u8ff0..." oninput="saveNote(this.value)">'+esc(note)+'</textarea></div>';
+        h+='</div>';
+        h+='<div class="iz"><div class="izl">\u2328\ufe0f \u8f93\u5165\u6d4b\u8bd5\u533a \u2014 \u5728\u6b64\u8f93\u5165\u4ee5\u9a8c\u8bc1\u8f93\u5165\u6cd5\u884c\u4e3a <span class="clr" onclick="document.getElementById(\'tinp\').value=\'\'">\u6e05\u7a7a</span></div>';
+        h+='<input class="tinp" id="tinp" placeholder="\u5728\u6b64\u9a8c\u8bc1: '+esc(cur.t)+'">';
+        h+='<div class="iinf">\u63d0\u793a: \u70b9\u51fb\u6b64\u5904\u540e\u4f7f\u7528\u6e05\u98ce\u8f93\u5165\u6cd5\u6d4b\u8bd5\uff0c\u89c2\u5bdf\u5019\u9009\u7a97\u548c\u6807\u70b9\u884c\u4e3a</div></div>';
+        el.innerHTML=h;
+      }
+
+      function getFlat(){return getFiltered()}
+      function getPrev(){var f=getFlat();if(!cur)return null;var i=f.findIndex(function(t){return t.id===cur.id});return i>0?f[i-1]:null}
+      function getNext(){var f=getFlat();if(!cur)return null;var i=f.findIndex(function(t){return t.id===cur.id});return i>=0&&i<f.length-1?f[i+1]:null}
+
+      function render(){renderStats();renderFilters();renderSidebar();renderContent()}
+
+      function sel(id){cur=T.find(function(t){return t.id===id})||null;if(cur)openC[cur.c]=true;render()}
+      function toggleCat(n){openC[n]=!openC[n];renderSidebar()}
+      function setFilter(f){flt=f;render()}
+
+      function mark(s){
+        if(!cur)return;
+        if(s===null){delete R[cur.id]}
+        else{if(!R[cur.id])R[cur.id]={};R[cur.id].s=s;R[cur.id].t=new Date().toISOString()}
+        save();
+        if(s==="pass"||s==="skip"){var nx=getNext();if(nx){setTimeout(function(){sel(nx.id)},120);return}}
+        render();
+      }
+      function saveNote(v){
+        if(!cur)return;
+        if(!R[cur.id])R[cur.id]={};
+        R[cur.id].n=v;save();
+      }
+
+      document.getElementById("search").addEventListener("input",function(){render()});
+      document.addEventListener("keydown",function(e){
+        if(!cur)return;
+        var tag=e.target.tagName;
+        if(tag==="INPUT"||tag==="TEXTAREA")return;
+        if(e.key==="p"||e.key==="P"){e.preventDefault();mark("pass")}
+        else if(e.key==="f"||e.key==="F"){e.preventDefault();mark("fail")}
+        else if(e.key==="s"||e.key==="S"){e.preventDefault();mark("skip")}
+        else if(e.key==="ArrowDown"||e.key==="j"){e.preventDefault();var nx=getNext();if(nx)sel(nx.id)}
+        else if(e.key==="ArrowUp"||e.key==="k"){e.preventDefault();var pr=getPrev();if(pr)sel(pr.id)}
+      });
+
+      // Export / Import
+      function doExport(){
+        var s=getStats();
+        var d={exportTime:new Date().toISOString(),stats:{pass:s.p,fail:s.f,skip:s.s,pending:s.w},results:R};
+        document.getElementById("expData").textContent=JSON.stringify(d,null,2);
+        document.getElementById("expInfo").textContent="\u901a\u8fc7: "+s.p+" | \u5931\u8d25: "+s.f+" | \u8df3\u8fc7: "+s.s+" | \u5f85\u6d4b: "+s.w;
+        document.getElementById("modalExp").classList.remove("hide");
+      }
+      function copyExp(){
+        navigator.clipboard.writeText(document.getElementById("expData").textContent).then(function(){toast("\u5df2\u590d\u5236\u5230\u526a\u8d34\u677f")});
+      }
+      function doImport(){
+        try{
+          var d=JSON.parse(document.getElementById("impData").value);
+          var r=d.results||d;
+          var n=Object.keys(r).length;
+          Object.keys(r).forEach(function(k){R[k]=r[k]});
+          save();hideModals();
+          document.getElementById("impData").value="";
+          render();toast("\u5bfc\u5165\u6210\u529f\uff0c\u5df2\u5408\u5e76 "+n+" \u6761\u7ed3\u679c");
+        }catch(e){toast("\u5bfc\u5165\u5931\u8d25\uff1aJSON \u683c\u5f0f\u9519\u8bef")}
+      }
+      function showModal(id){document.getElementById(id==="imp"?"modalImp":"modalExp").classList.remove("hide")}
+      function hideModals(){document.getElementById("modalExp").classList.add("hide");document.getElementById("modalImp").classList.add("hide")}
+      function resetAll(){if(confirm("\u786e\u5b9a\u8981\u6e05\u9664\u6240\u6709\u6d4b\u8bd5\u7ed3\u679c\u5417\uff1f\u6b64\u64cd\u4f5c\u4e0d\u53ef\u6062\u590d\u3002")){R={};save();render();toast("\u5df2\u6e05\u9664\u6240\u6709\u7ed3\u679c")}}
+
+      var _toastTimer;
+      function toast(msg){
+        var el=document.getElementById("toastEl");
+        el.textContent=msg;el.classList.add("show");
+        clearTimeout(_toastTimer);
+        _toastTimer=setTimeout(function(){el.classList.remove("show")},2000);
+      }
+
+      // Click outside modals
+      document.getElementById("modalExp").addEventListener("click",function(e){if(e.target===this)hideModals()});
+      document.getElementById("modalImp").addEventListener("click",function(e){if(e.target===this)hideModals()});
+    </script>
+    <script>
+      var APP = (function () {
+        "use strict";
+
+        var STORAGE_KEY = "windinput-test-v3";
+        var storageEnabled = true;
+        var T = parseCases();
+        var R = loadResults();
+        var cur = null;
+        var flt = "all";
+        var openC = {};
+        var cats = buildCategories();
+        var toastTimer = null;
+
+        function parseCases() {
+          var source = document.getElementById("legacySource").textContent;
+          var match = source.match(/var T=\[(.*)\];\s*var KEY=/s);
+          if (!match) {
+            throw new Error("未找到测试用例数据");
+          }
+          return match[1]
+            .split(/\r?\n/)
+            .map(function (line) {
+              return line.trim().replace(/,$/, "");
+            })
+            .filter(Boolean)
+            .map(function (line, index) {
+              if (!line.startsWith("{") || !line.endsWith("}")) {
+                throw new Error("测试用例格式错误，第 " + (index + 1) + " 行");
+              }
+              return {
+                id: readField(line, 'id:"', '",c:"'),
+                c: readField(line, '",c:"', '",t:"'),
+                t: readField(line, '",t:"', '",o:"'),
+                o: readField(line, '",o:"', '",e:"'),
+                e:
+                  line.indexOf('",p:"') >= 0
+                    ? readField(line, '",e:"', '",p:"')
+                    : readField(line, '",e:"', '"}'),
+                p:
+                  line.indexOf('",p:"') >= 0
+                    ? readField(line, '",p:"', '"}')
+                    : "",
+              };
+            });
+        }
+
+        function decodeJsString(value) {
+          return value.replace(
+            /\\u([0-9a-fA-F]{4})|\\(["\\bfnrt])/g,
+            function (_, unicode, escaped) {
+              if (unicode) {
+                return String.fromCharCode(parseInt(unicode, 16));
+              }
+              var map = {
+                '"': '"',
+                "\\": "\\",
+                b: "\b",
+                f: "\f",
+                n: "\n",
+                r: "\r",
+                t: "\t",
+              };
+              return map[escaped] || escaped;
+            },
+          );
+        }
+
+        function readField(line, start, end) {
+          var from = line.indexOf(start);
+          if (from < 0) {
+            throw new Error("字段缺失: " + start);
+          }
+          from += start.length;
+          var to = line.indexOf(end, from);
+          if (to < 0) {
+            throw new Error("字段结尾缺失: " + end);
+          }
+          return decodeJsString(line.slice(from, to));
+        }
+
+        function buildCategories() {
+          var list = [];
+          var map = Object.create(null);
+          T.forEach(function (item) {
+            if (!map[item.c]) {
+              map[item.c] = { n: item.c, ts: [] };
+              list.push(map[item.c]);
+              openC[item.c] = true;
+            }
+            map[item.c].ts.push(item);
+          });
+          return list;
+        }
+
+        function canUseStorage() {
+          try {
+            var key = STORAGE_KEY + "-probe";
+            localStorage.setItem(key, "1");
+            localStorage.removeItem(key);
+            return true;
+          } catch (error) {
+            return false;
+          }
+        }
+
+        function loadResults() {
+          if (!canUseStorage()) {
+            storageEnabled = false;
+            return {};
+          }
+          try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+          } catch (error) {
+            return {};
+          }
+        }
+
+        function saveResults() {
+          if (!storageEnabled) {
+            return;
+          }
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(R));
+          } catch (error) {
+            storageEnabled = false;
+            toast("浏览器禁止本地存储，结果仅保留在当前页面");
+          }
+        }
+
+        function escapeHtml(text) {
+          var div = document.createElement("div");
+          div.textContent = text == null ? "" : String(text);
+          return div.innerHTML;
+        }
+
+        function fmtKbd(text) {
+          return escapeHtml(text).replace(/`([^`]+)`/g, "<kbd>$1</kbd>");
+        }
+
+        function icon(status) {
+          if (status === "pass") return "✅";
+          if (status === "fail") return "❌";
+          if (status === "skip") return "⏭️";
+          return "⬜";
+        }
+
+        function getStats() {
+          var stats = { p: 0, f: 0, s: 0, w: 0, tot: T.length, pct: "0" };
+          T.forEach(function (item) {
+            var status = R[item.id] && R[item.id].s;
+            if (status === "pass") stats.p += 1;
+            else if (status === "fail") stats.f += 1;
+            else if (status === "skip") stats.s += 1;
+          });
+          stats.w = stats.tot - stats.p - stats.f - stats.s;
+          stats.pct = stats.tot
+            ? String(
+                Math.round(((stats.p + stats.f + stats.s) / stats.tot) * 100),
+              )
+            : "0";
+          return stats;
+        }
+
+        function getCategoryStats(category) {
+          var done = 0;
+          category.ts.forEach(function (item) {
+            if (R[item.id] && R[item.id].s) {
+              done += 1;
+            }
+          });
+          return {
+            dn: done,
+            tot: category.ts.length,
+            pct: category.ts.length
+              ? Math.round((done / category.ts.length) * 100)
+              : 0,
+          };
+        }
+
+        function getQuery() {
+          return document.getElementById("search").value.trim().toLowerCase();
+        }
+
+        function getFiltered() {
+          var query = getQuery();
+          return T.filter(function (item) {
+            var status = (R[item.id] && R[item.id].s) || "pending";
+            if (flt !== "all" && status !== flt) {
+              return false;
+            }
+            if (!query) {
+              return true;
+            }
+            return (
+              [item.id, item.c, item.t, item.o, item.e, item.p || ""]
+                .join("\n")
+                .toLowerCase()
+                .indexOf(query) >= 0
+            );
+          });
+        }
+
+        function renderStats() {
+          var stats = getStats();
+          document.getElementById("hstats").innerHTML =
+            '<div class="stat"><span class="dot dot-p"></span>' +
+            stats.p +
+            " 通过</div>" +
+            '<div class="stat"><span class="dot dot-f"></span>' +
+            stats.f +
+            " 失败</div>" +
+            '<div class="stat"><span class="dot dot-s"></span>' +
+            stats.s +
+            " 跳过</div>" +
+            '<div class="stat"><span class="dot dot-w"></span>' +
+            stats.w +
+            " 待测</div>" +
+            '<div class="stat" style="font-weight:700;color:var(--tx)">' +
+            stats.pct +
+            "%</div>";
+
+          var total = stats.tot || 1;
+          document.getElementById("hpbar").innerHTML =
+            '<div class="seg-p" style="width:' +
+            (stats.p / total) * 100 +
+            '%"></div>' +
+            '<div class="seg-f" style="width:' +
+            (stats.f / total) * 100 +
+            '%"></div>' +
+            '<div class="seg-s" style="width:' +
+            (stats.s / total) * 100 +
+            '%"></div>';
+        }
+
+        function renderFilters() {
+          var stats = getStats();
+          var items = [
+            ["all", "全部 (" + stats.tot + ")"],
+            ["pending", "⬜ 待测 (" + stats.w + ")"],
+            ["pass", "✅ 通过 (" + stats.p + ")"],
+            ["fail", "❌ 失败 (" + stats.f + ")"],
+            ["skip", "⏭️ 跳过 (" + stats.s + ")"],
+          ];
+          document.getElementById("filters").innerHTML = items
+            .map(function (item) {
+              return (
+                '<button class="fbtn' +
+                (flt === item[0] ? " on" : "") +
+                '" onclick="setFilter(\'' +
+                item[0] +
+                "')\">" +
+                item[1] +
+                "</button>"
+              );
+            })
+            .join("");
+        }
+
+        function renderSidebar() {
+          var visible = getFiltered();
+          var visibleMap = Object.create(null);
+          visible.forEach(function (item) {
+            visibleMap[item.id] = true;
+          });
+
+          var html = "";
+          cats.forEach(function (category) {
+            var items = category.ts.filter(function (item) {
+              return visibleMap[item.id];
+            });
+            if (!items.length) {
+              return;
+            }
+            var stats = getCategoryStats(category);
+            html +=
+              '<div class="cath" onclick="toggleCat(\'' +
+              escapeJs(category.n) +
+              "')\">";
+            html +=
+              '<span class="catarr' +
+              (openC[category.n] ? " open" : "") +
+              '">&#9654;</span>';
+            html += escapeHtml(category.n);
+            html +=
+              '<span class="catpg">' + stats.dn + "/" + stats.tot + "</span>";
+            html +=
+              '<div class="catpb"><div class="catpf" style="width:' +
+              stats.pct +
+              '%"></div></div>';
+            html += "</div>";
+            if (!openC[category.n]) {
+              return;
+            }
+            items.forEach(function (item) {
+              var status = (R[item.id] && R[item.id].s) || "pending";
+              html +=
+                '<div class="ti' +
+                (cur && cur.id === item.id ? " act" : "") +
+                '" onclick="sel(\'' +
+                item.id +
+                "')\">";
+              html += '<span class="ico">' + icon(status) + "</span>";
+              html += '<span class="tid">' + escapeHtml(item.id) + "</span>";
+              html +=
+                '<span class="ttl">' + escapeHtml(item.t) + "</span></div>";
+            });
+          });
+          document.getElementById("catlist").innerHTML = html;
+        }
+
+        function renderContent() {
+          var container = document.getElementById("content");
+          if (!cur) {
+            container.innerHTML =
+              '<div class="empty"><div class="ic">📋</div><p>选择左侧的测试用例开始测试</p>' +
+              '<p style="font-size:12px">共 ' +
+              T.length +
+              " 个测试用例，覆盖 " +
+              cats.length +
+              " 个功能类别</p></div>";
+            return;
+          }
+
+          var record = R[cur.id] || {};
+          var status = record.s || "";
+          var prev = getPrev();
+          var next = getNext();
+          container.innerHTML =
+            '<div class="td">' +
+            '<div class="dhd"><div class="did">' +
+            escapeHtml(cur.id) +
+            '</div><div class="dtt">' +
+            escapeHtml(cur.t) +
+            '</div><div class="dca">' +
+            escapeHtml(cur.c) +
+            "</div></div>" +
+            '<div class="dsec"><div class="dlb">📋 操作步骤</div><div class="dbx">' +
+            fmtKbd(cur.o) +
+            "</div></div>" +
+            '<div class="dsec"><div class="dlb">✅ 预期结果</div><div class="dbx exp">' +
+            fmtKbd(cur.e) +
+            "</div></div>" +
+            (cur.p
+              ? '<div class="dsec"><div class="dlb">⚙️ 前提条件</div><div class="dbx pre">' +
+                escapeHtml(cur.p) +
+                "</div></div>"
+              : "") +
+            '<div class="acts">' +
+            '<button class="abtn p' +
+            (status === "pass" ? " on" : "") +
+            '" onclick="mark(\'pass\')">✓ 通过 <kbd>P</kbd></button>' +
+            '<button class="abtn f' +
+            (status === "fail" ? " on" : "") +
+            '" onclick="mark(\'fail\')">✗ 失败 <kbd>F</kbd></button>' +
+            '<button class="abtn s' +
+            (status === "skip" ? " on" : "") +
+            '" onclick="mark(\'skip\')">⏭ 跳过 <kbd>S</kbd></button>' +
+            '<button class="abtn r" onclick="mark(null)">↺ 清除</button>' +
+            '<div class="nav">' +
+            '<button class="nbtn"' +
+            (prev ? " onclick=\"sel('" + prev.id + "')\"" : " disabled") +
+            ">← 上一个</button>" +
+            '<button class="nbtn"' +
+            (next ? " onclick=\"sel('" + next.id + "')\"" : " disabled") +
+            ">下一个 →</button>" +
+            "</div></div>" +
+            '<div class="dsec"><div class="dlb">📝 备注</div><textarea class="nta" id="noteArea" placeholder="记录实际结果、Bug 描述..."></textarea></div>' +
+            "</div>" +
+            '<div class="iz"><div class="izl">⌨️ 输入测试区 — 在此输入以验证输入法行为 <span class="clr" onclick="clearInputArea()">清空</span></div>' +
+            '<input class="tinp" id="tinp" placeholder="在此验证: ' +
+            escapeHtml(cur.t) +
+            '">' +
+            '<div class="iinf">提示: 点击此处后使用清风输入法测试，观察候选窗和标点行为</div></div>';
+
+          document.getElementById("noteArea").value = record.n || "";
+          document
+            .getElementById("noteArea")
+            .addEventListener("input", function (event) {
+              saveNote(event.target.value);
+            });
+        }
+
+        function getFlatList() {
+          return getFiltered();
+        }
+
+        function getPrev() {
+          if (!cur) {
+            return null;
+          }
+          var list = getFlatList();
+          var index = list.findIndex(function (item) {
+            return item.id === cur.id;
+          });
+          return index > 0 ? list[index - 1] : null;
+        }
+
+        function getNext() {
+          if (!cur) {
+            return null;
+          }
+          var list = getFlatList();
+          var index = list.findIndex(function (item) {
+            return item.id === cur.id;
+          });
+          return index >= 0 && index < list.length - 1 ? list[index + 1] : null;
+        }
+
+        function render() {
+          if (
+            cur &&
+            !getFiltered().some(function (item) {
+              return item.id === cur.id;
+            })
+          ) {
+            cur = null;
+          }
+          renderStats();
+          renderFilters();
+          renderSidebar();
+          renderContent();
+        }
+
+        function selectCase(id) {
+          cur =
+            T.find(function (item) {
+              return item.id === id;
+            }) || null;
+          if (cur) {
+            openC[cur.c] = true;
+          }
+          render();
+        }
+
+        function toggleCategory(name) {
+          openC[name] = !openC[name];
+          renderSidebar();
+        }
+
+        function setFilterValue(value) {
+          flt = value;
+          render();
+        }
+
+        function markStatus(status) {
+          if (!cur) {
+            return;
+          }
+          if (status === null) {
+            delete R[cur.id];
+          } else {
+            R[cur.id] = R[cur.id] || {};
+            R[cur.id].s = status;
+            R[cur.id].t = new Date().toISOString();
+          }
+          saveResults();
+          if (status === "pass" || status === "skip") {
+            var next = getNext();
+            if (next) {
+              setTimeout(function () {
+                selectCase(next.id);
+              }, 120);
+              return;
+            }
+          }
+          render();
+        }
+
+        function saveNote(value) {
+          if (!cur) {
+            return;
+          }
+          R[cur.id] = R[cur.id] || {};
+          R[cur.id].n = value;
+          saveResults();
+        }
+
+        function getExportPayload() {
+          var stats = getStats();
+          return {
+            exportTime: new Date().toISOString(),
+            stats: {
+              pass: stats.p,
+              fail: stats.f,
+              skip: stats.s,
+              pending: stats.w,
+            },
+            results: R,
+          };
+        }
+
+        function showExport() {
+          var payload = getExportPayload();
+          var stats = getStats();
+          document.getElementById("expData").textContent = JSON.stringify(
+            payload,
+            null,
+            2,
+          );
+          document.getElementById("expInfo").textContent =
+            "通过: " +
+            stats.p +
+            " | 失败: " +
+            stats.f +
+            " | 跳过: " +
+            stats.s +
+            " | 待测: " +
+            stats.w;
+          document.getElementById("modalExp").classList.remove("hide");
+        }
+
+        function copyExport() {
+          var text = document.getElementById("expData").textContent;
+          if (!text) {
+            return;
+          }
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard
+              .writeText(text)
+              .then(function () {
+                toast("已复制到剪贴板");
+              })
+              .catch(function () {
+                fallbackCopy(text);
+              });
+            return;
+          }
+          fallbackCopy(text);
+        }
+
+        function fallbackCopy(text) {
+          var textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "readonly");
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand("copy");
+            toast("已复制到剪贴板");
+          } catch (error) {
+            toast("复制失败，请使用“下载 JSON”或手动复制");
+          }
+          document.body.removeChild(textarea);
+        }
+
+        function downloadExport() {
+          var text =
+            document.getElementById("expData").textContent ||
+            JSON.stringify(getExportPayload(), null, 2);
+          var blob = new Blob([text], {
+            type: "application/json;charset=utf-8",
+          });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement("a");
+          var stamp = new Date().toISOString().replace(/[:.]/g, "-");
+          link.href = url;
+          link.download = "windinput-test-results-" + stamp + ".json";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(function () {
+            URL.revokeObjectURL(url);
+          }, 1000);
+        }
+
+        function importResults(text) {
+          var parsed = JSON.parse(text);
+          var incoming = parsed.results || parsed;
+          var count = Object.keys(incoming).length;
+          Object.keys(incoming).forEach(function (key) {
+            R[key] = incoming[key];
+          });
+          saveResults();
+          document.getElementById("impData").value = "";
+          hideModals();
+          render();
+          toast("导入成功，已合并 " + count + " 条结果");
+        }
+
+        function doImportResults() {
+          try {
+            importResults(document.getElementById("impData").value);
+          } catch (error) {
+            toast("导入失败：JSON 格式错误");
+          }
+        }
+
+        function pickImportFile() {
+          document.getElementById("impFile").click();
+        }
+
+        function onImportFile(event) {
+          var file = event.target.files && event.target.files[0];
+          if (!file) {
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function () {
+            try {
+              importResults(String(reader.result || ""));
+            } catch (error) {
+              toast("导入失败：文件内容无效");
+            }
+            event.target.value = "";
+          };
+          reader.onerror = function () {
+            toast("读取文件失败");
+            event.target.value = "";
+          };
+          reader.readAsText(file, "utf-8");
+        }
+
+        function showModalById(id) {
+          document
+            .getElementById(id === "imp" ? "modalImp" : "modalExp")
+            .classList.remove("hide");
+        }
+
+        function hideModals() {
+          document.getElementById("modalExp").classList.add("hide");
+          document.getElementById("modalImp").classList.add("hide");
+        }
+
+        function resetAll() {
+          if (!window.confirm("确定要清除所有测试结果吗？此操作不可恢复。")) {
+            return;
+          }
+          R = {};
+          saveResults();
+          render();
+          toast("已清除所有结果");
+        }
+
+        function clearInputArea() {
+          var input = document.getElementById("tinp");
+          if (input) {
+            input.value = "";
+            input.focus();
+          }
+        }
+
+        function toast(message) {
+          var el = document.getElementById("toastEl");
+          el.textContent = message;
+          el.classList.add("show");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () {
+            el.classList.remove("show");
+          }, 2000);
+        }
+
+        function escapeJs(text) {
+          return String(text).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        }
+
+        function bindEvents() {
+          document.getElementById("search").addEventListener("input", render);
+          document
+            .getElementById("impFile")
+            .addEventListener("change", onImportFile);
+          document
+            .getElementById("modalExp")
+            .addEventListener("click", function (event) {
+              if (event.target === this) {
+                hideModals();
+              }
+            });
+          document
+            .getElementById("modalImp")
+            .addEventListener("click", function (event) {
+              if (event.target === this) {
+                hideModals();
+              }
+            });
+          document.addEventListener("keydown", function (event) {
+            if (!cur) {
+              return;
+            }
+            var tag = event.target.tagName;
+            if (tag === "INPUT" || tag === "TEXTAREA") {
+              return;
+            }
+            if (event.key === "p" || event.key === "P") {
+              event.preventDefault();
+              markStatus("pass");
+            } else if (event.key === "f" || event.key === "F") {
+              event.preventDefault();
+              markStatus("fail");
+            } else if (event.key === "s" || event.key === "S") {
+              event.preventDefault();
+              markStatus("skip");
+            } else if (event.key === "ArrowDown" || event.key === "j") {
+              event.preventDefault();
+              var next = getNext();
+              if (next) {
+                selectCase(next.id);
+              }
+            } else if (event.key === "ArrowUp" || event.key === "k") {
+              event.preventDefault();
+              var prev = getPrev();
+              if (prev) {
+                selectCase(prev.id);
+              }
+            }
+          });
+        }
+
+        function exposeGlobals() {
+          window.sel = selectCase;
+          window.toggleCat = toggleCategory;
+          window.setFilter = setFilterValue;
+          window.mark = markStatus;
+          window.doExport = showExport;
+          window.copyExp = copyExport;
+          window.downloadExp = downloadExport;
+          window.doImport = doImportResults;
+          window.pickImportFile = pickImportFile;
+          window.showModal = showModalById;
+          window.hideModals = hideModals;
+          window.resetAll = resetAll;
+          window.clearInputArea = clearInputArea;
+        }
+
+        function init() {
+          bindEvents();
+          exposeGlobals();
+          render();
+          if (!storageEnabled) {
+            toast("当前浏览器不允许本地存储，刷新后记录不会保留");
+          }
+        }
+
+        return {
+          init: init,
+        };
+      })();
+
+      APP.init();
+    </script>
+  </body>
+</html>
