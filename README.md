@@ -8,7 +8,7 @@
 
 ## 🚀 在线文档
 
-访问 https://huanfeng.github.io/WindInputDocs/ 查看在线文档。
+访问 https://huanfeng.github.io/WindInput/ 查看在线文档。
 
 ## 🛠️ 本地开发
 
@@ -69,17 +69,17 @@ WindInputDocs/
 
 ## 🔧 自动部署
 
-文档已配置 GitHub Actions 自动部署：
-- 推送到 `main` 分支时自动构建和部署
-- 部署到 GitHub Pages
-- 访问地址：https://huanfeng.github.io/WindInputDocs/
+文档仓库已配置 GitHub Actions 自动验证与同步通知：
+- 推送到 `main` 分支时自动构建校验
+- 校验成功后通知主代码仓库 `WindInput` 发布 GitHub Pages
+- 正式访问地址：https://huanfeng.github.io/WindInput/
 
-### GitHub Pages 设置
+### 发布链路
 
-首次使用需要：
-1. 进入仓库 Settings → Pages
-2. 选择 "GitHub Actions" 作为 Source
-3. 保存设置
+`WindInputDocs` 不直接发布 Pages，而是作为文档源仓库：
+1. `WindInputDocs` 构建验证文档
+2. 成功后通过 `repository_dispatch` 通知 `WindInput`
+3. `WindInput` 拉取对应文档提交并发布到 GitHub Pages
 
 详见 [GitHub Pages 部署指南](docs/guide/github-pages-setup.md)
 
@@ -107,7 +107,7 @@ WindInputDocs/
 ## 🔗 相关链接
 
 - 主代码仓库：https://github.com/huanfeng/WindInput
-- 在线文档：https://huanfeng.github.io/WindInputDocs/
+- 在线文档：https://huanfeng.github.io/WindInput/
 - 问题反馈：https://github.com/huanfeng/WindInputDocs/issues
 
 ## 📧 联系方式

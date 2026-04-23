@@ -1,19 +1,22 @@
 import { defineConfig } from 'vitepress'
 
+const base = process.env.WINDINPUT_DOCS_BASE || '/WindInput/'
+
 export default defineConfig({
   title: '清风输入法',
   description: '清风输入法 - 轻量、快速、可定制的开源中文输入法',
 
   lang: 'zh-CN',
+  base,
 
   srcDir: '.',
 
   head: [
-    ['link', { rel: 'icon', href: '/logo.png' }]
+    ['link', { rel: 'icon', href: `${base}logo.png` }]
   ],
 
   themeConfig: {
-    logo: '/logo.png',
+    logo: `${base}logo.png`,
 
     nav: [
       { text: '首页', link: '/' },
