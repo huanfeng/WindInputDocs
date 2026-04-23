@@ -4,7 +4,7 @@
 
 清风输入法文档项目的官方文档仓库，基于 [VitePress](https://vitepress.dev/) 构建。
 
-本项目为独立文档仓库，与主代码仓库 [WindInput](https://github.com/huanfeng/wind_input) 分离，便于文档的独立维护和社区贡献。
+本项目为独立文档仓库，与主代码仓库 [WindInput](https://github.com/huanfeng/WindInput) 分离，便于文档的独立维护和社区贡献。
 
 ## 🚀 在线文档
 
@@ -106,7 +106,7 @@ WindInputDocs/
 
 ## 🔗 相关链接
 
-- 主代码仓库：https://github.com/huanfeng/wind_input
+- 主代码仓库：https://github.com/huanfeng/WindInput
 - 在线文档：https://huanfeng.github.io/WindInputDocs/
 - 问题反馈：https://github.com/huanfeng/WindInputDocs/issues
 
@@ -119,4 +119,4 @@ WindInputDocs/
 
 ---
 
-**注意**：本仓库仅包含文档内容，如需参与输入法代码开发，请访问主代码仓库 [WindInput](https://github.com/huanfeng/wind_input)。
+**注意**：本仓库仅包含文档内容，如需参与输入法代码开发，请访问主代码仓库 [WindInput](https://github.com/huanfeng/WindInput)。

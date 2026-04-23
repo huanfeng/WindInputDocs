@@ -9,7 +9,7 @@
 ### 1. 启用 GitHub Pages
 
 1. 进入 GitHub 仓库设置：
-   - 访问 https://github.com/huanfeng/wind_input/settings/pages
+   - 访问 https://github.com/huanfeng/WindInputDocs/settings/pages
    - 或者从仓库首页点击 "Settings" → "Pages"
 
 2. 在 "Source" 部分：

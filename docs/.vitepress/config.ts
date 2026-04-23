@@ -2,20 +2,20 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: '清风输入法',
-  description: '清风输入法 - 简洁高效的中文输入法',
+  description: '清风输入法 - 轻量、快速、可定制的开源中文输入法',
 
   srcDir: '.',
 
   head: [
-    ['link', { rel: 'icon', href: '/logo.svg' }]
+    ['link', { rel: 'icon', href: '/logo.png' }]
   ],
 
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/logo.png',
 
     nav: [
       { text: '首页', link: '/' },
-      { text: '指南', link: '/guide/' },
+      { text: '指南', link: '/guide/install' },
       { text: '快捷键', link: '/hotkeys/' },
       { text: '配置', link: '/config/' },
       { text: '常见问题', link: '/faq/' },
@@ -24,11 +24,13 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         {
-          text: '指南',
+          text: '使用指南',
           items: [
             { text: '安装', link: '/guide/install' },
             { text: '快速入门', link: '/guide/quickstart' },
+            { text: '输入方案', link: '/guide/schemas' },
             { text: '切换输入法', link: '/guide/switch' },
+            { text: '设置工具', link: '/guide/settings' },
           ]
         }
       ],
@@ -36,7 +38,7 @@ export default defineConfig({
         {
           text: '快捷键',
           items: [
-            { text: '基础操作', link: '/hotkeys/' },
+            { text: '快捷键一览', link: '/hotkeys/' },
           ]
         }
       ],
@@ -44,7 +46,7 @@ export default defineConfig({
         {
           text: '配置',
           items: [
-            { text: '配置文件', link: '/config/' },
+            { text: '配置说明', link: '/config/' },
           ]
         }
       ],
@@ -59,7 +61,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/huanfeng/wind_input' }
+      { icon: 'github', link: 'https://github.com/huanfeng/WindInput' }
     ],
 
     footer: {
