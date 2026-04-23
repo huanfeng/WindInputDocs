@@ -7,11 +7,11 @@ hero:
   tagline: 基于 Windows TSF 框架，使用 C++/Go 混合架构，支持全拼、双拼、五笔及混输模式
   actions:
     - theme: brand
+      text: 下载
+      link: https://github.com/huanfeng/WindInput/releases
+    - theme: alt
       text: 开始使用
       link: /guide/install
-    - theme: alt
-      text: 输入方案
-      link: /schema/
 
 features:
   - title: 专为五笔设计

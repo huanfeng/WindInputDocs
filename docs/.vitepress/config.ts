@@ -4,6 +4,8 @@ export default defineConfig({
   title: '清风输入法',
   description: '清风输入法 - 轻量、快速、可定制的开源中文输入法',
 
+  lang: 'zh-CN',
+
   srcDir: '.',
 
   head: [
@@ -15,12 +17,32 @@ export default defineConfig({
 
     nav: [
       { text: '首页', link: '/' },
+      { text: '下载', link: 'https://github.com/huanfeng/WindInput/releases' },
       { text: '快速入门', link: '/guide/install' },
       { text: '输入方案', link: '/schema/' },
       { text: '设置', link: '/settings/general' },
       { text: '配置', link: '/config/' },
       { text: '常见问题', link: '/faq/' },
     ],
+
+    docFooter: {
+      prev: '上一页',
+      next: '下一页',
+    },
+
+    outline: {
+      label: '本页目录',
+    },
+
+    lastUpdated: {
+      text: '最后更新于',
+    },
+
+    returnToTopLabel: '回到顶部',
+    sidebarMenuLabel: '菜单',
+    darkModeSwitchLabel: '主题',
+    lightModeSwitchTitle: '切换到亮色模式',
+    darkModeSwitchTitle: '切换到暗色模式',
 
     sidebar: [
       {
