@@ -17,12 +17,15 @@ export default defineConfig({
 
     nav: [
       { text: '首页', link: '/' },
-      { text: '下载', link: 'https://github.com/huanfeng/WindInput/releases' },
       { text: '快速入门', link: '/guide/install' },
-      { text: '输入方案', link: '/schema/' },
       { text: '设置', link: '/settings/general' },
-      { text: '配置', link: '/config/' },
+      { text: '更新记录', link: '/changelog/' },
       { text: '常见问题', link: '/faq/' },
+      { text: '高级', items: [
+        { text: '输入方案', link: '/schema/' },
+        { text: '配置文件', link: '/config/' },
+      ]},
+      { text: '下载', link: 'https://github.com/huanfeng/WindInput/releases' },
     ],
 
     docFooter: {
@@ -53,13 +56,6 @@ export default defineConfig({
         ]
       },
       {
-        text: '输入方案',
-        items: [
-          { text: '方案介绍与切换', link: '/schema/' },
-          { text: '方案配置制作', link: '/schema/custom' },
-        ]
-      },
-      {
         text: '设置说明',
         items: [
           { text: '常规与启动', link: '/settings/general' },
@@ -71,8 +67,10 @@ export default defineConfig({
         ]
       },
       {
-        text: '配置文件',
+        text: '高级',
         items: [
+          { text: '方案介绍与切换', link: '/schema/' },
+          { text: '方案配置制作', link: '/schema/custom' },
           { text: '配置机制与全局配置', link: '/config/' },
           { text: '方案配置详解', link: '/config/schema' },
           { text: '兼容性与自定义主题', link: '/config/compat-theme' },
