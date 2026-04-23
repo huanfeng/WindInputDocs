@@ -10,7 +10,7 @@
 1. 从 [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 下载最新的安装包 `WindInput-x.x.x-Setup.exe`
 2. 双击运行安装程序
 3. 按照提示完成安装
-4. 安装完成后，使用 `Win + Space` 或 `Ctrl + Shift` 切换到清风输入法
+4. 安装完成后，按 `Win + Space` 切换到清风输入法
 
 安装程序会自动完成以下操作：
 - 将程序文件安装到 `Program Files\WindInput\`
@@ -61,6 +61,6 @@
 
 安装完成后，推荐进行以下配置：
 
-1. 使用 `Ctrl + Shift + E` 选择你偏好的[输入方案](/guide/schemas)
+1. 使用 `Ctrl + Shift + E` 选择你偏好的[输入方案](/schema/)
 2. 通过 `Ctrl + Shift + ]` 打开设置工具，调整个性化选项
-3. 查看[快捷键](/hotkeys/)了解所有可用操作
+3. 阅读[基础使用](/guide/basics)了解日常操作

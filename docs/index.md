@@ -11,7 +11,7 @@ hero:
       link: /guide/install
     - theme: alt
       text: 输入方案
-      link: /guide/schemas
+      link: /schema/
 
 features:
   - title: 专为五笔设计
