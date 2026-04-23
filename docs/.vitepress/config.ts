@@ -18,13 +18,9 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '快速入门', link: '/guide/install' },
-      { text: '设置', link: '/settings/general' },
-      { text: '更新记录', link: '/changelog/' },
+      { text: '输入法设置', link: '/settings/general' },
       { text: '常见问题', link: '/faq/' },
-      { text: '高级', items: [
-        { text: '输入方案', link: '/schema/' },
-        { text: '配置文件', link: '/config/' },
-      ]},
+      { text: '更新记录', link: '/changelog/' },
       { text: '下载', link: 'https://github.com/huanfeng/WindInput/releases' },
     ],
 
@@ -56,7 +52,7 @@ export default defineConfig({
         ]
       },
       {
-        text: '设置说明',
+        text: '输入法设置',
         items: [
           { text: '常规与启动', link: '/settings/general' },
           { text: '输入行为', link: '/settings/input' },
@@ -86,6 +82,12 @@ export default defineConfig({
         text: '常见问题',
         items: [
           { text: 'FAQ', link: '/faq/' },
+        ]
+      },
+      {
+        text: '更新记录',
+        items: [
+          { text: '更新记录', link: '/changelog/' },
         ]
       },
     ],
