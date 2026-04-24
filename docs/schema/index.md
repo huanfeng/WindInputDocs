@@ -93,8 +93,8 @@ schema:
   available:                    # 可切换的方案列表（顺序决定切换顺序）
     - "wubi86"
     - "wubi86_pinyin"
-    - "pinyin"
-    - "shuangpin"
+    # - "pinyin"                # 如需启用，取消注释并重启
+    # - "shuangpin"
 ```
 
 `available` 列表中的顺序决定了 `Ctrl + Shift + E` 循环切换的顺序。

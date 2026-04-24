@@ -25,8 +25,9 @@
 | `punct_commit` | 标点顶字上屏 | `true` |
 | `clear_on_empty_max` | 四码空码自动清空 | `false` |
 | `show_code_hint` | 显示编码提示 | `true` |
-| `single_code_input` | 单编码输入模式 | `false` |
-| `candidate_sort_mode` | 候选排序模式：`frequency` | `frequency` |
+| `single_code_input` | 逐字键入模式（关闭前缀匹配） | `false` |
+| `single_code_complete` | 逐码空码补全（逐码模式下精确无候选时取更长编码首个候选） | `true` |
+| `candidate_sort_mode` | 候选排序模式：`frequency`（词频）、`natural`（自然顺序） | `frequency` |
 | `z_key_repeat` | Z 键重复/学习 | `true` |
 
 ## 混输引擎配置 {#混输引擎配置}

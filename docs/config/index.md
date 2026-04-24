@@ -46,8 +46,8 @@ schema:
   available:                     # 可切换的方案列表（顺序决定切换顺序）
     - "wubi86"
     - "wubi86_pinyin"
-    - "pinyin"
-    - "shuangpin"
+    # - "pinyin"                 # 如需启用，取消注释并重启
+    # - "shuangpin"
 ```
 
 方案详情请参阅[输入方案](/schema/)。
@@ -105,8 +105,8 @@ input:
     # - "comma_period"           # 逗号/句号
     # - "lrshift"                # 左右 Shift
     # - "lrctrl"                 # 左右 Ctrl
-  select_char_keys:              # 以词定字按键（可多选）
-    - "comma_period"             # 逗号/句号（从词中提取单字）
+  select_char_keys: []             # 以词定字按键（可多选），默认关闭
+    # - "comma_period"           # 逗号/句号（从词中提取单字）
     # - "minus_equal"            # 减号/等号
     # - "brackets"               # 方括号
   page_keys:                     # 翻页键（可多选）
@@ -187,7 +187,7 @@ input:
 ```yaml
 input:
   punct_custom:
-    enabled: true                # 启用自定义标点映射
+    enabled: false               # 启用自定义标点映射（默认关闭）
     mappings:                    # key=源字符（引号用 "1/"2/'1/'2 表示），value=[中文半角, 英文全角, 中文全角]
       "\"1": ["\u201c", "\"", "\u201c"]  # 左双引号
       "\"2": ["\u201d", "\"", "\u201d"]  # 右双引号
