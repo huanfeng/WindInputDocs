@@ -119,6 +119,18 @@ dictionaries:
       mode: log                  # 权重模式：linear（线性）, log（对数）
 ```
 
+如果码表词库的权重不是真实词频，而是同编码内的重码序号（如极点五笔的 10/20/30/40），可以添加 `weight_as_order: true`。启用后前缀匹配候选按码表文件顺序排列，避免重码加权导致的排序异常：
+
+```yaml
+dictionaries:
+  - id: wubi86_main
+    weight_as_order: true        # 权重仅表示同码内排序序号
+    weight_spec:
+      median: 10
+      max: 890
+      mode: linear
+```
+
 ### 反查词库
 
 拼音方案可以配置反查词库，在编码提示中显示其他方案的编码：
