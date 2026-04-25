@@ -57,12 +57,12 @@ export default defineConfig({
       {
         text: '输入法设置',
         items: [
-          { text: '常规与启动', link: '/settings/general' },
-          { text: '输入行为', link: '/settings/input' },
-          { text: '快捷键', link: '/settings/hotkeys' },
-          { text: '外观与主题', link: '/settings/appearance' },
-          { text: '词库管理', link: '/settings/dictionary' },
-          { text: '高级选项', link: '/settings/advanced' },
+          { text: '方案', link: '/settings/general' },
+          { text: '输入', link: '/settings/input' },
+          { text: '按键', link: '/settings/hotkeys' },
+          { text: '外观', link: '/settings/appearance' },
+          { text: '词库', link: '/settings/dictionary' },
+          { text: '高级', link: '/settings/advanced' },
         ]
       },
       {
