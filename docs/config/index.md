@@ -9,7 +9,7 @@
 | 文件 | 路径 |
 |------|------|
 | 全局配置 | `%APPDATA%\WindInput\config.yaml` |
-| 方案配置 | `%APPDATA%\WindInput\data\schemas\*.schema.yaml` |
+| 方案配置 | `%APPDATA%\WindInput\schemas\*.schema.yaml` |
 | 兼容性规则 | `%APPDATA%\WindInput\compat.yaml` |
 | 主题文件 | `%APPDATA%\WindInput\themes\` |
 | 系统短语 | 程序内置，不可修改 |

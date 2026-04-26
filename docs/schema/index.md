@@ -101,7 +101,7 @@ schema:
 
 ## 方案配置文件
 
-每个方案有独立的配置文件，位于 `%APPDATA%\WindInput\data\schemas\` 目录：
+每个方案有独立的配置文件，位于 `%APPDATA%\WindInput\schemas\` 目录：
 
 | 文件 | 方案 |
 |------|------|

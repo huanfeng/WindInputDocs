@@ -4,7 +4,7 @@
 本文面向需要手动编辑方案配置文件的用户。普通用户通过设置工具和[方案介绍](/schema/)页面即可完成日常配置。
 :::
 
-每个方案有独立的 YAML 配置文件，位于 `%APPDATA%\WindInput\data\schemas\` 目录：
+每个方案有独立的 YAML 配置文件，位于 `%APPDATA%\WindInput\schemas\` 目录：
 
 | 文件 | 方案 |
 |------|------|
@@ -93,7 +93,7 @@ encoder:
     - length_equal: 2           # 二字词取码规则
       formula: "AaAbBaBb"       # 第一字前两码 + 第二字前两码
     - length_equal: 3           # 三字词
-      formula: "AaBaCaCb"       # 前三字首码 + 末字次码
+      formula: "AaBaCaCb"       # 前两字首码 + 第三字前两码
     - length_in_range: [4, 10]  # 四字及以上
       formula: "AaBaCaZa"       # 前三字首码 + 末字首码
 ```

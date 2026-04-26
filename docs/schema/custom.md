@@ -4,7 +4,7 @@
 
 ## 方案文件结构
 
-方案文件为 YAML 格式，位于 `%APPDATA%\WindInput\data\schemas\` 目录，命名格式为 `<方案ID>.schema.yaml`。基本结构如下：
+方案文件为 YAML 格式，位于 `%APPDATA%\WindInput\schemas\` 目录，命名格式为 `<方案ID>.schema.yaml`。基本结构如下：
 
 ```yaml
 schema:
@@ -246,12 +246,12 @@ learning:
     protect_top_n: 3
 ```
 
-将此文件保存为 `%APPDATA%\WindInput\data\schemas\simple_wubi.schema.yaml`，然后在全局配置的 `schema.available` 中添加 `"simple_wubi"`，即可通过 `Ctrl + Shift + E` 切换到该方案。
+将此文件保存为 `%APPDATA%\WindInput\schemas\simple_wubi.schema.yaml`，然后在全局配置的 `schema.available` 中添加 `"simple_wubi"`，即可通过 `Ctrl + Shift + E` 切换到该方案。
 
 ## 注意事项
 
 - 方案 ID 必须与文件名前缀一致（如 `my_schema.schema.yaml` 的 ID 为 `my_schema`）
-- 词库文件需放置在 `%APPDATA%\WindInput\data\dictionaries\` 目录下
+- 词库文件需放置在 `%APPDATA%\WindInput\schemas\` 目录下
 - 修改方案文件后需要重启输入法或切换方案才能生效
 - 建议先导出内置方案作为模板，在其基础上修改
 - 详细的全局配置参考请参阅[配置机制与全局配置](/config/)
