@@ -63,6 +63,7 @@ export default defineConfig({
           { text: '外观', link: '/settings/appearance' },
           { text: '词库', link: '/settings/dictionary' },
           { text: '高级', link: '/settings/advanced' },
+          { text: '统计', link: '/settings/stats' },
         ]
       },
       {
