@@ -24,7 +24,7 @@ export default defineConfig({
       { text: '输入法设置', link: '/settings/general' },
       { text: '常见问题', link: '/faq/' },
       { text: '更新记录', link: '/changelog/' },
-      { text: '下载', link: 'https://github.com/huanfeng/WindInput/releases' },
+      { text: '下载', link: '/download/' },
     ],
 
     docFooter: {
