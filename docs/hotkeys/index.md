@@ -54,6 +54,7 @@
 |--------|------|--------|
 | `Ctrl + Shift + ]` | 打开设置工具 | `hotkeys.open_settings` |
 | `Ctrl + Shift + \` | 显示/隐藏工具栏 | `hotkeys.toggle_toolbar` |
+| `Ctrl + Shift + J` | 开启/关闭简入繁出 | `hotkeys.toggle_s2t` |
 | `Ctrl + =` | 快捷加词 | `hotkeys.add_word` |
 | `Ctrl + Shift + 数字` | 删除候选词 | `hotkeys.delete_candidate` |
 | `Ctrl + 数字` | 置顶候选词 | `hotkeys.pin_candidate` |
