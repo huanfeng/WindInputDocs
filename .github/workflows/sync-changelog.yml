@@ -38,6 +38,7 @@ jobs:
         run: python3 scripts/sync_release_notes.py /tmp/latest_release.json
 
       - name: Create PR
+        id: create-pr
         uses: peter-evans/create-pull-request@v6
         with:
           title: "docs: 同步更新日志"
@@ -46,3 +47,9 @@ jobs:
           body: |
             自动从 GitHub Release 同步用户向更新说明到 changelog。
           labels: documentation
+
+      - name: Enable auto-merge (rebase)
+        if: steps.create-pr.outputs.pull-request-operation != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --rebase --auto ${{ steps.create-pr.outputs.pull-request-number }}
