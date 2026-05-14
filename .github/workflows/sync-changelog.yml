@@ -6,6 +6,10 @@ on:
       - changelog-updated
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
