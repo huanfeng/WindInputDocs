@@ -92,7 +92,7 @@ def insert_or_update(version: str, entry: str):
     if first_entry_idx is not None:
         # 查找该版本的范围（到下一个 ## v 或文件末尾）
         for i in range(first_entry_idx, len(lines)):
-            if lines[i].strip() == f"## v{version}":
+            if re.match(rf"^## v{re.escape(version)}(\s|$)", lines[i]):
                 # 找到结束位置
                 end_idx = i + 1
                 while end_idx < len(lines) and not lines[end_idx].startswith("## v"):

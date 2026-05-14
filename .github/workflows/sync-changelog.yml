@@ -19,6 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch latest release
+        id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -28,7 +29,9 @@ jobs:
           else
             gh api repos/huanfeng/WindInput/releases/latest > /tmp/latest_release.json
           fi
-          echo "Tag: $(jq -r '.tag_name' /tmp/latest_release.json)"
+          TAG=$(jq -r '.tag_name' /tmp/latest_release.json)
+          echo "Tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - uses: actions/setup-python@v5
         with:
@@ -41,9 +44,9 @@ jobs:
         id: create-pr
         uses: peter-evans/create-pull-request@v6
         with:
-          title: "docs: 同步更新日志"
+          title: "docs: 同步更新日志 ${{ steps.release.outputs.tag }}"
           branch: auto/sync-changelog
-          commit-message: "docs: 同步更新日志"
+          commit-message: "docs: 同步更新日志 ${{ steps.release.outputs.tag }}"
           body: |
             自动从 GitHub Release 同步用户向更新说明到 changelog。
           labels: documentation
