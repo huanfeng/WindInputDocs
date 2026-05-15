@@ -44,6 +44,7 @@ jobs:
         id: create-pr
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
           title: "docs: 同步更新日志 ${{ steps.release.outputs.tag }}"
           branch: auto/sync-changelog
           commit-message: "docs: 同步更新日志 ${{ steps.release.outputs.tag }}"
@@ -54,5 +55,5 @@ jobs:
       - name: Enable auto-merge (rebase)
         if: steps.create-pr.outputs.pull-request-operation != 'none'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
         run: gh pr merge --rebase --auto ${{ steps.create-pr.outputs.pull-request-number }}
