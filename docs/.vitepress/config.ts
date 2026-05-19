@@ -22,6 +22,7 @@ export default defineConfig({
       { text: '首页', link: '/' },
       { text: '快速入门', link: '/guide/install' },
       { text: '输入法设置', link: '/settings/general' },
+      { text: '专题', link: '/topics/' },
       { text: '常见问题', link: '/faq/' },
       { text: '更新记录', link: '/changelog/' },
       { text: '下载', link: '/download/' },
@@ -74,6 +75,14 @@ export default defineConfig({
           { text: '配置机制与全局配置', link: '/config/' },
           { text: '方案配置详解', link: '/config/schema' },
           { text: '兼容性与自定义主题', link: '/config/compat-theme' },
+        ]
+      },
+      {
+        text: '专题',
+        items: [
+          { text: '专题索引', link: '/topics/' },
+          { text: '权重系统', link: '/topics/weight-system' },
+          { text: '命令直通车', link: '/topics/command-bar' },
         ]
       },
       {

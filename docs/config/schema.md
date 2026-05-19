@@ -29,6 +29,35 @@
 | `single_code_complete` | 逐码空码补全（逐码模式下精确无候选时取更长编码首个候选） | `true` |
 | `candidate_sort_mode` | 候选排序模式：`frequency`（词频）、`natural`（自然顺序） | `frequency` |
 | `z_key_repeat` | Z 键重复/学习 | `true` |
+| `dedup_candidates` | 候选去重（按 text 保留先出现） | `true` |
+| `skip_single_char_freq` | 单字不自动调频（避免高频单字越用越靠前） | `false` |
+| `load_mode` | 码表加载模式 | 由 schema 内部决定 |
+| `prefix_mode` | 前缀匹配模式：`sequential` / `bfs_bucket` / `none` | `bfs_bucket` |
+| `bucket_limit` | bfs_bucket 模式下每桶候选上限 | 内部默认 |
+| `weight_mode` | 权重模式：`global` / `inner_order` 等 | 内部默认 |
+| `short_code_first` | 短码优先（短编码候选靠前） | 由 schema 决定 |
+| `charset_preference` | 字符集偏好（同候选下优先显示的字符集） | 空 |
+
+### 临时拼音子配置 (`temp_pinyin`)
+
+码表方案可在 `engine.codetable.temp_pinyin` 中启用"忘码时切到拼音输入":
+
+```yaml
+engine:
+  codetable:
+    temp_pinyin:
+      enabled: true               # 是否启用临时拼音
+      schema: pinyin              # 使用的拼音方案 ID（默认 pinyin；已废弃, 推荐用全局 primary_pinyin）
+```
+
+| 字段 | 说明 | 默认值 |
+|---|---|---|
+| `enabled` | 是否启用临时拼音 (五笔方案下按 `` ` `` 切换) | `true`（向后兼容） |
+| `schema` | 使用的拼音方案 ID | 全局 `primary_pinyin` 优先 |
+
+::: tip 设计取舍
+临时拼音激活时, 短语词库 (PhraseLayer) 的命令短语不会被命中 (例如临时拼音里输 `zzbd` **不会**看到"标点"字符组), 让输入流回归"纯拼音"语义; 简拼仍然保留。
+:::
 
 ## 混输引擎配置 {#混输引擎配置}
 
@@ -42,6 +71,13 @@
 | `codetable_weight_boost` | 码表权重倍数 | `10000000` |
 | `show_source_hint` | 显示匹配来源提示 | `false` |
 | `z_key_repeat` | Z 键重复/学习 | `true` |
+| `enable_abbrev_match` | 启用简拼匹配（混输模式下默认关闭, 避免和五笔编码冲突） | `false` |
+| `pinyin_only_overflow` | 编码超过最大码长时仅查拼音 | `true` |
+| `enable_english` | 启用英文候选（混输直接出英文词条） | `false` |
+
+::: tip
+混输 boost (`codetable_weight_boost`) 是 **层间隔离机制** —— 码表层 (含短语 + 用户词库 + 系统码表) 整体被压在拼音字之前, 让用户输码表编码时即便恰好与拼音冲突也能稳定靠前。该 boost **不写入存储**, 用户在设置里看到的 weight 永远是 0~10000 那个值。
+:::
 
 ## 拼音引擎配置 {#拼音引擎配置}
 
@@ -53,6 +89,7 @@
 | `show_code_hint` | 显示编码提示 | `true` |
 | `use_smart_compose` | 智能组词 | `true` |
 | `candidate_order` | 候选排序：`char_first`, `phrase_first`, `smart` | `smart` |
+| `dict_format` | 词库格式：`dat` (默认, 适合大词库), `wdb` | `dat` |
 
 双拼额外配置：
 
@@ -109,14 +146,81 @@ encoder:
 
 ```yaml
 learning:
+  # 拼音方案: 选词即学的自动造词
   auto_learn:
-    enabled: false              # 自动词组学习
+    enabled: false              # 是否启用自动造词
+    count_threshold: 2          # 误选保护阈值
+    min_word_length: 2          # 最小造词字数
+    weight_delta: 20            # 每次选词权重增量
+    add_weight: 800             # 新词初始权重
+  # 码表方案: 连续单字 + 终止符 = 自动组词
+  auto_phrase:
+    enabled: false
+    min_phrase_len: 2           # 最小造词字数
+    max_phrase_len: 5           # 最大造词字数
+    add_weight: 800             # 新词初始权重
+    weight_delta: 20            # 每次命中权重增量
+    count_threshold: 2          # 误选保护阈值
+  # 自动调频 (按"用得越多排得越前"动态调整候选 weight)
   freq:
-    enabled: false              # 词频调整
-    protect_top_n: 1            # 保护前 N 个候选不被调频
+    enabled: false              # 是否启用自动调频
+    protect_top_n: 0            # 锁定前 N 位候选位置 (默认不锁定)
+    half_life: 72               # 半衰期 (小时)
+    boost_max: 2000             # 加成上限 (自动调频不会让一条词的 weight 涨过 2000)
+    max_recency: 300            # 时间衰减峰值
+    base_scale: 100             # base 系数
+    streak_scale: 50            # 连续选择系数
+    streak_cap: 250             # 连续选择上限
   temp_max_entries: 5000        # 临时词库最大条目数
-  temp_promote_count: 3         # 临时词提升计数
+  temp_promote_count: 5         # 选择几次后晋升到用户词库
 ```
+
+各字段说明：
+
+### `auto_learn` (拼音)
+
+| 字段 | 说明 | 默认值 |
+|---|---|---|
+| `enabled` | 是否启用自动造词 | `false` |
+| `count_threshold` | 误选保护阈值（要被选过多少次才视为有效造词） | `2` |
+| `min_word_length` | 最小造词字数 | `2` |
+| `weight_delta` | 每次选词权重增量 | `20` |
+| `add_weight` | 新词初始权重 | `800` |
+
+### `auto_phrase` (码表)
+
+| 字段 | 说明 | 默认值 |
+|---|---|---|
+| `enabled` | 是否启用 | `false` |
+| `min_phrase_len` | 最小造词字数 | `2` |
+| `max_phrase_len` | 最大造词字数 | `5` |
+| `add_weight` | 新词初始权重 | `800` |
+| `weight_delta` | 每次命中权重增量 | `20` |
+| `count_threshold` | 误选保护阈值 | `2` |
+
+### `freq` (自动调频)
+
+| 字段 | 说明 | 默认值 |
+|---|---|---|
+| `enabled` | 是否启用 | `false` |
+| `protect_top_n` | 锁定前 N 位候选位置 | `0` (不锁定) |
+| `half_life` | 半衰期 (小时, 决定调频"记忆"长短) | `72` |
+| `boost_max` | 调频加成上限 (单条词 weight 最多被调到 +2000) | `2000` |
+| `max_recency` | 时间衰减峰值 | `300` |
+| `base_scale` | base 系数 | `100` |
+| `streak_scale` | 连续选择系数 | `50` |
+| `streak_cap` | 连续选择上限 | `250` |
+
+### 临时词库
+
+| 字段 | 说明 | 默认值 |
+|---|---|---|
+| `temp_max_entries` | 临时词库最大条目数 (超限按 LRU 淘汰) | `5000` |
+| `temp_promote_count` | 临时词被选择 N 次后晋升到用户词库 | `5` |
+
+::: tip
+临时词库 (TempLayer) 是用户词库 (UserLayer) 的"前置队列": 新学的词先进临时层观察, 命中阈值后自动晋升。这避免一次性误选直接污染用户词库。
+:::
 
 ## 词库权重
 
@@ -161,8 +265,73 @@ dictionaries:
     reverse_lookup: true
 ```
 
+## 拆字提示
+
+五笔等形码方案可挂拆字数据库, 在候选条目上显示构字信息:
+
+```yaml
+engine:
+  chaizi:
+    db_path: "chaizi.db"          # 拆字数据库路径 (相对词库目录或绝对路径)
+    font_family: "PinyinSC.ttf"   # 显示拆字所用的字体 (空 = 用默认字体)
+    font_dw_name: "Source Han"    # DirectWrite 字体族名 (字体已装到系统时优先用)
+```
+
+| 字段 | 说明 |
+|---|---|
+| `db_path` | 拆字数据库文件路径 |
+| `font_family` | 字体文件路径 (落到词库目录) |
+| `font_dw_name` | DirectWrite 字体族名, 字体已系统注册时优先使用 |
+
 ## 短语文件
 
 每个方案可以搭配一个短语文件 `<方案ID>.phrases.yaml`，用于定义自定义词条。短语文件会在方案加载时自动读取，词条参与候选排序。
+
+::: tip 短语 vs 用户词库
+短语文件 (PhraseLayer) 是**全局共享**的, 不区分方案; 编辑入口在 设置 → 词库 → 短语。每个方案的**用户词库** (StoreUserLayer) 按方案 ID 隔离, 不同方案下的用户词不互通 (拼音家族 / 双拼共享同一份, 详见下方注意事项)。
+:::
+
+## 数据共享与隔离
+
+### 拼音家族共享用户数据
+
+全拼 (`pinyin`) 与双拼 (`shuangpin`) 的用户词库、调频、临时词库统一存储在 `pinyin` bucket 下 (代码常量 `PinyinSharedDictID`)。这样双拼用户切到全拼仍能看到自己学过的词。
+
+混输方案则与其主形码方案 (例如 `wubi86_pinyin` 的 `primary_schema: wubi86`) 共享用户数据 — 五笔学过的词在混输下立刻可用。
+
+| 方案 | 实际数据 bucket |
+|---|---|
+| `pinyin` (全拼) | `pinyin` |
+| `shuangpin` (双拼) | `pinyin` (与全拼共享) |
+| `wubi86` (五笔) | `wubi86` |
+| `wubi86_pinyin` (混输) | `wubi86` (与五笔共享) |
+
+### 短语词库全局, 系统码表按方案
+
+| 数据类 | 隔离方式 |
+|---|---|
+| 短语词库 (PhraseLayer) | **全局**, 所有方案共用 |
+| 系统码表 (各方案 dictionaries) | **按方案** |
+| 用户词库 / 临时词库 / 调频 | **按方案数据 bucket** (拼音家族 / 混输有共享, 见上表) |
+
+## 设计中的注意事项
+
+### 临时拼音是"独立查询路径"
+
+码表方案下进入临时拼音 (按 `` ` ``) 时, 仅拼音词库参与查询。短语词库 (PhraseLayer) 的命令短语在临时拼音下**不**触发, 例如临时拼音中输 `zzbd` 看到的是"祖祖辈辈"等拼音简拼候选, 而非"标点"字符组 nav。这是为了让临时拼音回归"纯拼音"语义。
+
+简拼 (`zg` → 中国) 在临时拼音下**保留**。
+
+### 混输 `enable_abbrev_match` 默认 false
+
+混输方案下简拼匹配默认关闭, 避免和五笔编码冲突 (例如 `zgrm` 是常用简拼但也是有效五笔编码)。如希望在拼音兜底时也支持简拼, 设 `enable_abbrev_match: true`。
+
+### Z 键重复 vs 临时拼音
+
+`z_key_repeat: true` 时, 输入 `z` 触发"重复上次上屏候选"; 临时拼音又用 `z` (或 `` ` ``) 作为切换键。两个功能可以共存 — 引擎按"前缀有效性"做渐进决策: 如果 `z` 后续还能扩展出码表/短语候选则正常输入, 否则把首 `z` 视作临时拼音触发键。
+
+### 短语候选不会被生僻字过滤
+
+智能过滤 (码表方案下"看不到生僻字") 路径里, 短语永远保留, 也不计入"同编码下是否有常用字"的判定。这让用户配置 `dz = 我的地址` 不会副作用地改变同编码 (dz) 的码表过滤行为。
 
 如需创建自定义方案，请参阅[方案配置制作](/schema/custom)。
