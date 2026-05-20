@@ -2,6 +2,10 @@ import { defineConfig } from 'vitepress'
 
 const base = process.env.WINDINPUT_DOCS_BASE || '/WindInput/'
 
+const CJK_CLASS = '[\\u4e00-\\u9fff\\u3400-\\u4dbf\\uf900-\\ufaff]'
+const cjkCharRe = new RegExp(CJK_CLASS)
+const cjkRunRe = new RegExp(`(${CJK_CLASS}+)`, 'u')
+
 export default defineConfig({
   title: '清风输入法',
   description: '清风输入法 - 轻量、快速、可定制的开源中文输入法',
@@ -46,6 +50,61 @@ export default defineConfig({
     darkModeSwitchLabel: '主题',
     lightModeSwitchTitle: '切换到亮色模式',
     darkModeSwitchTitle: '切换到暗色模式',
+
+    search: {
+      provider: 'local',
+      options: {
+        locales: {
+          root: {
+            translations: {
+              button: {
+                buttonText: '搜索文档',
+                buttonAriaLabel: '搜索文档',
+              },
+              modal: {
+                noResultsText: '无相关结果',
+                resetButtonTitle: '清除查询条件',
+                displayDetails: '显示详情',
+                backButtonTitle: '返回',
+                footer: {
+                  selectText: '选择',
+                  navigateText: '切换',
+                  closeText: '关闭',
+                },
+              },
+            },
+          },
+        },
+        miniSearch: {
+          options: {
+            tokenize: (text: string) => {
+              const tokens: string[] = []
+              for (const part of text.split(cjkRunRe)) {
+                if (!part) continue
+                if (cjkCharRe.test(part)) {
+                  for (let i = 0; i < part.length; i++) {
+                    tokens.push(part[i])
+                    if (i + 1 < part.length) tokens.push(part.slice(i, i + 2))
+                  }
+                } else {
+                  for (const t of part.split(/[\s\p{P}]+/u)) {
+                    if (t) tokens.push(t)
+                  }
+                }
+              }
+              return tokens
+            },
+            processTerm: (term: string) => term.toLowerCase(),
+          },
+          searchOptions: {
+            fuzzy: 0,
+            prefix: true,
+            combineWith: 'AND',
+            boost: { title: 4, text: 2, titles: 1 },
+          },
+        },
+      },
+    },
 
     sidebar: [
       {
