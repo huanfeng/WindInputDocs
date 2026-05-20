@@ -9,11 +9,62 @@ apps:
   - process: "Weixin.exe"        # 进程名（不区分大小写）
     comment: "微信 - 使用 rect.top 定位候选框"
     caret_use_top: true          # 使用 caret rect 的 top 而非 bottom 定位候选框
+    skip_caret_pending: false    # 是否跳过首字符等待真实光标坐标（即时候选）
 ```
+
+### 字段说明
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `process` | string | 进程名，不区分大小写，如 `Notepad.exe` |
+| `comment` | string | 备注说明，仅用于文档与可读性 |
+| `caret_use_top` | bool | 使用 caret rect 的 `top` 而非 `bottom` 定位候选框 |
+| `skip_caret_pending` | bool | 跳过首次 composition 的光标等待，详见下文「即时候选」 |
 
 `caret_use_top` 适用于 `GetTextExt` 返回的 height 不稳定的 WebView 应用（如微信的 Qt WebView 输入框）。
 
 清风输入法内置了微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在 `compat.yaml` 中添加规则。
+
+### 即时候选（skip_caret_pending） {#即时候选}
+
+默认情况下，按下首字符触发 composition 时，输入法会**短暂等待**宿主回传 reflow 后的真实光标坐标，再显示候选窗。这是为了避免候选窗先出现在 idle 光标位置、随后又跳到 composition 位置造成的视觉漂移。
+
+但对于一部分**光标本身就稳定**的应用（不会因 composition 创建而发生 reflow 漂移），这个等待是纯粹的延迟，会让用户感到首字符的候选窗"反应慢半拍"。为这类应用启用「即时候选」即可跳过等待，让候选窗在首字符按下后立即出现。
+
+#### 启用方式（推荐）：右键菜单一键开关
+
+1. 切换到目标应用，确保输入法处于该应用的输入焦点中；
+2. 在系统托盘的清风输入法图标上**右键**，或在候选工具栏上点击**设置图标**打开统一菜单；
+3. 选择 **高级 → 为 `<进程名>` 启用即时候选**，使其勾选；
+4. 设置立即生效，无需重启输入法。
+
+菜单项标签中的 `<进程名>` 会自动显示为当前焦点应用的可执行文件名（例如 `Code.exe`、`Notepad.exe`）。再次点击可关闭。
+
+> 该操作会在 `%APPDATA%\WindInput\compat.yaml` 中为对应进程写入或更新 `skip_caret_pending` 字段；如该文件不存在会自动创建。
+
+#### 启用方式：手动编辑 compat.yaml
+
+如需批量配置或在自动化部署中预置规则，可直接编辑 `compat.yaml`：
+
+```yaml
+apps:
+  - process: "Code.exe"
+    comment: "VS Code - 光标稳定，启用即时候选"
+    skip_caret_pending: true
+```
+
+修改后通过右键菜单 → **重载配置** 即可生效。
+
+#### 何时建议启用？
+
+- 首字符候选窗出现明显延迟、感觉"反应慢"；
+- 应用是原生文本控件或常规 Edit 控件，光标位置稳定；
+- 在该应用中**没有**观察到候选窗"先错位再跳动"的现象。
+
+#### 何时不要启用？
+
+- 应用是 WebView / Electron / Qt 等会在 composition 创建时触发 reflow 漂移的环境；
+- 启用后观察到首字符的候选窗出现在错误位置（如左上角原点、上一行末尾等）；遇到此情况请关闭。
 
 ## 自定义主题 {#自定义主题}
 
