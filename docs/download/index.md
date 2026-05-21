@@ -1,8 +1,5 @@
 <script setup>
 import { data } from './version.data'
-
-const proxy1 = data.downloadUrl ? `https://ghproxy.net/${data.downloadUrl}` : null
-const proxy2 = data.downloadUrl ? `https://ghfast.top/${data.downloadUrl}` : null
 </script>
 
 # 下载
@@ -13,13 +10,10 @@ const proxy2 = data.downloadUrl ? `https://ghfast.top/${data.downloadUrl}` : nul
 
 当前最新版本：**v{{ data.version }}**
 
-| 下载方式 | 链接 |
-| --- | --- |
-| GitHub 直链 | <a :href="data.downloadUrl">WindInput-{{ data.version }}-Setup.exe</a> |
-| 国内加速 1 | <a :href="proxy1">ghproxy.net 代理下载</a> |
-| 国内加速 2 | <a :href="proxy2">ghfast.top 代理下载</a> |
-
-> 代理服务为第三方提供，可用性随时可能变化，如某个链接无法访问请尝试其他链接。
+| 下载方式                  | 链接                                                                     | 备注                           |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------ |
+| Cloudflare R2（国内推荐） | <a :href="data.r2DownloadUrl">WindInput-{{ data.version }}-Setup.exe</a> | 全球 CDN，国内访问稳定         |
+| GitHub Release（海外）    | <a :href="data.githubUrl">WindInput-{{ data.version }}-Setup.exe</a>     | 可在 GitHub 上查看更新说明原文 |
 
 前往 [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 查看所有历史版本及更新说明。
 
