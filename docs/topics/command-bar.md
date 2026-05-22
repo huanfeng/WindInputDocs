@@ -209,8 +209,11 @@ text = "价格: $$10"
 | `proc.run(cmd, ...args)` | `run` | `cmd: str, args: str...` | 启动进程 | 异步, 不等待返回 |
 | `proc.shell(cmdline)` | `shell` | `cmdline: str` | 执行 shell 命令 | 默认 `cmd /c`, 静默无窗口 |
 | `proc.shell(cmdline, flags)` | `shell` | `cmdline: str, flags: str` | 执行 shell 命令 | flags 控制 shell 类型与窗口, 见下表 |
-| `key.tap(combo)` | — | `combo: str` | 单次按键 | 例 `"Enter"` `"Shift+End"` `"Ctrl+C"` |
+| `key.tap(combo)` | — | `combo: str` | 单次按键 | 例 `"Enter"` `"Shift+End"` `"Ctrl+C"` `"vk:0x5D"` |
 | `key.seq(...combos)` | — | `combos: str...` | 按键序列 | 按顺序依次触发 |
+| `key.hold(combo)` | — | `combo: str` | 按下不抬起 | 需与 `key.release` 成对使用, 否则按键会卡住 |
+| `key.release(combo)` | — | `combo: str` | 抬起按键 | 释放 `key.hold` 按下的键, 顺序与 hold 相反 |
+| `key.type(text)` | — | `text: str` | Unicode 直输文本 | 以扫描码发送, 绕过键盘布局; 与 `type()` 不同, 走 SendInput 而非 TSF |
 | `clip.copy(s)` | — | `s: str` | 写入剪贴板 | 覆盖现有剪贴板 |
 | `clip.paste()` | — | (无) | 粘贴 | 模拟 Ctrl+V |
 | `dict.add(s)` | `dict.addword` | `s: str` | 加词到用户库 | 编码按当前方案规则自动推导 |
@@ -236,6 +239,132 @@ text = "价格: $$10"
 $CC("ping (静默)", proc.shell("ping -n 1 baidu.com"))
 $CC("ping (可见)", proc.shell("ping -n 1 baidu.com", "term"))
 $CC("PS 命令",   proc.shell("Get-Process | Out-File ~/procs.txt", "pwsh"))
+```
+
+### 按键参考
+
+`key.tap` / `key.seq` / `key.hold` / `key.release` 中的 `combo` 字符串格式为:
+
+```
+[修饰键+]...[修饰键+]主键
+```
+
+大小写不敏感, `+` 为分隔符, 修饰键顺序会自动规范化为 `Ctrl < Shift < Alt < Win`。
+
+#### 修饰键
+
+| 规范名 | 可接受别名 | Windows VK |
+|--------|-----------|-----------|
+| `Ctrl` | `Control` | VK_CONTROL (0x11) |
+| `Shift` | — | VK_SHIFT (0x10) |
+| `Alt` | `Menu` | VK_MENU (0x12) |
+| `Win` | `Super`, `Meta`, `Cmd` | VK_LWIN (0x5B) |
+
+#### 控制 / 导航键
+
+| 规范名 | 可接受别名 | VK 码 | 说明 |
+|--------|-----------|-------|------|
+| `Enter` | `Return` | 0x0D | 回车 |
+| `Tab` | — | 0x09 | 制表符 |
+| `Escape` | `Esc` | 0x1B | 退出 |
+| `Space` | — | 0x20 | 空格 |
+| `Backspace` | `Back` | 0x08 | 退格 |
+| `Delete` | `Del` | 0x2E | 删除 |
+| `Insert` | `Ins` | 0x2D | 插入 |
+| `Home` | — | 0x24 | 行首 |
+| `End` | — | 0x23 | 行尾 |
+| `PageUp` | `Page_Up`, `Prior` | 0x21 | 上翻页 |
+| `PageDown` | `Page_Down`, `Next` | 0x22 | 下翻页 |
+| `Up` | `ArrowUp` | 0x26 | 上方向键 |
+| `Down` | `ArrowDown` | 0x28 | 下方向键 |
+| `Left` | `ArrowLeft` | 0x25 | 左方向键 |
+| `Right` | `ArrowRight` | 0x27 | 右方向键 |
+| `CapsLock` | — | 0x14 | 大写锁定 |
+| `PrintScreen` | `PrtSc` | 0x2C | 截图键 |
+| `ScrollLock` | — | 0x91 | 滚动锁定 |
+| `Pause` | — | 0x13 | 暂停键 |
+
+#### 功能键
+
+| 规范名 | VK 码 | 规范名 | VK 码 |
+|--------|-------|--------|-------|
+| `F1` | 0x70 | `F13` | 0x7C |
+| `F2` | 0x71 | `F14` | 0x7D |
+| `F3` | 0x72 | `F15` | 0x7E |
+| `F4` | 0x73 | `F16` | 0x7F |
+| `F5` | 0x74 | `F17` | 0x80 |
+| `F6` | 0x75 | `F18` | 0x81 |
+| `F7` | 0x76 | `F19` | 0x82 |
+| `F8` | 0x77 | `F20` | 0x83 |
+| `F9` | 0x78 | `F21` | 0x84 |
+| `F10` | 0x79 | `F22` | 0x85 |
+| `F11` | 0x7A | `F23` | 0x86 |
+| `F12` | 0x7B | `F24` | 0x87 |
+
+#### 标点符号键 (美式 US 布局)
+
+| 规范名 | 字符别名 | VK 码 | 键位说明 |
+|--------|---------|-------|---------|
+| `Grave` | `` ` ``, `~`, `Backtick` | 0xC0 | 反引号 / 波浪号键 |
+| `Minus` | `-` | 0xBD | 减号 / 下划线键 |
+| `Equal` | `=`, `Plus` | 0xBB | 等号 / 加号键 |
+| `LBracket` | `[`, `Open_Bracket` | 0xDB | 左方括号键 |
+| `RBracket` | `]`, `Close_Bracket` | 0xDD | 右方括号键 |
+| `Backslash` | `\` | 0xDC | 反斜杠键 |
+| `Semicolon` | `;` | 0xBA | 分号键 |
+| `Quote` | `'` | 0xDE | 单引号键 |
+| `Comma` | `,` | 0xBC | 逗号键 |
+| `Period` | `.` | 0xBE | 句号键 |
+| `Slash` | `/` | 0xBF | 斜杠键 |
+
+::: warning
+标点符号键的 VK 码基于美式 US 键盘布局。非 US 布局下物理键位可能不同，此时建议改用 `vk:` 数值码指定精确的虚拟键值。
+:::
+
+#### 字母与数字键
+
+字母 `a`–`z`（大小写等价）和数字 `0`–`9` 直接作为键名使用。字母键的 VK 码由 Win32 `VkKeyScanW` 按当前键盘布局动态查询，无固定值。
+
+#### `vk:` 数值码
+
+当需要输入上表未列出的特殊键（如小键盘键、多媒体键、右键菜单键等），可使用 `vk:` 前缀直接指定 Windows 虚拟键值：
+
+| 写法 | 解析方式 | 示例 |
+|------|---------|------|
+| `vk:0x5D` | `0x` 前缀 → 十六进制 | 右键菜单键 (VK_APPS) |
+| `vk:93` | 无前缀 → 十进制 | 同上 (93 = 0x5D) |
+
+两种写法等价，可混用：
+
+```
+# 右键菜单键
+key.tap("vk:0x5D")
+key.tap("vk:93")
+
+# 带修饰键
+key.tap("Shift+vk:0x5D")
+
+# 数字小键盘 0 (VK_NUMPAD0 = 0x60)
+key.tap("vk:0x60")
+
+# 媒体播放/暂停 (VK_MEDIA_PLAY_PAUSE = 0xB3)
+key.tap("vk:0xB3")
+key.tap("vk:179")
+```
+
+有效范围：`0x01`–`0xFF` (1–255)，值为 0 或超出范围时报错。
+
+#### 组合示例
+
+```
+key.tap("Ctrl+C")              # 复制
+key.tap("Ctrl+Shift+End")      # 选到文档末尾
+key.tap("Alt+F4")              # 关闭窗口
+key.tap("Win+D")               # 显示桌面
+key.seq("Home", "Shift+End", "Delete")  # 删除整行
+key.hold("Shift")              # 按住 Shift（需配对 release）
+key.release("Shift")           # 释放 Shift
+key.type("Hello, 世界")         # Unicode 直输，不依赖键盘布局
 ```
 
 ## 权重
