@@ -101,10 +101,50 @@ engine:
 
 ### 词库列表
 
+每个方案的 `dictionaries` 数组列出所有可用词库，按角色分两类：
+
+- **主词库** — 仅 1 个，`default: true` 标记，始终启用，包含主要词条
+- **附加词库** — 任意多个，可被用户独立开关，常用于扩展词、emoji、行业词、地名等
+
 ```yaml
 dictionaries:
-  - id: pinyin_main              # 词库 ID（对应 data/dictionaries/ 下的文件名）
+  - id: wubi86_main              # 主词库
+    label: "极点五笔主词库"
+    description: "极点五笔基础词库，含单字与高频词组"
+    path: "wubi86/wubi86_jidian.dict.yaml"
+    type: rime_codetable
+    default: true                # 标记为主词库
+
+  - id: wubi86_emoji             # 附加词库
+    label: "Emoji 表情"
+    description: "按五笔编码检索 emoji；输入 emoj 可查看常用表情"
+    path: "wubi86/wubi86_jidian_emoji.dict.yaml"
+    type: rime_codetable
+    default_enabled: true        # 方案默认启用
+    weight_as_order: true
 ```
+
+#### 词库条目字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | string | 词库 ID，全局唯一；缓存文件名按 `<schemaID>_<dictID>` 组合 |
+| `label` | string | UI 显示名称，留空时回退为 `id` |
+| `description` | string | 备注说明，显示在设置工具开关下方的小字提示 |
+| `path` | string | 词库文件路径，相对 `data\` / `userdata\` 根目录 |
+| `type` | string | 词库类型，如 `rime_codetable`、`rime_dict` 等 |
+| `default` | bool | 是否为主词库；每个方案有且仅有一个主词库 |
+| `default_enabled` | bool | 附加词库的方案默认启用状态；省略时视为 `true` |
+| `enabled` | bool | 用户覆盖的启用状态；由设置工具写入用户方案文件，未设置时继承 `default_enabled` |
+| `weight_spec` | object | 权重归一化参数，见下文 |
+| `weight_as_order` | bool | 权重仅表示同码内排序序号，不参与跨码比较 |
+
+启用判定优先级：**`enabled` > `default_enabled` > 默认 `true`**。主词库（`default: true`）始终启用，`enabled` 字段对其无效。
+
+::: tip 附加词库的热重载
+在设置工具中切换附加词库开关会即时生效，无需重启输入法：开关写入用户数据目录下 `schemas\<方案ID>.schema.yaml` 的 `dictionaries[].enabled` 字段，输入服务监听到方案文件变更后自动重载对应附加层。\
+不同方案的附加层按 `<schemaID>__<dictID>` 命名隔离，切走再切回不会丢失启用状态，也不会污染其他方案。
+:::
 
 ### 词库权重
 
