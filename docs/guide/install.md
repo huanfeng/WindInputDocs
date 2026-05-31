@@ -3,6 +3,11 @@
 ## 系统要求
 
 - Windows 10 或 Windows 11（64 位）
+- macOS 12 及以上（Apple Silicon / Intel，**alpha**）
+
+::: tip 选择你的平台
+Windows 用户请看下方「方式一 / 方式二」；macOS 用户请直接跳到 [macOS 安装](#macos-install)。
+:::
 
 ## 方式一：安装包（推荐）
 
@@ -40,7 +45,46 @@
 - 更新时由于 DLL 锁定问题，建议使用便携版启动器的 **部署 → 更新** 功能进行更新
 :::
 
+## macOS 安装 {#macos-install}
+
+::: warning alpha 阶段
+macOS 版处于 alpha：未做苹果公证，功能与 Windows 版存在差异，建议有一定动手能力的用户尝试。
+:::
+
+1. 从 [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 下载 `WindInput-x.x.x-macOS.pkg`
+2. 双击运行安装。这是一个 **universal** 安装包（同时支持 Apple Silicon 与 Intel），内含**输入法、后台服务、设置程序**三件套
+3. 打开 **系统设置 → 键盘 → 文本输入 → 输入法 → 编辑**，添加并切换到「清风输入法」（也可用 `⌃Space` 或菜单栏输入菜单切换）
+
+安装后：
+
+- 设置程序位于 `~/Applications/清风输入法设置.app`，也可从输入法菜单的「设置…」打开
+- 后台服务随登录自动启动；用户数据与日志路径见下文 [用户数据目录](#用户数据目录)
+
+::: warning 未公证 / Gatekeeper
+当前版本未做苹果公证。首次安装或启用时，可能需要在 **系统设置 → 隐私与安全性** 中点「仍要打开」放行；新系统 **macOS 26 (Tahoe)** 对未公证输入法限制更强。
+:::
+
+::: tip 重新安装请先重启
+卸载后若要重装，建议先**注销或重启**，让系统清除输入法注册缓存，避免出现「设置里已添加、切换列表却没有」的情况。
+:::
+
+### macOS 卸载
+
+双击 `~/Applications/卸载清风输入法.app`，按提示完成。用户词库 / 配置默认保留在 `~/Library/Application Support/WindInput/`，不会被删除。
+
 ## 用户数据目录
+
+::: tip macOS 路径对照
+本站文档中的路径多以 Windows 的 `%APPDATA%\WindInput\` 书写。macOS 上的对应位置为：
+
+| 用途 | Windows | macOS |
+|------|---------|-------|
+| 用户数据目录 | `%APPDATA%\WindInput\` | `~/Library/Application Support/WindInput/` |
+| 日志 | 安装目录 / `userdata` | `~/Library/Logs/WindInput/` |
+| 设置程序 | 开始菜单 / 安装目录 | `~/Applications/清风输入法设置.app` |
+
+macOS 用户数据目录的**子目录结构与 Windows 完全一致**，下文以 Windows 路径为例的说明同样适用，只需替换为上表对应路径。
+:::
 
 清风输入法采用**双目录 + 同结构覆盖**的存储设计：
 
@@ -126,6 +170,10 @@
 
 由于缺少数字签名，一些网络游戏不会加载未签名的输入法 DLL，导致输入法无法在游戏中启用。
 
+### macOS：未公证与系统限制
+
+macOS 版未做苹果公证：首次安装 / 启用可能需要在「系统设置 → 隐私与安全性」中放行；**macOS 26 (Tahoe)** 对未公证输入法限制更强，可能无法正常注册到输入法列表。后续提供签名 / 公证版本后将改善。此外，macOS 版与 Windows 版在部分功能上存在差异（详见[设置说明](/settings/general)）。
+
 ## 安装后配置
 
 安装完成后，推荐进行以下配置：
@@ -133,6 +181,10 @@
 1. 使用 `Ctrl + Shift + E` 选择你偏好的[输入方案](/schema/)
 2. 通过 `Ctrl + Shift + ]` 打开设置工具，调整个性化选项
 3. 阅读[基础使用](/guide/basics)了解日常操作
+
+::: tip macOS 快捷键
+以上快捷键默认值在 macOS 上同样适用；macOS 额外支持 `⌘`(Command) / `⌥`(Option) 作为修饰键。切换到 / 离开清风输入法使用系统的 `⌃Space`，而非 Windows 的 `Win + Space`。
+:::
 
 ::: tip 提示
 以上快捷键均为默认值，可在设置工具中自行修改。

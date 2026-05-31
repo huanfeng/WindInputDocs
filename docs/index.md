@@ -20,8 +20,8 @@ features:
     details: 内置设置工具，所有配置可视化调整，修改即时生效
   - title: 开源免费，隐私无忧
     details: 代码完全开源，永久免费使用，输入内容绝不上传
-  - title: 一键安装
-    details: 下载即用，自动完成注册与配置，无需手动操作
+  - title: 跨平台安装
+    details: Windows 安装包开箱即用；macOS 提供 .pkg 安装包（alpha），自动完成注册与配置
   - title: 高 DPI 适配
     details: 完美支持高分辨率和多显示器环境，界面清晰锐利
   - title: 候选自由调整

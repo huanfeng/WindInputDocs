@@ -21,6 +21,10 @@ export default {
       githubUrl: version
         ? `https://github.com/huanfeng/WindInput/releases/download/v${version}/WindInput-${version}-Setup.exe`
         : null,
+      // macOS .pkg 当前仅发布在 GitHub Release（R2 尚未同步 .pkg）
+      macGithubUrl: version
+        ? `https://github.com/huanfeng/WindInput/releases/download/v${version}/WindInput-${version}-macOS.pkg`
+        : null,
       r2DownloadUrl: version
         ? `${R2_BASE}/WindInput-${version}-Setup.exe`
         : null,
