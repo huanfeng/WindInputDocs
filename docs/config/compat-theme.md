@@ -232,6 +232,8 @@ colors:
 
 ### views 几何节点说明
 
+#### 候选窗（candidate）
+
 | 节点 | 主要字段 | 说明 |
 |------|---------|------|
 | `candidate.window` | `padding`, `border`, `background`, `shadow` | 候选窗整体外框 |
@@ -241,6 +243,53 @@ colors:
 | `candidate.text` | `color`, `font` | 候选词文字 |
 | `candidate.comment` | `color`, `font` | 注释/编码文字 |
 | `candidate.accent_bar` | `enabled`, `width`, `offset`, `height_ratio`, `background` | 左侧装饰条 |
+| `footer_bar` | `color`, `font_size` | 翻页区（页码文字 + 启用态翻页箭头）；`color` 未配时页码回退 `preedit_bar.color`、启用箭头回退 `index` 背景色 |
+
+#### 工具栏（toolbar）
+
+工具栏节点除颜色字段外，还支持几何尺寸覆盖（所有几何字段均为 `*Dimension`，省略时使用内置默认，零回归）：
+
+| 节点 / 字段 | 默认值 | 说明 |
+|------------|--------|------|
+| `toolbar.height` | `30dp` | 整条工具栏高度 |
+| `toolbar.grip_width` | `10dp` | 左侧拖动区宽度 |
+| `toolbar.button_width` | `26dp` | 单个按钮槽位宽（含 padding） |
+| `toolbar.button_padding` | `2dp` | 按钮四周内缩间距 |
+| `toolbar.button_radius` | `4dp` | 按钮圆角 |
+| `toolbar.background` | — | 工具栏背景填充 |
+| `toolbar.border` | — | 工具栏边框 |
+| `toolbar.grip` | — | 拖动区样式 |
+| `toolbar.button` | — | 按钮颜色（base + mode 状态覆盖） |
+| `toolbar.settings` | — | 设置齿轮图标颜色 |
+
+```yaml
+views:
+  toolbar:
+    height: 32dp          # 调高工具栏
+    button_width: 28dp    # 加宽按钮槽位
+    button_radius: 6dp    # 加大圆角
+```
+
+#### 弹出菜单（menu）
+
+| 节点 | 主要字段 | 说明 |
+|------|---------|------|
+| `menu.root` | `padding`, `border`, `background` | 菜单容器（背景/边框/上下 padding） |
+| `menu.item` | `padding`, `border`, `color`, `font`, `states` | 菜单项；`border.radius` 同时作用于 hover 高亮背景圆角；`states.hover.border.radius` 可单独覆盖 hover 圆角 |
+| `menu.separator` | `color` | 分隔线颜色 |
+
+```yaml
+views:
+  menu:
+    item:
+      border:
+        radius: 4         # 菜单项 hover 高亮背景圆角
+      states:
+        hover:
+          background: { color: "${hover}" }
+          border:
+            radius: 6     # hover 状态单独覆盖圆角（可选）
+```
 
 ### 内置主题参考
 
