@@ -102,95 +102,151 @@ apps:
 
 ## 自定义主题 {#自定义主题}
 
-将主题 YAML 文件放入 `%APPDATA%\WindInput\themes\<主题名>\theme.yaml`，即可在设置工具的"外观"页面中选择。
+将主题 YAML 文件放入以下目录，即可在设置工具的「外观」页面中选择：
 
-### 主题文件结构
+- **Windows**：`%APPDATA%\WindInput\themes\<主题名>\theme.yaml`
+- **macOS**：`~/Library/Application Support/WindInput/themes/<主题名>/theme.yaml`
+
+### 主题文件结构（v3）
+
+主题文件由四个职责独立的顶层块组成：
 
 ```yaml
 meta:
-  name: "主题名称"
-  version: "2.0"
-  author: "作者"
-  order: 0                       # 排序序号（第三方主题自动 +100）
+  name: "主题名称"        # 必填
+  version: "1.0"         # 可选
+  author: "作者"          # 可选
 
-style:
-  index_style: "circle"          # 序号样式：circle（圆圈，默认）, text（纯文字）
-  accent_bar_color: "#0078D4"    # 左侧装饰条颜色（留空则不显示）
-  index_font_weight: 400         # 序号字重（100-900）
-  corner_radius: 8               # 窗口圆角（像素）
-  row_height: 32                 # 候选行高（像素）
-  window_padding_x: 8            # 窗口水平内边距
-  window_padding_y: 6            # 窗口垂直内边距
-  item_padding_left: 8           # 候选项左内边距
-  item_padding_right: 8          # 候选项右内边距
-  always_show_pager: false       # 始终显示翻页按钮
-  show_page_number: true         # 显示页码（如 "1/3"）
-  # 以下为布局尺寸，0 表示自动
-  vertical_min_width: 0          # 竖排最小宽度
-  vertical_max_width: 600        # 竖排最大宽度
-  horizontal_min_width: 200      # 横排最小宽度
-  horizontal_max_width: 0        # 横排最大宽度（0=不限制）
+base: default             # 可选：继承内置主题（default 或 msime），未指定的字段从基主题继承
 
-light:                           # 亮色模式颜色
-  candidate_window:
-    background_color: "#FFFFFF"
-    border_color: "#C8C8C8"
-    text_color: "#1E1E1E"
-    # ... 更多颜色字段见下方
-  toolbar: { ... }
-  popup_menu: { ... }
-  tooltip: { ... }
-  mode_indicator: { ... }
+colors:                   # 颜色 token 表（扁平，支持亮暗分设）
+  primary:   "#4285F4"
+  accent:    "${primary}"                              # 引用其他 token
+  on_accent: "#FFFFFF"
+  bg:        { light: "#FFFFFF", dark: "#2D2D2D" }    # 亮/暗分设
+  text:      { light: "#1E1E1E", dark: "#E8E8E8" }
+  border:    { light: "#C8C8C8", dark: "#555555" }
+  selection: { light: "#E6F0FF", dark: "#3D4A5C" }
+  hover:     "${selection}"
+  shadow:    "#0000001A"
 
-dark:                            # 暗色模式颜色
-  candidate_window: { ... }
-  # ... 与 light 相同结构
+resources:                # 图片资源（可选）
+  panel: { light: "panel.png", dark: "panel-dark.png" }
+
+views:                    # 几何与布局（盒模型树）
+  candidate:
+    window:
+      padding: { top: 6, left: 8, right: 8, bottom: 6 }
+      border:
+        width: 1
+        radius: 8
+        color: "${border}"
+      background:
+        color: "${bg}"
+      shadow:
+        offset_y: 4
+        color: "${shadow}"
+    item:
+      padding: { top: 4, left: 8, right: 8, bottom: 4 }
+      border:
+        radius: 4
+      states:
+        selected:
+          background: { color: "${selection}" }
+          color: "${text}"
+        hover:
+          background: { color: "${hover}" }
+    index:
+      background:
+        color: "${accent}"
+        shape: circle           # 圆形序号；改为 none 则无形状
+      color: "${on_accent}"
+    accent_bar:
+      enabled: false            # 左侧装饰条开关
+
+behavior:                 # 主题推荐的默认值（用户可在设置工具中单独覆盖）
+  candidate:
+    font_size: 18
+    always_show_pager: false
+    show_page_number: true
+    vertical_max_width: 600
 ```
 
-主题支持新格式（light/dark 双变体）和旧格式（顶层颜色），新格式优先。
+### 快速上手：继承内置主题
 
-### 样式字段说明
+最简单的方式是声明 `base` 并只写需要改动的部分，其余从内置主题继承：
+
+```yaml
+meta:
+  name: "我的蓝色主题"
+
+base: default             # 继承 default，只覆盖以下内容
+
+colors:
+  primary: "#0066CC"      # 只改主色
+```
+
+### 颜色系统
+
+`colors` 块是所有颜色的唯一来源，`views` 节点通过 `${tokenName}` 引用。
+
+**亮暗分设语法：**
+```yaml
+colors:
+  bg: { light: "#FFFFFF", dark: "#2D2D2D" }   # 亮暗使用不同值
+  text: "#1E1E1E"                              # 亮暗共用同一值
+```
+
+**颜色 token 引用：**
+```yaml
+colors:
+  primary: "#4285F4"
+  accent:  "${primary}"    # 等同于 primary 的值
+  hover:   "${selection}"  # 等同于 selection 的值
+```
+
+**颜色格式：** `"#RGB"` / `"#RRGGBB"` / `"#RRGGBBAA"`（支持 alpha 透明度）/ `"transparent"`
+
+### 自动派生颜色
+
+只需提供 `primary`，开启派生后其余语义色由算法自动生成：
+
+```yaml
+colors:
+  primary: "#4285F4"
+  derive:
+    enabled: true     # 从 primary 自动派生 bg/text/border 等语义色
+  auto_dark: true     # 为未显式写 dark 的颜色自动生成暗色版本
+```
+
+### behavior 字段说明
+
+`behavior` 中的值是主题给用户的推荐默认，用户可在设置工具的「外观」页单独覆盖，覆盖跨主题切换保持。
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `index_style` | string | 序号样式：`circle`（圆圈）或 `text`（纯文字） |
-| `accent_bar_color` | string | 左侧装饰条颜色，留空不显示 |
-| `index_font_weight` | number | 序号字重（100-900） |
-| `corner_radius` | number | 窗口圆角半径（像素） |
-| `row_height` | number | 候选行高（像素） |
-| `window_padding_x` | number | 窗口水平内边距 |
-| `window_padding_y` | number | 窗口垂直内边距 |
-| `item_padding_left` | number | 候选项左内边距 |
-| `item_padding_right` | number | 候选项右内边距 |
-| `always_show_pager` | bool | 始终显示翻页按钮（即使只有一页） |
-| `show_page_number` | bool | 显示页码（如 "1/3"） |
-| `vertical_min_width` | number | 竖排最小宽度（0=自动） |
-| `vertical_max_width` | number | 竖排最大宽度（0=不限制） |
-| `horizontal_min_width` | number | 横排最小宽度（0=自动） |
-| `horizontal_max_width` | number | 横排最大宽度（0=不限制） |
+| `candidate.font_size` | number | 候选字号基准（pt） |
+| `candidate.always_show_pager` | bool | 始终显示翻页按钮（即使只有一页） |
+| `candidate.show_page_number` | bool | 显示页码（如 "1/3"） |
+| `candidate.vertical_max_width` | number | 竖排模式最大宽度（像素） |
 
-### 主题颜色字段完整列表
+### views 几何节点说明
 
-**candidate_window**（候选窗口）：
-`background_color`, `border_color`, `text_color`, `index_color`, `index_bg_color`, `hover_bg_color`, `selected_bg_color`, `input_bg_color`, `input_text_color`, `comment_color`, `shadow_color`
-
-**toolbar**（工具栏）：
-`background_color`, `border_color`, `grip_color`, `mode_chinese_bg_color`, `mode_english_bg_color`, `mode_text_color`, `full_width_on_bg_color`, `full_width_off_bg_color`, `full_width_on_color`, `full_width_off_color`, `punct_chinese_bg_color`, `punct_english_bg_color`, `punct_chinese_color`, `punct_english_color`, `settings_bg_color`, `settings_icon_color`, `settings_hole_color`
-
-**popup_menu**（弹出菜单）：
-`background_color`, `border_color`, `text_color`, `disabled_color`, `hover_bg_color`, `hover_text_color`, `separator_color`
-
-**tooltip**（提示框）：
-`background_color`, `text_color`
-
-**mode_indicator**（状态指示器）：
-`background_color`, `text_color`
+| 节点 | 主要字段 | 说明 |
+|------|---------|------|
+| `candidate.window` | `padding`, `border`, `background`, `shadow` | 候选窗整体外框 |
+| `candidate.candidate_list` | `gap`, `band_gap` | 候选列表容器（项间距、分组间距） |
+| `candidate.item` | `padding`, `border`, `states` | 候选项（含 `selected` / `hover` 状态 patch） |
+| `candidate.index` | `background`, `color`, `font` | 序号区域（`shape: circle` 启用圆形） |
+| `candidate.text` | `color`, `font` | 候选词文字 |
+| `candidate.comment` | `color`, `font` | 注释/编码文字 |
+| `candidate.accent_bar` | `enabled`, `width`, `offset`, `height_ratio`, `background` | 左侧装饰条 |
 
 ### 内置主题参考
 
-清风输入法内置两个主题，可作为自定义主题的参考：
+清风输入法内置两个主题，可作为参考：
 
 - **default** — 圆圈序号，无装饰条，简洁风格
-- **msime** — 文字序号，蓝色装饰条 `#0078D4`，始终显示翻页按钮，微软风格
+- **msime** — 文字序号，蓝色装饰条，始终显示翻页按钮，微软风格
 
-建议导出内置主题文件作为模板，在其基础上修改颜色和样式。
+内置主题文件位于安装目录下的 `themes/` 文件夹，可查阅其结构作为模板起点。
