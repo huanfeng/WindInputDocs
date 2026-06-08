@@ -1,9 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "windinput-docs",
+  "pages_build_output_dir": "./docs/.vitepress/dist",
   "compatibility_date": "2024-12-01",
-  "assets": {
-    "directory": "./docs/.vitepress/dist",
-    "not_found_handling": "404-page",
-  },
 }
