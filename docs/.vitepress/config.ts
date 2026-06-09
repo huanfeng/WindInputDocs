@@ -1,6 +1,6 @@
 import { defineConfig } from "vitepress";
 
-const base = process.env.WINDINPUT_DOCS_BASE || "/WindInput/";
+const base = process.env.WINDINPUT_DOCS_BASE || "/";
 
 const CJK_CLASS = "[\\u4e00-\\u9fff\\u3400-\\u4dbf\\uf900-\\ufaff]";
 const cjkCharRe = new RegExp(CJK_CLASS);
