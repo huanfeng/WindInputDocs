@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: 下载
-      link: https://github.com/huanfeng/WindInput/releases
+      link: /download/
     - theme: alt
       text: 开始使用
       link: /guide/install
