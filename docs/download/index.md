@@ -19,9 +19,10 @@ import { data } from './version.data'
 
 ### macOS（alpha）
 
-| 下载方式               | 链接                                                                      | 备注                                          |
-| ---------------------- | ------------------------------------------------------------------------- | --------------------------------------------- |
-| GitHub Release         | <a :href="data.macGithubUrl">WindInput-{{ data.version }}-macOS.pkg</a>   | universal（Apple Silicon / Intel），未公证     |
+| 下载方式                  | 链接                                                                      | 备注                                          |
+| ------------------------- | ------------------------------------------------------------------------- | --------------------------------------------- |
+| Cloudflare R2（国内推荐） | <a :href="data.macR2DownloadUrl">WindInput-{{ data.version }}-macOS.pkg</a> | 全球 CDN，国内访问稳定                        |
+| GitHub Release（海外）    | <a :href="data.macGithubUrl">WindInput-{{ data.version }}-macOS.pkg</a>   | universal（Apple Silicon / Intel），未公证     |
 
 macOS 版处于 alpha 且暂只发布在 GitHub Release，安装方式见[安装指南 → macOS](/guide/install#macos-install)。
 
