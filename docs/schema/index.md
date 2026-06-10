@@ -87,16 +87,13 @@
 
 ### 配置文件切换
 
-编辑 `%APPDATA%\WindInput\config.yaml`：
+编辑 `%APPDATA%\WindInput\config.toml`：
 
-```yaml
-schema:
-  active: "wubi86"              # 当前使用的方案
-  available:                    # 可切换的方案列表（顺序决定切换顺序）
-    - "wubi86"
-    - "wubi86_pinyin"
-    # - "pinyin"                # 如需启用，取消注释并重启
-    # - "shuangpin"
+```toml
+[schema]
+active = "wubi86"               # 当前使用的方案
+# 可切换的方案列表（顺序决定切换顺序）；如需启用拼音/双拼，加入列表并重启
+available = ["wubi86", "wubi86_pinyin"]
 ```
 
 `available` 列表中的顺序决定了 `Ctrl + Shift + E` 循环切换的顺序。

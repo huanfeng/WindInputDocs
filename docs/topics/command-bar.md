@@ -157,7 +157,7 @@ text = "价格: $$10"
 | `time(fmt)` | `fmt: str` | `str` | 自定义时间格式 |
 | `now()` | (无) | `str` | 等价 `date("YYYY-MM-DD HH:mm:ss")` |
 | `env(name)` | `name: str` | `str` | 环境变量, 例如 `env("USERNAME")` |
-| `config.get(key)` | `key: str` | `str` | 读取配置项当前值, key 为 YAML 路径 (如 `ui.theme_style`); 详见 [配置读写](#配置读写-config) |
+| `config.get(key)` | `key: str` | `str` | 读取配置项当前值, key 为配置键路径 (如 `ui.theme.style`); 详见 [配置读写](#配置读写-config) |
 
 ### 文本处理 (纯函数)
 
@@ -226,7 +226,7 @@ text = "价格: $$10"
 | `setting.open(page)` | `ime.setting` | `page: str` | 打开设置页 | page 为空打开默认页 |
 | `setting.web(page)` | — | `page: str` | 打开 **Web 版**设置界面 | 以 `--web` 启动, 无需 WebView2; page 为空打开默认页 |
 | `web.search(engine, q)` | `search` | `engine: str, q: str` | 打开搜索结果页 | engine ∈ `"baidu"` / `"bing"` / `"google"` / `"zdic"` |
-| `config.set(key, value)` | — | `key: str, value: str` | 写入并持久化配置项 | key 为 YAML 路径, value 为字符串; 详见 [配置读写](#配置读写-config) |
+| `config.set(key, value)` | — | `key: str, value: str` | 写入并持久化配置项 | key 为配置键路径, value 为字符串; 详见 [配置读写](#配置读写-config) |
 | `config.toggle(key)` | — | `key: str` | 循环切换枚举配置 / 翻转 bool | **返回新值** (非空串); 详见 [配置读写](#配置读写-config) |
 
 #### `proc.shell` flag 字符串
@@ -252,7 +252,7 @@ $CC("PS 命令",   proc.shell("Get-Process | Out-File ~/procs.txt", "pwsh"))
 
 `config.get` / `config.set` / `config.toggle` 直接读写输入法的持久化配置项（即设置工具中的各项），改动立即生效并写入配置文件，无需打开设置界面。
 
-`key` 参数为配置项的 **YAML 键路径**，与[全局配置](../config/)文件中的字段一致，例如 `ui.theme_style`、`ui.candidate_layout`、`toolbar.visible`。
+`key` 参数为配置项的**键路径**，与[全局配置](../config/)文件（TOML）中的字段路径一致，例如 `ui.theme.style`、`ui.candidate.layout`、`ui.toolbar.visible`。
 
 | 函数 | 行为 | 返回 |
 |---|---|---|
@@ -266,7 +266,7 @@ $CC("PS 命令",   proc.shell("Get-Process | Out-File ~/procs.txt", "pwsh"))
 若想"切一次并显示新状态"，让显示名用 `config.get`、动作用 `config.toggle`：
 
 ```
-cotl = $CC("候选布局: {config.get(\"ui.candidate_layout\")}", config.toggle("ui.candidate_layout"))
+cotl = $CC("候选布局: {config.get(\"ui.candidate.layout\")}", config.toggle("ui.candidate.layout"))
 ```
 :::
 
@@ -274,13 +274,13 @@ cotl = $CC("候选布局: {config.get(\"ui.candidate_layout\")}", config.toggle(
 
 ```
 # 直接设为暗色主题风格
-codk = $CC("暗色模式", config.set("ui.theme_style", "dark"))
+codk = $CC("暗色模式", config.set("ui.theme.style", "dark"))
 
 # 在 system / light / dark 之间循环
-cotm = $CC("切主题风格", config.toggle("ui.theme_style"))
+cotm = $CC("切主题风格", config.toggle("ui.theme.style"))
 
 # 读取当前每页候选数（纯展示，无副作用）
-cocn = $CC("每页候选: {config.get(\"ui.candidates_per_page\")}", type(""))
+cocn = $CC("每页候选: {config.get(\"ui.candidate.per_page\")}", type(""))
 ```
 
 ::: tip `config.toggle` 与 `ime.toggle` / `ime.theme_cycle` 的区别
@@ -521,8 +521,8 @@ cosw = $CC("设置(Web)",  setting.web(""))
 copy = $CC("切到拼音", ime.schema("pinyin"))
 cowb = $CC("切到五笔", ime.schema("wubi86"))
 coms = $CC("微软主题", ime.theme("msime"))
-codk = $CC("暗色模式", config.set("ui.theme_style", "dark"))
-cotm = $CC("循环主题风格", config.toggle("ui.theme_style"))
+codk = $CC("暗色模式", config.set("ui.theme.style", "dark"))
+cotm = $CC("循环主题风格", config.toggle("ui.theme.style"))
 ```
 
 ### 字符组

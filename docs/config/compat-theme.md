@@ -2,14 +2,14 @@
 
 ## 兼容性配置 {#兼容性配置}
 
-兼容性规则用于修复特定应用中候选框定位、光标获取等问题。用户可在 `%APPDATA%\WindInput\compat.yaml` 中添加自定义规则。
+兼容性规则用于修复特定应用中候选框定位、光标获取等问题。用户可在 `%APPDATA%\WindInput\compat.toml` 中添加自定义规则（旧版本为 `compat.yaml`，升级后自动迁移）。
 
-```yaml
-apps:
-  - process: "Weixin.exe"        # 进程名（不区分大小写）
-    comment: "微信 - 使用 rect.top 定位候选框"
-    caret_use_top: true          # 使用 caret rect 的 top 而非 bottom 定位候选框
-    skip_caret_pending: false    # 是否跳过首字符等待真实光标坐标（即时候选）
+```toml
+[[apps]]
+process = "Weixin.exe"        # 进程名（不区分大小写）
+comment = "微信 - 使用 rect.top 定位候选框"
+caret_use_top = true          # 使用 caret rect 的 top 而非 bottom 定位候选框
+skip_caret_pending = false    # 是否跳过首字符等待真实光标坐标（即时候选）
 ```
 
 ### 字段说明
@@ -24,7 +24,7 @@ apps:
 
 `caret_use_top` 适用于 `GetTextExt` 返回的 height 不稳定的 WebView 应用（如微信的 Qt WebView 输入框）。
 
-清风输入法内置了微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在 `compat.yaml` 中添加规则。
+清风输入法内置了微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在 `compat.toml` 中添加规则。
 
 ### 即时候选（skip_caret_pending） {#即时候选}
 
@@ -41,17 +41,17 @@ apps:
 
 菜单项标签中的 `<进程名>` 会自动显示为当前焦点应用的可执行文件名（例如 `Code.exe`、`Notepad.exe`）。再次点击可关闭。
 
-> 该操作会在 `%APPDATA%\WindInput\compat.yaml` 中为对应进程写入或更新 `skip_caret_pending` 字段；如该文件不存在会自动创建。
+> 该操作会在 `%APPDATA%\WindInput\compat.toml` 中为对应进程写入或更新 `skip_caret_pending` 字段；如该文件不存在会自动创建。
 
-#### 启用方式：手动编辑 compat.yaml
+#### 启用方式：手动编辑 compat.toml
 
-如需批量配置或在自动化部署中预置规则，可直接编辑 `compat.yaml`：
+如需批量配置或在自动化部署中预置规则，可直接编辑 `compat.toml`：
 
-```yaml
-apps:
-  - process: "Code.exe"
-    comment: "VS Code - 光标稳定，启用即时候选"
-    skip_caret_pending: true
+```toml
+[[apps]]
+process = "Code.exe"
+comment = "VS Code - 光标稳定，启用即时候选"
+skip_caret_pending = true
 ```
 
 修改后通过右键菜单 → **重载配置** 即可生效。
@@ -81,7 +81,7 @@ apps:
 
 再次点击菜单项即可关闭。**关闭时会同步清空该应用已记忆的所有显示器位置**，再次启用需重新拖动。
 
-> 该操作会在 `%APPDATA%\WindInput\compat.yaml` 中为对应进程写入 `pin_candidate_position: true`，记忆的坐标则写入 `state.yaml` 的 `candidate_pin_positions` 字段；两者解耦，便于备份或在多机间同步。
+> 该操作会在 `%APPDATA%\WindInput\compat.toml` 中为对应进程写入 `pin_candidate_position = true`，记忆的坐标则写入 `state.toml` 的 `candidate_pin_positions` 字段；两者解耦，便于备份或在多机间同步。
 
 #### 多显示器与分辨率变化
 

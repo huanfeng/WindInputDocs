@@ -20,7 +20,7 @@
 | Warn | `warn` | 记录警告和错误 |
 | Error | `error` | 仅记录错误信息 |
 
-配置项：`advanced.log_level`
+配置项：`debug.log_level`
 
 修改后需重启输入法服务生效。
 

@@ -15,20 +15,18 @@
 
 ## 配置方式
 
-特殊模式通过全局配置文件 `config.yaml` 的 `input.special_modes` 数组配置，支持定义多组：
+特殊模式通过全局配置文件 `config.toml` 的 `features.special_modes` 数组配置，支持定义多组：
 
-```yaml
-input:
-  special_modes:
-    - id: "quick_symbols"        # 模式唯一 ID（必填）
-      name: "快符"               # 候选窗口显示的模式名（必填）
-      trigger_keys:              # 引导键列表（必填，至少一个）
-        - "backslash"            # 反斜杠键
-      table: "special/quick_symbols.dict.yaml"  # 码表文件路径，相对 schemas 目录（必填）
-      auto_commit: "prefix_free" # 自动上屏策略（必填）
-      force_vertical: false      # 强制竖排显示候选（可选）
-      accent_color: ""           # 模式边框强调色，如 "#3C78AFD2"（可选）
-      show_all_on_entry: false   # 进入模式后立即列出全部候选（可选，大表慎用）
+```toml
+[[features.special_modes]]
+id = "quick_symbols"             # 模式唯一 ID（必填）
+name = "快符"                    # 候选窗口显示的模式名（必填）
+trigger_keys = ["backslash"]     # 引导键列表（必填，至少一个）；backslash=反斜杠键
+table = "special/quick_symbols.dict.yaml"  # 码表文件路径，相对 schemas 目录（必填）
+auto_commit = "prefix_free"      # 自动上屏策略（必填）
+force_vertical = false           # 强制竖排显示候选（可选）
+accent_color = ""                # 模式边框强调色，如 "#3C78AFD2"（可选）
+show_all_on_entry = false        # 进入模式后立即列出全部候选（可选，大表慎用）
 ```
 
 ### 引导键可选值
@@ -61,9 +59,9 @@ input:
 
 使用 `fixed_length` 策略时须同时设置 `fixed_length` 字段：
 
-```yaml
-auto_commit: "fixed_length"
-fixed_length: 2              # 输满 2 个字符且候选唯一时自动上屏
+```toml
+auto_commit = "fixed_length"
+fixed_length = 2             # 输满 2 个字符且候选唯一时自动上屏
 ```
 
 ## 码表文件格式
@@ -92,26 +90,26 @@ pf	🔥
 
 同一配置文件中定义多个互不干扰的特殊模式：
 
-```yaml
-input:
-  special_modes:
-    - id: "symbols"
-      name: "符"
-      trigger_keys: ["backslash"]
-      table: "special/quick_symbols.dict.yaml"
-      auto_commit: "prefix_free"
-      accent_color: "#4CAF50CC"   # 绿色边框
-      force_vertical: true
+```toml
+[[features.special_modes]]
+id = "symbols"
+name = "符"
+trigger_keys = ["backslash"]
+table = "special/quick_symbols.dict.yaml"
+auto_commit = "prefix_free"
+accent_color = "#4CAF50CC"       # 绿色边框
+force_vertical = true
 
-    - id: "rare_chars"
-      name: "生僻"
-      trigger_keys: ["slash"]
-      table: "special/rare_chars.dict.yaml"
-      auto_commit: "manual"
-      show_all_on_entry: false
+[[features.special_modes]]
+id = "rare_chars"
+name = "生僻"
+trigger_keys = ["slash"]
+table = "special/rare_chars.dict.yaml"
+auto_commit = "manual"
+show_all_on_entry = false
 ```
 
 ## 注意事项
 
-- 修改 `input.special_modes` 配置后，保存设置工具或直接编辑 `config.yaml` 均可，需要重载配置进行加载
+- 修改 `features.special_modes` 配置后，保存设置工具或直接编辑 `config.toml` 均可，需要重载配置进行加载
 - `show_all_on_entry: true` 适合小型码表（几十条），大型码表会导致候选加载慢，不建议开启

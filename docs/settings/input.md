@@ -74,7 +74,7 @@
 | 候选上屏 | `commit` | 上屏当前首选候选 |
 | 顶码上屏 | `commit_and_input` | 上屏首选并输入该按键字符 |
 
-配置项：`input.overflow_behavior.number_key` / `select_key` / `select_char_key`
+配置项：`input.overflow.number_key` / `select_key` / `select_char_key`
 
 ## 标点配对
 
@@ -107,7 +107,7 @@
 
 可选触发键：`` ` ``（反引号）、`;`、`'`、`,`、`.`、`/`、`\`、`[`、`]`
 
-配置项：`input.quick_input.trigger_keys`
+配置项：`features.quick_input.trigger_keys`
 
 ::: tip 提示
 触发键可能与其他功能（如次选键、临时拼音）产生冲突，设置工具会自动检测并提示。
@@ -174,8 +174,8 @@
 
 | 选项 | 配置项 | 说明 |
 |------|--------|------|
-| 启用简入繁出 | `s2t.enabled` | 开关，默认关闭 |
-| 转换变体 | `s2t.variant` | 选择目标繁体字形与词汇风格 |
+| 启用简入繁出 | `features.s2t.enabled` | 开关，默认关闭 |
+| 转换变体 | `features.s2t.variant` | 选择目标繁体字形与词汇风格 |
 
 ### 转换变体
 
@@ -201,9 +201,9 @@
 
 | 选项 | 配置项 | 可选值 |
 |------|--------|--------|
-| 初始语言模式 | `startup.default_chinese_mode` | 中文 / 英文 |
-| 初始字符宽度 | `startup.default_full_width` | 半角 / 全角 |
-| 初始标点模式 | `startup.default_chinese_punct` | 中文标点 / 英文标点 |
+| 初始语言模式 | `general.default_chinese_mode` | 中文 / 英文 |
+| 初始字符宽度 | `general.default_full_width` | 半角 / 全角 |
+| 初始标点模式 | `general.default_chinese_punct` | 中文标点 / 英文标点 |
 
 ::: tip 提示
 启用"记忆前次状态"后，以上三项设置将不生效。

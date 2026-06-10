@@ -104,9 +104,9 @@ macOS 用户数据目录的**子目录结构与 Windows 完全一致**，下文�
 
 ```text
 %APPDATA%\WindInput\
-├── config.yaml                       # 用户全局配置（diff 保存，仅含与默认值不同的字段）
-├── compat.yaml                       # 用户自定义的应用兼容性规则
-├── state.yaml                        # 运行状态（如固定候选位置坐标）
+├── config.toml                       # 用户全局配置（diff 保存，仅含与默认值不同的字段）
+├── compat.toml                       # 用户自定义的应用兼容性规则
+├── state.toml                        # 运行状态（如固定候选位置坐标）
 ├── system.phrases.yaml               # 覆盖内置系统短语种子（可选，一般不需要）
 ├── schemas\                          # 输入方案与方案级词库
 │   ├── pinyin.schema.yaml            # 方案配置（覆盖或新增）
@@ -123,13 +123,13 @@ macOS 用户数据目录的**子目录结构与 Windows 完全一致**，下文�
 
 | 需求 | 放到哪里 |
 |------|----------|
-| 调整全局配置 | 通过设置工具修改，或编辑 `config.yaml` |
-| 新增第三方输入方案 | `schemas\<方案ID>.schema.yaml`，并在 `config.yaml` 的 `schema.available` 中登记 |
+| 调整全局配置 | 通过设置工具修改，或编辑 `config.toml` |
+| 新增第三方输入方案 | `schemas\<方案ID>.schema.yaml`，并在 `config.toml` 的 `schema.available` 中登记 |
 | 替换/扩充内置方案的词库 | 在 `schemas\` 下放置对应词库文件，方案文件中通过 `dictionaries` 引用 |
 | 新增自定义主题 | `themes\<主题名>\theme.yaml`，在设置工具"外观"页面选用 |
 | 微调内置主题 | 在 `themes\` 下创建**同名**目录与 `theme.yaml`，自动覆盖内置版本 |
 | 自定义短语 | 通过 **设置 → 词库 → 短语** 添加（写入 `user_data.db`），不要直接编辑 `system.phrases.yaml` |
-| 应用兼容性规则 | 通过右键菜单有一部分可配置，或编辑 `compat.yaml` |
+| 应用兼容性规则 | 通过右键菜单有一部分可配置，或编辑 `compat.toml` |
 
 ::: tip 备份与迁移
 用户数据目录是完整自包含的——只需备份该目录即可保存所有个人化内容。换机或重装时复制回去即可恢复，不依赖任何注册表项。也可以在 **设置 → 词库 → 完整备份/恢复** 中导出 ZIP 包。

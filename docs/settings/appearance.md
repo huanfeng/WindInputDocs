@@ -4,8 +4,8 @@
 
 | 选项 | 配置项 | 说明 |
 |------|--------|------|
-| 主题选择 | `ui.theme` | 选择候选窗口和工具栏的主题样式 |
-| 主题风格 | `ui.theme_style` | 亮色、暗色或跟随系统 |
+| 主题选择 | `ui.theme.name` | 选择候选窗口和工具栏的主题样式 |
+| 主题风格 | `ui.theme.style` | 亮色、暗色或跟随系统 |
 
 ### 内置主题
 
@@ -30,15 +30,15 @@
 
 | 选项 | 配置项 | 说明 |
 |------|--------|------|
-| 字体大小 | `ui.font_size` | 候选词字体大小（12-36 pt） |
-| 候选字体 | `ui.font_family` | 自定义字体，留空跟随系统默认 |
-| 每页候选数（基础档） | `ui.candidates_per_page` | 普通码表输入时每页显示的候选词数量（3-10） |
-| 每页候选数（扩展档） | `ui.candidates_per_page_extended` | 临时拼音/快捷输入等场景下的候选数；0 表示禁用扩展档，始终使用基础档 |
-| 候选布局 | `ui.candidate_layout` | 横向或纵向排列 |
-| 隐藏候选窗口 | `ui.hide_candidate_window` | 完全隐藏候选窗口 |
-| 嵌入式编码行 | `ui.inline_preedit` | 输入码直接显示在光标处 |
-| 编码显示方式 | `ui.preedit_mode` | 独立编码行或嵌入候选行（仅在未开启嵌入编码时生效） |
-| 上方显示时反转布局 | `ui.flip_layout_when_above` | 候选窗在光标上方时将编码行移到底部，使首候选紧贴光标（默认开启） |
+| 字体大小 | `ui.candidate.font_size` | 候选词字体大小（12-36 pt） |
+| 候选字体 | `ui.font.family` | 自定义字体，留空跟随系统默认 |
+| 每页候选数（基础档） | `ui.candidate.per_page` | 普通码表输入时每页显示的候选词数量（3-10） |
+| 每页候选数（扩展档） | `ui.candidate.per_page_extended` | 临时拼音/快捷输入等场景下的候选数；0 表示禁用扩展档，始终使用基础档 |
+| 候选布局 | `ui.candidate.layout` | 横向或纵向排列 |
+| 隐藏候选窗口 | `ui.candidate.hide_window` | 完全隐藏候选窗口 |
+| 嵌入式编码行 | `ui.candidate.inline_preedit` | 输入码直接显示在光标处 |
+| 编码显示方式 | `ui.candidate.preedit_mode` | 独立编码行或嵌入候选行（仅在未开启嵌入编码时生效） |
+| 上方显示时反转布局 | `ui.candidate.flip_when_above` | 候选窗在光标上方时将编码行移到底部，使首候选紧贴光标（默认开启） |
 
 ### 候选布局
 
@@ -97,9 +97,9 @@
 
 | 选项 | 配置项 | 说明 |
 |------|--------|------|
-| 模式彩色边框 | `ui.mode_accent_border` | 开关，默认关闭 |
-| 临时拼音边框颜色 | `ui.temp_pinyin_accent_color` | 十六进制颜色值（如 `#3C78AFD2`），留空使用内置默认色（蓝色） |
-| 快捷输入边框颜色 | `ui.quick_input_accent_color` | 十六进制颜色值，留空使用内置默认色（绿色） |
+| 模式彩色边框 | `ui.candidate.mode_accent_border` | 开关，默认关闭 |
+| 临时拼音边框颜色 | `input.temp_pinyin.accent_color` | 十六进制颜色值（如 `#3C78AFD2`），留空使用内置默认色（蓝色） |
+| 快捷输入边框颜色 | `features.quick_input.accent_color` | 十六进制颜色值，留空使用内置默认色（绿色） |
 
 ::: tip 提示
 颜色值支持 8 位十六进制（`#RRGGBBAA`），可通过 alpha 通道控制透明度。亮色和暗色主题下均可生效。
@@ -111,8 +111,8 @@
 
 | 选项 | 配置项 | 说明 |
 |------|--------|------|
-| 翻页栏显示方式 | `ui.pager_bar_display` | 控制翻页箭头与页码区域的显示策略 |
-| 页码显示方式 | `ui.page_number_display` | 单独控制页码文字的显示 |
+| 翻页栏显示方式 | `ui.candidate.pager_bar_display` | 控制翻页箭头与页码区域的显示策略 |
+| 页码显示方式 | `ui.candidate.page_number_display` | 单独控制页码文字的显示 |
 
 ### 翻页栏显示方式
 
@@ -131,6 +131,6 @@
 
 | 选项 | 配置项 | 说明 |
 |------|--------|------|
-| 显示工具栏 | `toolbar.visible` | 在屏幕上显示可拖动的输入法状态栏 |
+| 显示工具栏 | `ui.toolbar.visible` | 在屏幕上显示可拖动的输入法状态栏 |
 
 工具栏可通过快捷键 `Ctrl + Shift + \` 切换显示/隐藏。

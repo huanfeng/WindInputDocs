@@ -104,11 +104,9 @@ Tab/Shift+Tab 与翻页键互斥，启用其中一方时另一方会自动取消
 
 默认情况下，快捷键只在输入法激活时响应。在设置工具中勾选需要注册为全局快捷键的项，或通过配置文件设置：
 
-```yaml
-hotkeys:
-  global_hotkeys:
-    - "switch_engine"
-    - "open_settings"
+```toml
+[hotkeys]
+global_hotkeys = ["switch_engine", "open_settings"]
 ```
 
 配置项：`hotkeys.global_hotkeys`
