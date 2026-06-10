@@ -95,7 +95,18 @@ engine:
     codetable_weight_boost: 10000000  # 码表权重倍数
     show_source_hint: false      # 显示匹配来源提示
     z_key_repeat: true           # Z 键重复/学习
+    topcode_override_pinyin: false  # 歧义串顶码偏好：当前缀既是完整拼音音节又是终止性五笔全码时（如 wang/aipu），
+                                    # false（默认）=维持拼音保护；true=放行顶码倒向五笔连打
 ```
+
+::: tip `topcode_override_pinyin` 说明
+混输模式下，当输入的编码既是一个完整拼音音节（如 `wang`），又是一个终止性的五笔精确全码时，存在"顶码歧义"——系统无法从编码区分用户意图。
+
+- **`false`（默认）**：维持拼音保护，不触发顶码，适合习惯打 `wang ba`、`ai pu` 等拼音词的用户
+- **`true`**：放行顶码，倒向五笔连打，适合五笔优先且不担心误顶的用户
+
+此开关仅影响歧义串，不影响非歧义编码的正常顶码行为。修改后热更新生效，无需重启。
+:::
 
 ## 词库配置
 

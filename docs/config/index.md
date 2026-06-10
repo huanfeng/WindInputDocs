@@ -204,6 +204,33 @@ input:
     decimal_places: 6            # 计算结果小数保留位数（0 表示取整）
 ```
 
+### 引导键特殊模式 {#引导键特殊模式}
+
+引导键特殊模式允许通过特定按键进入独立码表输入，适合快符、生僻字等小型专用码表。支持配置多组，每组相互独立。
+
+```yaml
+input:
+  special_modes:
+    - id: "quick_symbols"        # 模式唯一 ID
+      name: "快符"               # 模式徽标显示名
+      trigger_keys:              # 引导键（空码时触发，支持多键）
+        - "backslash"
+      table: "quick_symbols.dict.yaml"  # 码表文件，相对 schemas 目录
+      auto_commit: "prefix_free" # 自动上屏策略：prefix_free / fixed_length / manual
+      fixed_length: 0            # auto_commit=fixed_length 时生效：达到此码长且唯一候选时自动上屏
+      force_vertical: false      # 强制竖排显示候选
+      accent_color: ""           # 模式边框强调色（留空使用默认）
+      show_all_on_entry: false   # 进入模式时是否立即列出全部候选（大表慎用）
+```
+
+`auto_commit` 取值说明：
+
+| 值 | 说明 |
+|---|---|
+| `prefix_free` | 候选唯一且无更长前缀匹配时自动上屏（推荐） |
+| `fixed_length` | 达到 `fixed_length` 指定的码长且候选唯一时自动上屏 |
+| `manual` | 始终手动按数字或空格选择 |
+
 ## 界面设置 {#界面设置}
 
 ### 候选窗口
@@ -211,13 +238,17 @@ input:
 ```yaml
 ui:
   font_size: 18                  # 候选词字体大小（pt）
-  candidates_per_page: 7         # 每页候选词数量（1-9）
+  candidates_per_page: 7         # 每页候选词数量（基础档，1-9）
+  candidates_per_page_extended: 0 # 每页候选词数量（扩展档）；>0 时在临时拼音/快捷输入等场景生效，<=0 禁用（始终用基础档）
   font_family: ""                # 自定义字体名称（留空使用系统默认）
   font_path: ""                  # 自定义字体文件路径
   inline_preedit: true           # 嵌入式编码行（显示在光标处）
   preedit_mode: "top"            # 编码显示模式：top（独立行上方）, embedded（嵌入候选行前）；仅 inline_preedit=false 时生效
   hide_candidate_window: false   # 隐藏候选窗口
   candidate_layout: "horizontal" # 候选布局：horizontal（横排）, vertical（竖排）
+  flip_layout_when_above: true   # 候选窗在光标上方时反转布局（preedit 移到底部，首候选紧贴光标）
+  pager_bar_display: ""          # 翻页栏显示方式：空=跟随主题, always=总是显示, auto=多页时显示, hide=完全隐藏
+  page_number_display: ""        # 页码显示方式：空=跟随主题, show=显示, hide=隐藏
   tooltip_delay: 200             # 编码提示延迟（毫秒）
 ```
 

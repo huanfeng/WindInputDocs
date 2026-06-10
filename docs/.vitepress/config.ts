@@ -150,6 +150,7 @@ export default defineConfig({
           { text: "专题索引", link: "/topics/" },
           { text: "权重系统", link: "/topics/weight-system" },
           { text: "命令直通车", link: "/topics/command-bar" },
+          { text: "引导键特殊模式", link: "/topics/special-mode" },
         ],
       },
       {
