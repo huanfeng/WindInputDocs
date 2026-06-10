@@ -157,6 +157,7 @@ text = "价格: $$10"
 | `time(fmt)` | `fmt: str` | `str` | 自定义时间格式 |
 | `now()` | (无) | `str` | 等价 `date("YYYY-MM-DD HH:mm:ss")` |
 | `env(name)` | `name: str` | `str` | 环境变量, 例如 `env("USERNAME")` |
+| `config.get(key)` | `key: str` | `str` | 读取配置项当前值, key 为 YAML 路径 (如 `ui.theme_style`); 详见 [配置读写](#配置读写-config) |
 
 ### 文本处理 (纯函数)
 
@@ -218,9 +219,15 @@ text = "价格: $$10"
 | `clip.paste()` | — | (无) | 粘贴 | 模拟 Ctrl+V |
 | `dict.add(s)` | `dict.addword` | `s: str` | 加词到用户库 | 编码按当前方案规则自动推导 |
 | `dict.add(s, code)` | `dict.addword` | `s: str, code: str` | 加词到用户库 | 指定编码 |
-| `ime.toggle(target)` | — | `target: str` | 切换输入法状态 | target ∈ `"cn-en"` / `"fullshape"` / `"layout"` / `"candwin"` |
+| `ime.toggle(target)` | — | `target: str` | 切换输入法状态 | target ∈ `"cn-en"` / `"fullshape"` / `"layout"`(横纵候选) / `"candwin"`(候选窗) / `"s2t"`(简繁) / `"preedit"`(编码模式) / `"toolbar"`(工具栏) |
+| `ime.schema(id)` | — | `id: str` | 切换并持久化输入方案 | id 为方案标识符, 如 `"wubi86"` / `"pinyin"` |
+| `ime.theme(name)` | — | `name: str` | 切换并持久化主题 | name 为主题名, 如 `"default"` / `"msime"` 或自定义主题名 |
+| `ime.theme_cycle(dir?)` | — | `dir?: str` | 循环切换主题 (内置 + 用户安装) | **返回新主题名** (非空串); dir ∈ `"next"`(默认) / `"prev"` |
 | `setting.open(page)` | `ime.setting` | `page: str` | 打开设置页 | page 为空打开默认页 |
+| `setting.web(page)` | — | `page: str` | 打开 **Web 版**设置界面 | 以 `--web` 启动, 无需 WebView2; page 为空打开默认页 |
 | `web.search(engine, q)` | `search` | `engine: str, q: str` | 打开搜索结果页 | engine ∈ `"baidu"` / `"bing"` / `"google"` / `"zdic"` |
+| `config.set(key, value)` | — | `key: str, value: str` | 写入并持久化配置项 | key 为 YAML 路径, value 为字符串; 详见 [配置读写](#配置读写-config) |
+| `config.toggle(key)` | — | `key: str` | 循环切换枚举配置 / 翻转 bool | **返回新值** (非空串); 详见 [配置读写](#配置读写-config) |
 
 #### `proc.shell` flag 字符串
 
@@ -240,6 +247,48 @@ $CC("ping (静默)", proc.shell("ping -n 1 baidu.com"))
 $CC("ping (可见)", proc.shell("ping -n 1 baidu.com", "term"))
 $CC("PS 命令",   proc.shell("Get-Process | Out-File ~/procs.txt", "pwsh"))
 ```
+
+### 配置读写 (config.*) {#配置读写-config}
+
+`config.get` / `config.set` / `config.toggle` 直接读写输入法的持久化配置项（即设置工具中的各项），改动立即生效并写入配置文件，无需打开设置界面。
+
+`key` 参数为配置项的 **YAML 键路径**，与[全局配置](../config/)文件中的字段一致，例如 `ui.theme_style`、`ui.candidate_layout`、`toolbar.visible`。
+
+| 函数 | 行为 | 返回 |
+|---|---|---|
+| `config.get(key)` | 读取当前值（纯函数，无副作用） | 当前值字符串 |
+| `config.set(key, value)` | 写入指定值并持久化 | 空串 |
+| `config.toggle(key)` | 枚举项循环切到下一个值；布尔项翻转 `true`/`false` | **新值字符串** |
+
+::: warning display 与 action 都会求值，小心切换两次
+`config.toggle` 有副作用。`$CC` 的**显示名和动作里的表达式都会被求值**，所以在两处各写一次 `config.toggle` 会切换两次（净效果等于没切）。
+
+若想"切一次并显示新状态"，让显示名用 `config.get`、动作用 `config.toggle`：
+
+```
+cotl = $CC("候选布局: {config.get(\"ui.candidate_layout\")}", config.toggle("ui.candidate_layout"))
+```
+:::
+
+示例：
+
+```
+# 直接设为暗色主题风格
+codk = $CC("暗色模式", config.set("ui.theme_style", "dark"))
+
+# 在 system / light / dark 之间循环
+cotm = $CC("切主题风格", config.toggle("ui.theme_style"))
+
+# 读取当前每页候选数（纯展示，无副作用）
+cocn = $CC("每页候选: {config.get(\"ui.candidates_per_page\")}", type(""))
+```
+
+::: tip `config.toggle` 与 `ime.toggle` / `ime.theme_cycle` 的区别
+- `ime.toggle` / `ime.theme_cycle` 针对**运行时状态**（中英文、候选窗、主题循环等），走专用通道，部分项不一定落配置文件。
+- `config.toggle` 针对**配置文件字段**，任何枚举/布尔型配置项都能通用切换。
+
+两者功能有重叠（如主题风格），按需选用即可。
+:::
 
 ### 按键参考
 
@@ -452,11 +501,28 @@ coll = $CC(last(), type(last()))
 ### 切换输入法状态
 
 ```
-coen = $CC("切中英",   ime.toggle("cn-en"))
-cofs = $CC("切全半角", ime.toggle("fullshape"))
-coly = $CC("切布局",   ime.toggle("layout"))
-cocw = $CC("切候选窗", ime.toggle("candwin"))
-coss = $CC("打开设置", setting.open(""))
+coen = $CC("切中英",     ime.toggle("cn-en"))
+cofs = $CC("切全半角",   ime.toggle("fullshape"))
+coly = $CC("切横纵候选", ime.toggle("layout"))
+cocw = $CC("切候选窗",   ime.toggle("candwin"))
+cost = $CC("切简繁",     ime.toggle("s2t"))
+copm = $CC("切编码模式", ime.toggle("preedit"))
+cotb = $CC("切工具栏",   ime.toggle("toolbar"))
+cots = $CC("切主题",     ime.theme_cycle())
+coss = $CC("打开设置",   setting.open(""))
+cosw = $CC("设置(Web)",  setting.web(""))
+```
+
+以上命令均已内置于系统短语包，可直接使用。
+
+### 切换方案 / 主题 / 配置项
+
+```
+copy = $CC("切到拼音", ime.schema("pinyin"))
+cowb = $CC("切到五笔", ime.schema("wubi86"))
+coms = $CC("微软主题", ime.theme("msime"))
+codk = $CC("暗色模式", config.set("ui.theme_style", "dark"))
+cotm = $CC("循环主题风格", config.toggle("ui.theme_style"))
 ```
 
 ### 字符组
@@ -578,7 +644,7 @@ cmdbar 的 display 文本仍**不**进入历史, 但分步段会进入 (它本�
 
 ## 内置示例短语
 
-系统短语包内置了 22 条以 `co` 开头的示例命令, 覆盖各类典型场景。用户可在 设置 → 词库 → 短语 中浏览。
+系统短语包内置了一批以 `co` 开头的示例命令（打开网页 / 启动程序 / 加词 / 切换中英文·候选窗·简繁·工具栏 / 循环主题 / 打开 Web 版设置等），覆盖各类典型场景。用户可在 设置 → 词库 → 短语 中浏览。
 
 完整设计文档见项目仓库 `docs/design/2026-05-12-command-bar-design.md`。
 
