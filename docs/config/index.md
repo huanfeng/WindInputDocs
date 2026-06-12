@@ -6,15 +6,15 @@
 
 ## 配置文件位置
 
-| 文件 | 路径 |
-|------|------|
-| 全局配置 | `%APPDATA%\WindInput\config.toml` |
-| 运行时状态 | `%APPDATA%\WindInput\state.toml`（程序自动维护，请勿手改） |
-| 方案配置 | `%APPDATA%\WindInput\schemas\*.schema.yaml` |
-| 方案覆盖 | `%APPDATA%\WindInput\schema_overrides.toml`（设置工具自动维护） |
-| 兼容性规则 | `%APPDATA%\WindInput\compat.toml` |
-| 主题文件 | `%APPDATA%\WindInput\themes\` |
-| 系统短语 | 程序内置，不可修改 |
+| 文件         | 路径                                                                         |
+| ------------ | ---------------------------------------------------------------------------- |
+| 全局配置     | `%APPDATA%\WindInput\config.toml`                                            |
+| 运行时状态   | `%APPDATA%\WindInput\state.toml`（程序自动维护，请勿手改）                   |
+| 方案配置     | `%APPDATA%\WindInput\schemas\*.schema.toml`（旧版 `*.schema.yaml` 仍可读取） |
+| 方案覆盖     | `%APPDATA%\WindInput\schema_overrides.toml`（设置工具自动维护）              |
+| 兼容性规则   | `%APPDATA%\WindInput\compat.toml`                                            |
+| 主题文件     | `%APPDATA%\WindInput\themes\`                                                |
+| 系统短语种子 | `%APPDATA%\WindInput\system.phrases.toml`（可选覆盖，旧版 `.yaml` 仍可读取） |
 
 ## 配置格式
 
@@ -28,7 +28,11 @@ version = 1
 旧版本的配置格式为 YAML（`config.yaml`）。升级后首次启动会自动迁移为 TOML 并转换为新的配置结构，旧文件保留原地不再读取，无需手动处理。
 :::
 
-方案配置（`*.schema.yaml`）与主题文件仍为 YAML 格式，不受影响。
+方案配置（`*.schema.toml`）与系统短语（`system.phrases.toml`）现已统一为 **TOML 格式**，与全局配置保持一致。旧版的 `*.schema.yaml` / `system.phrases.yaml` 仍可被直接读取（同名时优先使用 `.toml`），无需手动转换。
+
+::: tip 词库文件保持 YAML
+RIME 词库文件（`*.dict.yaml`）仍为 **YAML 格式**，未做改动——词库头部字段少、正文为缩进/制表分隔的词条表，YAML 编辑更直观。主题文件（`theme.yaml`）同样保持 YAML。
+:::
 
 ## 配置加载机制
 
@@ -237,11 +241,11 @@ show_all_on_entry = false        # 进入模式时是否立即列出全部候选
 
 `auto_commit` 取值说明：
 
-| 值 | 说明 |
-|---|---|
-| `prefix_free` | 候选唯一且无更长前缀匹配时自动上屏（推荐） |
+| 值             | 说明                                               |
+| -------------- | -------------------------------------------------- |
+| `prefix_free`  | 候选唯一且无更长前缀匹配时自动上屏（推荐）         |
 | `fixed_length` | 达到 `fixed_length` 指定的码长且候选唯一时自动上屏 |
-| `manual` | 始终手动按数字或空格选择 |
+| `manual`       | 始终手动按数字或空格选择                           |
 
 ## 界面设置 {#界面设置}
 

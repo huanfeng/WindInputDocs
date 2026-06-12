@@ -61,7 +61,7 @@
 
 ### 如何切换双拼方案？
 
-在方案配置文件 `shuangpin.schema.yaml` 中修改 `engine.pinyin.shuangpin.layout`，或通过设置工具修改。支持：xiaohe、ziranma、mspy、sogou、abc、ziguang。
+在方案配置文件 `shuangpin.schema.toml` 中修改 `[engine.pinyin.shuangpin]` 的 `layout`，或通过设置工具修改。支持：xiaohe、ziranma、mspy、sogou、abc、ziguang。
 
 ### 双拼可以使用模糊音吗？
 

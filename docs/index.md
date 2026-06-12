@@ -31,7 +31,7 @@ features:
   - title: 状态指示器
     details: 输入光标处实时显示当前方案、中英文、标点状态
   - title: 方案驱动
-    details: 通过 YAML 方案文件灵活定义输入行为，可自定义扩展
+    details: 通过 TOML 方案文件灵活定义输入行为，可自定义扩展
   - title: 轻量运行
     details: 资源占用低，启动迅速，日常使用几乎无感
 ---
