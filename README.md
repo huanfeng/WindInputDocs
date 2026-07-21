@@ -39,3 +39,7 @@ pnpm lint         # biome 检查
 - [ ] 部署链路（Cloudflare Pages，静态产物在 `out/`）
 - [ ] 版本号数据源（下载页动态版本，对齐主仓 `docs/VERSION` 发布链路）
 - [ ] changelog 页面（由发布流程生成）
+
+> 注：OG 图路由（`src/app/og/`）渲染中文标题时会从 Google Fonts 动态拉字形，
+> 国内网络下构建会每页超时 ~10s 后降级（构建仍成功、OG 图中文缺字）。
+> 海外 CI 构建不受影响；若需本地构建加速可设代理，或后续换本地字体文件。
