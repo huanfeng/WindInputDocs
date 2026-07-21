@@ -1,5 +1,5 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName, gitConfig } from './shared';
+import { appName, mainRepo, releasesUrl } from './shared';
 
 export function baseOptions(): BaseLayoutProps {
   return {
@@ -7,6 +7,13 @@ export function baseOptions(): BaseLayoutProps {
       // JSX supported
       title: appName,
     },
-    githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
+    links: [
+      { text: '文档', url: '/docs', active: 'nested-url' },
+      { text: '下载', url: releasesUrl, external: true },
+      { text: '主题编辑器', url: 'https://theme.windinput.com', external: true },
+      { text: '主题市场', url: 'https://market.windinput.com', external: true },
+    ],
+    // 顶栏 GitHub 图标指向主程序仓库
+    githubUrl: `https://github.com/${mainRepo.user}/${mainRepo.repo}`,
   };
 }
