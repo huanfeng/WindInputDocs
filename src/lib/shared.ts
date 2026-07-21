@@ -6,7 +6,7 @@ export const docsContentRoute = '/llms.mdx/docs';
 // 主程序仓库（下载/发布页所在）
 export const mainRepo = {
   user: 'huanfeng',
-  repo: 'WindInputPlus',
+  repo: 'WindInput',
 };
 
 // 文档站自身仓库（「在 GitHub 上编辑」链接）

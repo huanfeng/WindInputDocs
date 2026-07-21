@@ -1,6 +1,6 @@
 # 清风输入法文档站
 
-清风输入法（[WindInputPlus](https://github.com/huanfeng/WindInputPlus)）的用户文档，
+清风输入法（[WindInput](https://github.com/huanfeng/WindInput)）的用户文档，
 基于 [fumadocs](https://fumadocs.dev)（Next.js 静态导出）。
 
 > 本仓取代旧文档站 WindInputDocs（VitePress）。内容按新信息架构重写，
