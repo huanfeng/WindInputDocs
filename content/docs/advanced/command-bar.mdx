@@ -1,0 +1,214 @@
+---
+title: 命令直通车
+description: 让短语与词库条目在选中时执行动作——打开网址、启动程序、模拟按键、切换输入法状态
+---
+
+命令直通车（Command Bar）把短语 / 用户词库 / 系统词库的条目从"展开成文本"升级为"执行带副作用的动作"：打开 URL、启动程序、模拟按键、写入剪贴板、加词到用户库、切换输入法状态等，让输入法兼作快捷命令启动器。
+
+## 如何触发
+
+命令用一段**英文字母编码**触发：输入编码 → 候选区出现命令条目 → 选中即执行。
+
+| 输入 | 选中后 |
+| --- | --- |
+| `cobd` | 用默认浏览器打开 baidu.com |
+| `cojk` | 输出 `「」` 并把光标停在中间 |
+| `coac` | 把剪贴板内容加入用户词库 |
+| `coen` | 切换中英文模式 |
+
+系统短语包已内置一批以 `co` 开头的示例命令，可在 **设置 → 词库 → 短语** 中浏览、开关或仿写。
+
+<Callout type="info" title="触发码只能是英文字母">
+数字键会被"选中第 N 候选"逻辑吃掉，中文标点在按键阶段就被转换，二者都进不了短语层。因此触发码只能用 ASCII 字母（如 `cobd`），既不能含数字，也不能用中文标点。想携带查询内容时，用 `clip()` / `last()` 等数据源，而不是把词跟在编码后面。
+</Callout>
+
+## 编写位置
+
+命令短语可放在三处，都会自动解析：
+
+| 位置 | 作用范围 | 入口 |
+| --- | --- | --- |
+| 快捷短语 | **全局**，跨方案有效 | 设置 → 词库 → 短语 |
+| 用户词库 | 仅当前方案 | 设置 → 词库 → 方案 → 用户词库 |
+| 系统词库 | 仅当前方案 | 设置 → 词库 → 方案 → 系统词库 |
+
+<Callout type="info" title="推荐放快捷短语">
+绝大部分命令放**快捷短语**，拼音 / 五笔 / 混输下都可用。只有方案专属的命令才放用户词库。
+</Callout>
+
+## 四种标记
+
+短语与词库条目共用一个 `text` 字段，靠内容形式区分类型。命令能力通过以 `$` 开头的标记触发。
+
+| 标记 | 含义 | 前缀输入时 | 完整编码时 |
+| --- | --- | --- | --- |
+| `$CC(显示名, 动作...)` | 命令，仅精确匹配 | 不显示 | 显示 |
+| `$CC1(显示名, 动作...)` | 命令，精确 + 前缀都显示 | 显示 | 显示 |
+| `$AA(组名, 字符串)` | 字符组 | 显示组名导航 | 展开为 N 个单字符 |
+| `$SS(组名, 元素...)` | 数组（字符组的一般形式） | 显示组名导航 | 展开为 N 个成员 |
+
+```
+cobd = $CC("打开百度", open("https://baidu.com"))
+cobd = $CC1("打开百度", open("https://baidu.com"))
+zzbd = $AA("标点", "、。·ˉˇ¨〃々—~‖…")
+zzgo = $SS("常用站点", $CC("百度", open("https://baidu.com")), $CC("GitHub", open("https://github.com")))
+```
+
+`$AA` 是 `$SS` 的字符串简写：`$AA` 自动按字符拆开，`$SS` 显式列举每个元素，元素既可是字符串（选中上屏），也可是嵌入的 `$CC(...)`（选中执行动作）。输入前缀（如 `zz`）看到组名导航条目，选中后自动补全到完整码进入二级选择；输入完整码（如 `zzbd`）直接展开为成员候选。
+
+## 表达式语法
+
+`$CC` / `$CC1` 内部是表达式，只有三种形态：
+
+| 形态 | 例子 |
+| --- | --- |
+| 字面量 | `"hello"`、`42`、`3.14` |
+| 标识符 | `last`、`now`、`code`（等价零参调用） |
+| 函数调用 | `open("https://...")`、`clip.copy("x")`、`key.tap("Enter")` |
+
+- **字符串内插**：字符串中用 `{expr}` 内插子表达式，如 `$CC("百度搜 {clip()}", open("https://baidu.com/s?wd={url(clip())}"))`
+- **`$$` 转义**：要输出字面 `$` 就写 `$$`，否则 `$M` 之类会被当模板变量替换。例如 `text = "工资: $$M"` 显示 `工资: $M`
+- **`.` 仅作命名空间**：`.` 只用于函数名分隔（`clip.copy`、`key.tap`），不能取属性或索引。用 `last(1)` 而非 `last.1`，用 `len(code)` 而非 `code.length`
+
+## 常用示例
+
+```
+# 打开网址
+cobd = $CC("打开百度", open("https://baidu.com"))
+cogh = $CC("打开 GitHub", open("https://github.com"))
+
+# 搜索剪贴板 / 上次上屏内容
+cobs = $CC("百度搜 · {clip()}", search("baidu", clip()))
+cozd = $CC("汉典 · {last()}", open("https://www.zdic.net/hans/{url(last())}"))
+
+# 配对符号 + 光标回中
+cojk = $CC("「」", type("「」"), key.tap("Left"))
+
+# 删除当前行
+codl = $CC("[删行]", key.seq("Home", "Shift+End", "Backspace"))
+
+# 启动程序
+cono = $CC("打开记事本", proc.run("notepad.exe"))
+
+# 加词到用户库（编码自动生成）
+coac = $CC("加词 · {clip()}", dict.add(clip()))
+
+# 计算剪贴板表达式
+coca = $CC("={calc(clip())}", type(calc(clip())))
+
+# 切换输入法状态
+coen = $CC("切中英", ime.toggle("cn-en"))
+cots = $CC("切主题", ime.theme_cycle())
+
+# 字符组
+zzbd = $AA("标点", "、。·ˉˇ¨〃々—~‖…")
+zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
+```
+
+## 内置函数参考
+
+所有函数都返回字符串，动作函数返回空串。记号：`s` 字符串、`n` 整数、参数后 `?` 表示可选。
+
+### 取值函数（纯函数）
+
+| 函数 | 说明 |
+| --- | --- |
+| `code()` / `code(n)` | 触发编码（第 n 字符起到末尾） |
+| `tail(s, n)` | 字符串 s 从第 n 字符起到末尾 |
+| `last()` / `last(n)` | 最近 / 倒数第 n 次上屏文本 |
+| `clip()` / `clip(n)` | 剪贴板文本 / 历史第 n 条（最多 9 条） |
+| `app()` / `title()` | 前台进程名 / 前台窗口标题 |
+| `sel()` | 前台选中文本（**目前仅 macOS**，Windows 返回空串） |
+| `date(fmt)` / `date(fmt, offset)` | 日期，offset 形如 `"+1d"`、`"-2w"`、`"+3M"`、`"-1y"` |
+| `time()` / `time(fmt)` | 时间，默认 `"HH:mm:ss"` |
+| `now()` | 等价 `date("YYYY-MM-DD HH:mm:ss")` |
+| `env(name)` | 环境变量，如 `env("USERNAME")` |
+| `config.get(key)` | 读取配置项当前值 |
+
+### 文本处理（纯函数）
+
+| 函数 | 说明 |
+| --- | --- |
+| `len(s)` | 字符数（按 rune） |
+| `upper(s)` / `lower(s)` | 转大写 / 小写 |
+| `trim(s)` / `trim(s, chars)` | 去首尾空白 / 指定字符 |
+| `sub(s, start)` / `sub(s, start, end)` | 切片，索引 1 起，双闭区间，支持负数 |
+| `replace(s, old, new)` | 字面替换 |
+| `regex(s, pat, rep)` | 正则替换（RE2 语法） |
+| `split(s, sep, n)` | 拆分取第 n 段（1 起，支持负数） |
+| `concat(...)` | 拼接 |
+| `reverse(s)` | 反转（按 rune） |
+| `url(s)` / `html(s)` / `json(s)` / `base64(s)` | URL / HTML / JSON / Base64 编码 |
+| `default(s, fallback)` | s 为空时返回 fallback |
+
+### 计算与内省
+
+| 函数 | 说明 |
+| --- | --- |
+| `calc(expr)` | 数学表达式求值，支持 `+ - * / % ( )`、浮点 |
+| `num(s, base)` | 进制转换（2/8/10/16），如 `num("0xff", 10)` → `"255"` |
+| `help(name)` | 返回指定函数的简介 |
+
+### 动作函数（有副作用）
+
+部分函数有等价别名（`run` = `proc.run`、`shell` = `proc.shell`、`search` = `web.search`、`dict.addword` = `dict.add`、`ime.setting` = `setting.open`），推荐写规范名。
+
+| 函数 | 副作用 |
+| --- | --- |
+| `type(s)` | 经 TSF 上屏文本，不污染剪贴板 |
+| `open(target)` | 打开 URL / 文件 / 程序（http(s) 走浏览器，其他走 ShellExecute） |
+| `proc.run(cmd, ...args)` | 异步启动进程 |
+| `proc.shell(cmdline, flags?)` | 执行 shell 命令，flags 见下 |
+| `key.tap(combo)` / `key.seq(...combos)` | 单次按键 / 按键序列 |
+| `key.hold(combo)` / `key.release(combo)` | 按下 / 抬起（须成对使用） |
+| `key.type(text)` | Unicode 直输，绕过键盘布局（走 SendInput，非 TSF） |
+| `clip.copy(s)` / `clip.paste()` | 写入剪贴板 / 模拟 Ctrl+V |
+| `dict.add(s)` / `dict.add(s, code)` | 加词到用户库（编码自动推导或指定） |
+| `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `preedit` / `toolbar` |
+| `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
+| `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
+| `setting.open(page)` / `setting.web(page)` | 打开设置页 / Web 版设置 |
+| `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic` |
+| `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
+
+`proc.shell` 的 flags（逗号分隔）控制 shell 类型与窗口：空 = `cmd /c` 静默；`term` = `cmd /k` 可见 console；`pwsh` = PowerShell 静默；`pwsh,term` = PowerShell 可见。
+
+### 按键 combo 格式
+
+`key.*` 的 combo 为 `[修饰键+]...主键`，大小写不敏感，`+` 分隔。修饰键：`Ctrl`、`Shift`、`Alt`、`Win`（各有别名如 `Control` / `Menu` / `Super`）。主键支持常见控制键（`Enter`、`Tab`、`Escape`、`Home`、`End`、`Up` 等）、功能键 `F1`–`F24`、字母数字键，以及标点键（`Comma`、`Period`、`Slash` 等）。
+
+```
+key.tap("Ctrl+C")                       # 复制
+key.tap("Alt+F4")                       # 关闭窗口
+key.seq("Home", "Shift+End", "Delete")  # 删除整行
+key.type("Hello, 世界")                  # Unicode 直输
+```
+
+未列出的特殊键用 `vk:` 前缀指定 Windows 虚拟键值，`0x` 前缀为十六进制、无前缀为十进制，有效范围 `0x01`–`0xFF`：
+
+```
+key.tap("vk:0x5D")    # 右键菜单键（VK_APPS）
+key.tap("vk:0x60")    # 数字小键盘 0
+key.tap("Shift+vk:0x5D")
+```
+
+<Callout type="warn" title="标点键 VK 码基于美式布局">
+标点符号键的 VK 码按美式 US 键盘布局定义，非 US 布局下物理键位可能不同，此时改用 `vk:` 数值码指定精确虚拟键值。
+</Callout>
+
+## 行为细节
+
+- **权重**：命令短语与普通短语一样默认权重 1000。命令用的精确英文编码极少与自然候选撞码，默认值通常已足够靠前；拼音方案下更应选一个不与自然词碰撞的编码，而非堆高 weight。
+- **自动上屏 / 顶码**：纯文本命令（只产出文本）与短语一样可自动上屏、顶码上屏；**含副作用的命令不自动上屏**，始终等待手动选择，被顶屏时异步执行动作。只有短语的编码（如 `date`）不参与顶码，也不会被"满码空码清空"误清。
+- **不污染历史**：`last()` 只记录真正上屏的文本。有 `type()` 的命令进入历史；仅副作用命令（`open` / `proc.run` 等）不进入，避免显示文字污染下一次 `last()`。
+- **副作用会求值两次**：`$CC` 的显示名和动作里的表达式都会被求值。若在两处各写一次 `config.toggle` 会切换两次（净效果为零）。想"切一次并显示新状态"，让显示名用 `config.get`、动作用 `config.toggle`。
+
+<Callout type="warn" title="临时拼音下不查快捷短语">
+进入临时拼音模式后不查询快捷短语层，输 `zzbd` 得到的是拼音候选而非字符组导航。但词库条目内嵌的 `$` 语法在临拼下仍会正常展开与执行。
+</Callout>
+
+## 相关阅读
+
+- [短语与模板](/docs/customize/phrases) — 权重、词频与短语管理
+- [词库与词频](/docs/customize/dictionaries)
+- [配置文件与数据目录](/docs/advanced/config-file) — `config.get` / `config.set` 的键路径

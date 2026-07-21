@@ -1,0 +1,119 @@
+---
+title: 拼音输入
+description: 全拼、双拼、模糊音与拼音相关的全局行为配置
+---
+
+清风的拼音输入分**全拼**与**双拼**两种方案，共用同一套白霜词库、算法与用户数据——双拼用户切到全拼，仍能看到学过的词。模糊音、智能组词等行为是全局配置，两种方案共享。
+
+## 全拼
+
+方案 ID `pinyin`，基于白霜拼音（rime-frost）词库，支持智能候选排序与词频学习。
+
+- 输入完整拼音即可，如 `zhongguo` → 中国
+- 支持**简拼**，如 `bj` → 北京
+- 支持**智能组词/整句**（全局 `schema.pinyin.use_smart_compose`）
+- 内置五笔反查词库，可通过**编码提示**查看候选的五笔编码
+
+编码提示的开关是全局 `schema.pinyin.show_code_hint`，打开后拼音候选旁会显示对应编码。
+
+## 双拼
+
+方案 ID `shuangpin`，用两个按键表示一个音节，大幅减少击键次数。复用全拼词库与算法，词库丰富，同样支持编码提示与智能组词。
+
+内置 6 种双拼布局：
+
+| 布局 | ID | 说明 |
+| --- | --- | --- |
+| 小鹤双拼 | `xiaohe` | 最流行的双拼方案（默认） |
+| 自然码 | `ziranma` | 经典双拼方案 |
+| 微软双拼 | `mspy` | Windows 内置方案 |
+| 搜狗双拼 | `sogou` | 搜狗输入法方案 |
+| 智能 ABC | `abc` | 经典 ABC 方案 |
+| 紫光双拼 | `ziguang` | 紫光/华宇方案 |
+
+### 切换双拼布局
+
+布局在方案文件 `shuangpin.schema.toml` 的 `[engine.pinyin.shuangpin]` 段定义，也可通过设置工具修改：
+
+```toml
+[engine.pinyin]
+scheme = "shuangpin"         # full（全拼）/ shuangpin（双拼）
+
+[engine.pinyin.shuangpin]
+layout = "xiaohe"            # xiaohe / ziranma / mspy / sogou / abc / ziguang
+```
+
+<Callout type="info" title="学习新布局">
+双拼支持编码提示，切换到不熟悉的布局时，候选旁的编码可以帮助记忆键位。
+</Callout>
+
+## 模糊音
+
+模糊音让易混淆的拼音对在输入时互不区分，是全局配置，全拼与双拼共享。共 11 组，需先打开总开关 `enabled`，再逐对开启需要的模糊音：
+
+```toml
+[schema.pinyin.fuzzy]
+enabled = false              # 模糊音总开关
+zh_z = false                 # zh ↔ z
+ch_c = false                 # ch ↔ c
+sh_s = false                 # sh ↔ s
+n_l  = false                 # n ↔ l
+r_l  = false                 # r ↔ l
+f_h  = false                 # f ↔ h
+an_ang   = false             # an ↔ ang
+en_eng   = false             # en ↔ eng
+in_ing   = false             # in ↔ ing
+ian_iang = false             # ian ↔ iang
+uan_uang = false             # uan ↔ uang
+```
+
+## 拼音全局行为配置
+
+拼音类方案（全拼/双拼/混输的拼音子方案/临时拼音反查）共用一份全局配置，集中在 `config.toml` 的 `[schema.pinyin]` 段。日常通过设置工具调整即可，下面是常用项。
+
+### 基础行为 [schema.pinyin]
+
+```toml
+[schema.pinyin]
+show_code_hint = true        # 拼音候选旁显示编码
+use_smart_compose = true     # 智能组词
+separator = "auto"           # 拼音分隔符：auto / quote / backtick / none
+```
+
+`separator` 是拼音消歧用的分隔符，用于手动断开音节边界。
+
+### 拼音调频 [schema.pinyin.frequency]
+
+拼音调频默认开启，采用**时间衰减**打分：越近使用的词得分越高，随时间按半衰期衰减。
+
+```toml
+[schema.pinyin.frequency]
+enabled = true               # 启用拼音调频（出厂默认开）
+half_life = 0                # 半衰期（小时，0=用内置默认 72 小时）
+base_scale = 0               # base 系数（0=用内置默认 100）
+recency_peak = 0             # 最近使用峰值加成（0=不启用）
+```
+
+三个数值参数为 `0` 时使用引擎内置默认（72 小时 / 100 / 0）。
+
+### 拼音自动造词 [schema.pinyin.auto_learn]
+
+连续选词后自动组词入用户词库，默认开启：
+
+```toml
+[schema.pinyin.auto_learn]
+enabled = true               # 出厂默认开
+min_word_length = 0          # 最短学习词长（0=回退 2）
+promote_count = 0            # 临时词晋升所需使用次数
+```
+
+<Callout type="info" title="拼音家族共享用户数据">
+全拼与双拼的用户词库、调频、临时词库统一存储。双拼用户切到全拼，学过的词、调过的频依然生效。
+</Callout>
+
+## 相关页面
+
+- [混合输入](/docs/input/mixed)——五笔优先、拼音兜底
+- [五笔与码表](/docs/input/wubi)
+- [词库与词频](/docs/customize/dictionaries)——附加词库、反查词库、权重
+- [设置工具](/docs/customize/settings)

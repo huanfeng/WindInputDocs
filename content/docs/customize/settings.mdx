@@ -1,0 +1,56 @@
+---
+title: 设置工具
+description: 图形化设置工具怎么打开、各设置页分别管什么，以及高级页的输入统计与日志开关
+---
+
+按 `Ctrl + Shift + ]`（可自定义）打开图形化设置工具。**所有修改即时生效**，无需重启输入法——个别项例外（如日志级别需重启服务），会在对应页面注明。
+
+<Callout type="info" title="macOS 设置应用">
+macOS 版设置程序可从 `~/Applications/清风输入法设置.app` 或输入法菜单的「设置…」打开，数据固定在 `~/Library/Application Support/WindInput/`。方案、输入、外观、词库等设置与 Windows 通用；个别 Windows 专属能力（如全局热键）在 macOS 上不可用。
+</Callout>
+
+## 设置页面概览
+
+设置工具按功能分成六个页面：
+
+| 页面 | 管什么 |
+| --- | --- |
+| 方案 | 启用/切换输入方案、主方案设置、码表/混输/拼音全局配置、附加词库。见[输入方案管理](/docs/customize/schemas) |
+| 输入 | 字符与标点、按键行为、简入繁出、标点配对、快捷输入、临时拼音/英文、网址输入、默认状态。见[标点与符号](/docs/input/punctuation)、[快捷输入](/docs/input/quick-input)、[临时模式](/docs/input/temp-modes) |
+| 按键 | 中英文切换键、候选选择与翻页键、以词定字、功能快捷键。见[快捷键定制](/docs/customize/hotkeys) |
+| 外观 | 主题、候选窗口、候选项提示信息、状态提示、模式指示、工具栏。见[外观与主题](/docs/customize/appearance) |
+| 词库 | 快捷短语、方案词库、词频、候选调整、导入导出。见[词库与词频](/docs/customize/dictionaries)、[快捷短语](/docs/customize/phrases) |
+| 高级 | 输入统计开关、日志级别、备份还原。见下文与[备份与还原](/docs/advanced/backup) |
+
+## 高级页
+
+「高级」页放置备份还原、服务与实验性功能开关。备份还原部分见[备份与还原](/docs/advanced/backup)，这里说明两组开关。
+
+### 输入统计
+
+完整的输入统计面板尚未提供，当前只在高级页保留两个开关，用于提前采集数据：
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 启用输入统计 | `stats.enabled` | 开关输入统计功能 |
+| 统计英文输入 | `stats.track_english` | 是否统计英文模式下的输入 |
+
+<Callout type="info" title="隐私说明">
+统计只记录字符数量等元数据，不会记录具体输入了什么内容。
+</Callout>
+
+### 服务日志级别
+
+配置项 `debug.log_level`，**修改后需重启输入法服务生效**。
+
+| 配置值 | 说明 |
+| --- | --- |
+| `error` | 仅记录错误信息 |
+| `warn` | 记录警告和错误 |
+| `info` | 记录一般运行信息（默认） |
+| `debug` | 记录详细调试信息 |
+| `trace` | 记录最详尽的追踪信息 |
+
+<Callout type="warn" title="注意日志内容">
+`debug`、`trace` 级别日志可能包含按键、上下文状态等信息，请仅在排障时临时开启，并注意日志文件的保存与分享范围。日志目录默认为 `%LOCALAPPDATA%\WindInput\logs\`。
+</Callout>

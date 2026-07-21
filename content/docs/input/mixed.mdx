@@ -1,0 +1,66 @@
+---
+title: 混合输入
+description: 五笔优先、拼音兜底的混输方案与融合策略配置
+---
+
+五笔拼音混输（方案 ID `wubi86_pinyin`）是一个**五笔优先、拼音兜底**的混合引擎：输入编码时同时匹配五笔和拼音，五笔结果排在前面，忘记五笔编码时用拼音也能打出来。适合五笔初学者或偶尔忘记编码的用户。
+
+## 工作方式
+
+- 输入编码时**同时匹配五笔和拼音**
+- 五笔匹配结果排在前面，拼音候选作为兜底
+- 混输方案与其主形码方案（五笔）**共享用户词库、调频、临时词库**
+
+输入示例：
+
+```text
+wq    → 你（五笔匹配）
+nihao → 你好（拼音兜底）
+```
+
+## 融合策略配置
+
+融合策略是全局唯一配置，无方案级覆盖，集中在 `config.toml` 的 `[schema.mix]` 段。出厂默认与常用项：
+
+```toml
+[schema.mix]
+show_source_hint = false           # 显示候选来源标记（码表/拼音）
+min_pinyin_length = 2              # 拼音最小触发长度（0=回退 2）
+pinyin_only_overflow = true        # 超码长时仅查拼音
+enable_english = false             # 启用英文候选
+```
+
+| 字段 | 说明 | 出厂默认 |
+| --- | --- | --- |
+| `show_source_hint` | 显示候选来源标记（码表/拼音） | `false` |
+| `min_pinyin_length` | 拼音最小触发长度（0 回退 2，即 1 码不查拼音） | `2` |
+| `pinyin_only_overflow` | 超码长时仅查拼音 | `true` |
+| `enable_english` | 启用英文候选 | `false` |
+
+打开 `show_source_hint` 后，候选旁会标出它来自码表还是拼音，方便初学者辨认。
+
+## 五笔为何总排在前
+
+混输的「五笔优先」由方案文件里的 `codetable_weight_boost` 保证，属于引擎固定参数：
+
+```toml
+[engine.mixed]
+primary_schema = "wubi86"    # 主方案（码表）
+secondary_schema = "pinyin"  # 辅助方案（拼音）
+codetable_weight_boost = 10000000  # 码表精确匹配提权基线（0=回退 10_000_000）
+```
+
+<Callout type="info" title="关于 codetable_weight_boost">
+这是**层间隔离**机制：把整个码表层（短语 + 用户词库 + 系统码表）压在拼音字之前，让码表编码即便与拼音冲突也稳定靠前。它是引擎固定参数，不写入用户存储，也与词频调整无关。融合策略（`enable_english`、`min_pinyin_length` 等）才在全局 `[schema.mix]` 配置。
+</Callout>
+
+## 适用人群
+
+- 五笔初学者：主用五笔，忘码时直接打拼音过渡
+- 偶尔忘记编码的五笔用户：不必切方案或触发临时拼音
+
+## 相关页面
+
+- [五笔与码表](/docs/input/wubi)
+- [拼音输入](/docs/input/pinyin)
+- [核心概念](/docs/start/concepts)——方案、词库、配置的分工

@@ -1,0 +1,208 @@
+---
+title: 外观与主题
+description: 主题选择与亮暗跟随、候选窗口与提示信息、状态与工具栏设置，以及自定义主题与应用兼容性规则
+---
+
+在设置工具的「外观」页自定义候选窗与工具栏的视觉呈现。所有修改即时生效。
+
+## 主题
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 主题选择 | `ui.theme.name` | 候选窗与工具栏的主题样式（下拉显示主题名） |
+| 主题风格 | `ui.theme.style` | 亮色、暗色或跟随系统 |
+| 翻页栏显示 | `ui.candidate.pager_bar_display` | 覆盖主题配置中翻页栏的显示方式 |
+| 显示页码 | `ui.candidate.page_number_display` | 翻页栏可见时是否显示页码文字 |
+
+内置五个主题，均可作为自定义的模板起点：
+
+- **清风·蓝**（`default`）——默认主题，清风设计体系，主色现代蓝
+- **清风·绿**（`jade`）——祖母绿色调
+- **清风·橙**（`amber`）——暖金橙色调
+- **清风·紫**（`violet`）——薰衣草紫色调
+- **微软风格**（`msime`）——微软蓝主色，紧凑布局，文字序号，左侧强调条
+
+主题风格（`ui.theme.style`）可选 `system` 跟随 Windows 亮暗模式、`light` 始终亮色、`dark` 始终暗色。
+
+### 翻页栏
+
+翻页栏包含翻页箭头与页码，可独立于主题配置进行覆盖。`ui.candidate.pager_bar_display` 可选：
+
+| 配置值 | 说明 |
+| --- | --- |
+| `""`（空） | 默认，由当前主题决定 |
+| `hide` | 整个翻页栏（含箭头）不渲染 |
+| `auto` | 仅当候选超过一页时显示 |
+| `always` | 始终显示翻页栏，包括只有一页时 |
+
+页码文字（`ui.candidate.page_number_display`）可单独设为 `show` 显示、`hide` 隐藏，或留空跟随主题。
+
+## 候选窗口
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 候选字号跟随主题 | `ui.candidate.font_size_follow_theme` | 开启后候选字号由主题决定；关闭可在下方自定义 |
+| 候选字号 | `ui.candidate.font_size` | 候选词字体大小（0 表示由主题决定）；开启「跟随主题」时不可用 |
+| 候选窗字体 | `ui.font.family` | 自定义候选窗字体，留空跟随主题字体 |
+| 每页候选数 | `ui.candidate.per_page` | 每页显示的候选词数量（3–9） |
+| 扩展档每页候选数 | `ui.candidate.per_page_extended` | 临拼/快捷/短语等场景的每页候选数；0 = 与上面相同（关闭分档） |
+| 隐藏候选窗 | `ui.candidate.hide_window` | 盲打/自动上屏场景不显示候选窗口；隐藏后仍可输入 |
+| 编码显示方式 | `ui.candidate.preedit_display` | 编码（组合区）的显示位置 |
+| 候选窗排列 | `ui.candidate.layout` | 候选词的排列方式（横排/竖排） |
+| 候选窗在上方时反转顺序 | `ui.candidate.flip_when_above` | 候选窗显示在光标上方时，反转候选项的排列顺序（使第一候选靠近光标）；可与「编码栏置底」叠加 |
+| 候选窗在上方时编码栏置底 | `ui.candidate.swap_preedit_when_above` | 候选窗显示在光标上方时，将编码栏与候选栏上下调换，使编码栏沉到底部贴近光标 |
+| 翻页栏并入编码栏 | `ui.candidate.pager_in_preedit` | 翻页栏右对齐显示在编码栏行（竖排可省一行）；仅「编码显示方式」为候选窗顶部独立栏时生效 |
+| 候选文本最大字数 | `ui.candidate.max_chars` | 候选文本超过此字数时截断并追加省略号；0 = 不限 |
+| 自定义序号标签 | `ui.candidate.index_labels` | 为序号 1–10 自定义标签字符（如 `asdfg`）；留空用默认 1–9 |
+| 命令栏候选前缀 | `input.cmdbar.candidate_prefix` | 命令候选前的提示符号 |
+
+### 编码显示方式
+
+`ui.candidate.preedit_display` 决定编码栏的位置：
+
+| 配置值 | 说明 |
+| --- | --- |
+| `app_inline` | 内嵌应用光标处，候选窗不显示编码栏 |
+| `candidate_top` | 编码显示在候选窗上方独立栏 |
+| `candidate_inline` | 编码嵌入候选窗第一个单元格前 |
+
+候选窗排列（`ui.candidate.layout`）可选 `horizontal` 横排或 `vertical` 竖排。
+
+## 候选项提示信息
+
+鼠标悬停在候选上时弹出的提示框，可分项开关。
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 悬停延时 | `ui.tooltip.delay` | 鼠标停留多久后弹出提示框（毫秒）；越大越不易误触 |
+| 编码反查 | `ui.tooltip.code_enabled` | 悬停候选时在主码表中反查该词的标准编码并显示 |
+| 拼音反查 | `ui.tooltip.pinyin_enabled` | 悬停候选词时显示拼音读音 |
+| 显示多音字所有读音 | `ui.tooltip.pinyin_heteronyms` | 关闭则仅显示首音 |
+| 拆字反查 | `ui.tooltip.chaizi_enabled` | 悬停候选词时显示字根拆字信息（需方案支持） |
+| 调试信息 | `ui.tooltip.debug_enabled` | 悬停候选词时显示编码来源、权重等调试元数据 |
+
+## 状态提示
+
+状态提示是切换输入状态时在光标处闪现的小气泡。纯视觉样式（颜色/字号/透明度/圆角）由主题决定，此处只调整行为与位置。
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 启用状态提示气泡 | `ui.status.enabled` | 切换输入状态时显示提示气泡 |
+| 显示模式 | `ui.status.display_mode` | `temp` 临时闪现后自动消失，`always` 有输入焦点时始终显示 |
+| 显示时长 | `ui.status.duration` | 临时显示模式下气泡停留时间（毫秒） |
+| 方案名显示样式 | `ui.status.schema_name_style` | 全名或图标短称（取方案 `icon_label`，无则回退全名） |
+| 定位方式 | `ui.status.position_mode` | 跟随光标或固定在自定义位置 |
+
+定位方式与偏移、固定坐标在「扩展设置」对话框中调整：
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 跟随光标 | `ui.status.position_mode` = `follow_caret` | 气泡跟随光标 |
+| 固定位置 | `ui.status.position_mode` = `fixed` | 气泡固定在屏幕坐标 |
+| 水平偏移 | `ui.status.offset_x` | 相对光标下方居中的水平偏移（像素，正=右） |
+| 垂直偏移 | `ui.status.offset_y` | 相对光标下方的垂直偏移（像素，正=下） |
+| 固定位置 X | `ui.status.custom_x` | 固定定位时气泡屏幕横坐标（像素） |
+| 固定位置 Y | `ui.status.custom_y` | 固定定位时气泡屏幕纵坐标（像素） |
+
+## 模式指示
+
+进入临拼/双拼/快符/英文等模式时的标识，配置项 `ui.mode_indicator.style`：
+
+| 配置值 | 说明 |
+| --- | --- |
+| `short` | 显示 拼/双/快/英/符 等短称 |
+| `full` | 显示完整模式名 |
+| `none` | 不显示模式标识 |
+
+## 工具栏
+
+| 选项 | 配置项 | 说明 |
+| --- | --- | --- |
+| 显示工具栏 | `ui.toolbar.visible` | 在屏幕上显示可拖动的输入法状态栏 |
+| 全屏时隐藏工具栏 | `ui.toolbar.hide_in_fullscreen` | 当前台应用进入全屏（游戏、视频、演示等）时自动隐藏工具栏 |
+| 自动隐藏工具栏 | `ui.toolbar.auto_hide` | 工具栏显示一段时间无交互后淡出隐藏；鼠标悬停不隐藏，切换中英等状态变化时重新显示 |
+| 自动隐藏延时 | `ui.toolbar.auto_hide_delay` | 工具栏显示多久后开始淡出（1–60 秒） |
+
+工具栏可通过快捷键 `Ctrl + Shift + \` 切换显示/隐藏。
+
+## 获取更多主题
+
+- **导入 TOML 主题**——选择本地 `.toml` 主题文件导入，成功后即可在「主题选择」中使用
+- **打开主题市场**——前往 [market.windinput.com](https://market.windinput.com) 挑选现成主题
+- **主题编辑器直连**——开启后，[Web 版主题编辑器](https://theme.windinput.com)可直接读写本机主题，边改边看效果。服务仅监听本机回环地址，不对外网开放；分「关闭 / 本次开启 / 自动开启」三档，开启后可复制本地连接地址到编辑器
+
+## 自定义主题
+
+将主题文件放入以下目录，即可在「外观」页的「主题选择」中出现：
+
+- **Windows**：`%APPDATA%\WindInput\themes\<主题名>\theme.toml`
+- **macOS**：`~/Library/Application Support/WindInput/themes/<主题名>/theme.toml`
+
+<Callout type="info" title="主题文件为 TOML 格式">
+主题文件为 **TOML 格式（v3）**（`theme.toml`）。最省事的做法是**继承一个内置主题，只覆盖需要改动的部分**；复杂的几何与配色建议直接用[主题编辑器](https://theme.windinput.com)可视化制作。
+</Callout>
+
+### 快速上手：继承内置主题
+
+声明 `base` 并只写要改的颜色，其余从内置主题继承：
+
+```toml
+base = "default"
+
+[meta]
+name = "我的蓝色主题"
+
+[colors]
+primary = "#0066CC"     # 只改主色，其余外观沿用 default
+```
+
+### 主题文件结构
+
+主题由若干顶层块组成，均可选，未写的部分从被继承主题回退：
+
+| 块 | 说明 |
+| --- | --- |
+| `base` | 继承的内置主题名（`default` / `msime` 或内置基础主题 `_base` / `_qingfeng`） |
+| `[meta]` | 元信息：`name`（必填）、`version`、`author` 等 |
+| `[colors]` | 颜色 token 表（扁平），语义色的唯一来源，`[views]` 通过 `${token}` 引用 |
+| `[resources]` | 图片资源引用（可选，支持亮暗分设） |
+| `[views]` | 几何与布局（候选窗 / 工具栏 / 菜单的盒模型） |
+| `[behavior]` | 主题推荐的行为默认（见下） |
+
+`[colors]` 块是所有颜色的唯一来源：
+
+- **亮暗分设**：值写成 `{ light = "...", dark = "..." }` 表示亮暗不同颜色；写成单个字符串则亮暗共用；只写一侧时另一侧自动回退
+- **token 引用**：`"${tokenName}"` 引用同表中另一个 token 的值
+- **颜色格式**：`"#RGB"` / `"#RRGGBB"` / `"#RRGGBBAA"`（支持 alpha 透明度）/ `"transparent"`
+
+`[behavior]` 中的值是主题给用户的推荐默认，用户可在「外观」页单独覆盖，覆盖跨主题切换保持：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `font_size` | number | 候选字号基准（pt） |
+| `always_show_pager` | bool | 始终显示翻页栏（即使只有一页） |
+| `hide_pager` | bool | 隐藏整个翻页栏（含箭头） |
+| `show_page_number` | bool | 显示页码文字 |
+| `pager_align` | string | 独立翻页栏行的水平对齐（`left` / `center` / `right`，默认 `center`）；仅竖排独立翻页栏生效，翻页栏并入编码栏时固定右对齐 |
+| `vertical_max_width` | number | 竖排模式最大宽度（像素） |
+
+`[views]` 按具名节点描述各窗口的盒模型（内外边距、边框、圆角、背景、字体、阴影等），字段较多且随版本演进。制作或调整几何时，**建议直接以内置主题文件为模板**，或用[主题编辑器](https://theme.windinput.com)可视化编辑，避免逐字段手写出错。内置主题文件位于安装目录下的 `data\themes\` 文件夹。
+
+## 应用兼容性主题规则
+
+兼容性规则用于修复特定应用中候选框定位、光标获取等问题。规则文件为 TOML 的 `[[apps]]` 数组表，加载顺序为**系统预置**（`<安装目录>\data\compat.toml`）→ **用户覆盖**（`%APPDATA%\WindInput\compat.toml`），用户层同进程名规则覆盖系统层。
+
+```toml
+[[apps]]
+process = "Weixin.exe"        # 进程名（不区分大小写）
+comment = "微信 - 使用 rect.top 定位候选框"
+caret_use_top = true          # 使用 caret rect 的 top 而非 bottom 定位候选框
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `process` | string | 进程名，不区分大小写，如 `Notepad.exe` |
+| `comment` | string | 备注说明，仅用于文档与可读性 |
+| `caret_use_top` | bool | 使用 caret rect 的 `top` 而非 `bottom` 定位候选框 |
+
+`caret_use_top` 适用于 `GetTextExt` 返回的 height 不稳定的 WebView 应用（如微信的 Qt WebView 输入框，height 在 1↔20px 间跳变导致 bottom 漂移，但 top 始终稳定）。清风输入法已内置微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在用户 `compat.toml` 中添加规则；修改后通过托盘菜单的**重载配置**即可生效。
