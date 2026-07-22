@@ -41,6 +41,10 @@ pnpm lint         # biome 检查
 - [ ] 版本号自动同步（`src/lib/releases.ts` 暂手工维护，待对齐主仓 `docs/VERSION` 发布链路）
 - [ ] 更新记录由发布流程自动追加（页面已建在 `/changelog`，数据源同上）
 
+> 下载直链走 Cloudflare R2（`https://dl.windinput.com/WindInput-<版本>-Setup.exe`，
+> 与旧站一致）；GitHub Releases 仅作备用渠道（国内访问较慢）。
+> 便携版不单独发包，由安装包的便携解压模式释放；macOS 版开发中、未发布。
+
 > 注：OG 图路由（`src/app/og/`）渲染中文标题时会从 Google Fonts 动态拉字形，
 > 国内网络下构建会每页超时 ~10s 后降级（构建仍成功、OG 图中文缺字）。
 > 海外 CI 构建不受影响；若需本地构建加速可设代理，或后续换本地字体文件。

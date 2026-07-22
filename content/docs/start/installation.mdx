@@ -1,18 +1,17 @@
 ---
 title: 安装与激活
-description: 在 Windows 或 macOS 上安装清风输入法
+description: 在 Windows 上安装清风输入法
 ---
 
 ## 系统要求
 
 - Windows 10 / Windows 11（64 位）
-- macOS 12 及以上（Apple Silicon / Intel，**alpha 阶段**）
 
-安装包从 [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 下载；
-第三方码表方案（五笔 98、新世纪、虎码等）见社区仓库
+安装包从[下载页](/download)获取；第三方码表方案（五笔 98、新世纪、虎码等）见社区仓库
 [WindInputCodeTable](https://github.com/huanfeng/WindInputCodeTable)。
+macOS 版尚在开发中，试用说明见 [macOS 版](/docs/reference/macos)。
 
-## Windows：安装版（推荐）
+## 安装版（推荐）
 
 1. 下载最新的 `WindInput-x.x.x-Setup.exe`
 2. 双击运行，按提示完成安装（支持自定义安装路径）
@@ -26,46 +25,23 @@ description: 在 Windows 或 macOS 上安装清风输入法
   目录结构详见[配置文件与数据目录](/docs/advanced/config-file)。
 </Callout>
 
-## Windows：便携版
+## 便携模式
 
-适合 U 盘携带或不想安装到系统的用户。
+适合 U 盘携带或不想安装到系统的用户。便携版不单独提供下载包，由同一个安装包释放：
 
-1. 下载 `WindInput-x.x.x-Portable.zip` 并解压到任意目录
-2. 运行便携版启动器 `wind_portable.exe`，它会自动注册输入法组件与开机启动项
+1. 运行 `WindInput-x.x.x-Setup.exe`，选择**便携解压模式**，释放到任意目录
+2. 运行目录中的便携启动器 `wind_portable.exe`，它会自动注册输入法组件与开机启动项
 
-<Callout type="info" title="便携版说明">
+<Callout type="info" title="便携模式说明">
   - 用户数据固定保存在程序目录下的 `userdata` 目录，不支持修改
   - 关闭 `wind_portable.exe` 时会提示是否卸载
   - 更新时因 DLL 锁定，建议使用启动器的 **部署 → 更新** 功能
 </Callout>
 
-## macOS 安装（alpha）
-
-<Callout type="warn" title="alpha 阶段">
-  macOS 版未做苹果公证，功能与 Windows 版存在差异，建议有一定动手能力的用户尝试。
-</Callout>
-
-1. 下载 `WindInput-x.x.x-macOS.pkg`（universal，同时支持 Apple Silicon 与 Intel，内含输入法、后台服务、设置程序三件套）
-2. 双击运行安装
-3. 打开 **系统设置 → 键盘 → 文本输入 → 输入法 → 编辑**，添加并切换到「清风输入法」（也可用 `⌃Space` 或菜单栏输入菜单切换）
-
-安装后设置程序位于 `~/Applications/清风输入法设置.app`，也可从输入法菜单的「设置…」打开；后台服务随登录自动启动。
-
-<Callout type="warn" title="Gatekeeper 放行">
-  首次运行安装包、设置程序或后台服务时，Gatekeeper 可能提示「无法打开，因为无法验证开发者」。
-  放行步骤：**系统设置 → 隐私与安全性** → 「安全性」区域找到拦截提示 → 点「仍要打开」并确认。
-  若添加输入法后仍无法切换，通常是后台服务被拦截——放行后注销或重启一次即可；较新版本的 macOS 可能需要重复放行一到两次。
-</Callout>
-
-<Callout type="info" title="重新安装请先重启">
-  卸载后重装前建议先注销或重启，让系统清除输入法注册缓存，避免「设置里已添加、切换列表却没有」。
-</Callout>
-
 ## 卸载
 
-- **Windows 安装版**：Windows 设置 → 应用 → 已安装的应用 → 搜索「清风输入法」卸载；或使用开始菜单卸载入口。卸载时会询问是否删除用户数据，删除后无法恢复，请谨慎选择。
-- **Windows 便携版**：关闭 `wind_portable.exe` 时选择卸载，然后删除解压目录。
-- **macOS**：双击 `~/Applications/卸载清风输入法.app`，按提示完成。用户词库/配置默认保留在 `~/Library/Application Support/WindInput/`。
+- **安装版**：Windows 设置 → 应用 → 已安装的应用 → 搜索「清风输入法」卸载；或使用开始菜单卸载入口。卸载时会询问是否删除用户数据，删除后无法恢复，请谨慎选择。
+- **便携模式**：关闭 `wind_portable.exe` 时选择卸载，然后删除解压目录。
 
 ## 已知问题
 
@@ -75,7 +51,6 @@ description: 在 Windows 或 macOS 上安装清风输入法
 | 杀毒软件报毒 | 注册输入法组件可能被拦截，请在安全软件中放行 |
 | 开始菜单候选框 | 已通过宿主进程代理渲染优化，但开始菜单内候选框暂不支持鼠标操作 |
 | 部分网络游戏不可用 | 游戏不加载未签名的输入法 DLL |
-| macOS 系统限制 | 未公证导致首次启用需 Gatekeeper 放行，见上文 |
 
 ## 安装后的三件事
 
@@ -83,4 +58,4 @@ description: 在 Windows 或 macOS 上安装清风输入法
 2. 按 `Ctrl + Shift + ]` 打开设置工具，调整个性化选项
 3. 阅读[第一次输入](/docs/start/first-input)了解日常操作
 
-以上均为默认快捷键，可在设置工具中修改。macOS 上这些默认值同样适用，并额外支持 `⌘` / `⌥` 作为修饰键；切换输入法用系统的 `⌃Space`。
+以上均为默认快捷键，可在设置工具中修改。

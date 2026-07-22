@@ -1,22 +1,23 @@
 import { Apple, HardDrive, Package } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { currentVersion } from "@/lib/releases";
+import {
+  currentVersion,
+  setupDownloadUrl,
+  setupFileName,
+} from "@/lib/releases";
 import { releasesUrl } from "@/lib/shared";
 
 export const metadata: Metadata = {
   title: "下载",
-  description: "下载清风输入法：Windows 安装版、便携版与 macOS alpha 版",
+  description: "下载清风输入法 Windows 安装包（Cloudflare R2 国内直连）",
 };
-
-const latestUrl = `${releasesUrl}/latest`;
 
 const editions = [
   {
     icon: Package,
     title: "Windows 安装版",
     badge: "推荐",
-    file: "WindInput-x.x.x-Setup.exe",
     points: [
       "双击安装，支持自定义路径",
       "自动注册输入法组件，创建开始菜单与卸载入口",
@@ -25,11 +26,10 @@ const editions = [
   },
   {
     icon: HardDrive,
-    title: "Windows 便携版",
-    badge: null,
-    file: "WindInput-x.x.x-Portable.zip",
+    title: "便携模式",
+    badge: "由安装包释放",
     points: [
-      "解压即用，适合 U 盘携带",
+      "不单独提供下载包：运行安装包，选择便携解压模式释放到任意目录",
       "由启动器 wind_portable.exe 注册组件与开机启动",
       "用户数据固定在程序目录下的 userdata",
     ],
@@ -37,12 +37,10 @@ const editions = [
   {
     icon: Apple,
     title: "macOS 版",
-    badge: "alpha",
-    file: "WindInput-x.x.x-macOS.pkg",
+    badge: "开发中",
     points: [
-      "universal 安装包，同时支持 Apple Silicon 与 Intel",
-      "内含输入法、后台服务、设置程序三件套",
-      "未做苹果公证，首次运行需在 Gatekeeper 中放行",
+      "尚未正式发布，功能与 Windows 版存在差异",
+      "面向尝鲜用户的安装与试用说明见文档「macOS 版」页",
     ],
   },
 ];
@@ -57,14 +55,14 @@ export default function DownloadPage() {
           <code className="rounded bg-fd-muted px-1.5 py-0.5 font-mono text-sm">
             v{currentVersion}
           </code>
-          {" · "}Windows 10 / 11（64 位）· macOS 12+（alpha）
+          {" · "}Windows 10 / 11（64 位）
         </p>
-        <div className="mt-6 flex justify-center gap-3">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a
-            href={latestUrl}
+            href={setupDownloadUrl}
             className="rounded-full bg-fd-primary px-6 py-2.5 font-medium text-fd-primary-foreground transition-opacity hover:opacity-90"
           >
-            前往 GitHub Releases 下载
+            下载 {setupFileName}
           </a>
           <Link
             href="/docs/start/installation"
@@ -73,6 +71,13 @@ export default function DownloadPage() {
             安装指引
           </Link>
         </div>
+        <p className="mt-4 text-sm text-fd-muted-foreground">
+          Cloudflare R2 全球 CDN，国内直连稳定 · 备用渠道：
+          <a href={releasesUrl} className="text-fd-primary hover:underline">
+            GitHub Releases
+          </a>
+          （国内访问较慢）
+        </p>
       </div>
 
       <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -87,9 +92,6 @@ export default function DownloadPage() {
                 </span>
               )}
             </div>
-            <code className="mb-3 w-fit rounded bg-fd-muted px-1.5 py-0.5 font-mono text-xs text-fd-muted-foreground">
-              {e.file}
-            </code>
             <ul className="flex flex-col gap-1.5 text-sm leading-relaxed text-fd-muted-foreground">
               {e.points.map((p) => (
                 <li key={p}>{p}</li>
@@ -115,6 +117,16 @@ export default function DownloadPage() {
               WindInputCodeTable
             </a>
             。
+          </li>
+          <li>
+            macOS 版开发中，说明见
+            <Link
+              href="/docs/reference/macos"
+              className="text-fd-primary hover:underline"
+            >
+              macOS 版
+            </Link>
+            页。
           </li>
           <li>
             版本变更详情见

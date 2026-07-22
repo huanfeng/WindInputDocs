@@ -79,10 +79,10 @@ export default function HomePage() {
           </Link>
         </div>
         <p className="mt-4 text-sm text-fd-muted-foreground">
-          Windows 10 / 11 · macOS（alpha）
+          Windows 10 / 11 · macOS 版开发中
         </p>
-        {/* 实际候选窗截图 */}
-        <div className="relative mt-14 w-full max-w-2xl">
+        {/* 实际候选窗截图（按原图尺寸展示，避免缩放模糊） */}
+        <div className="relative mt-14 max-w-full">
           <div
             className="absolute -inset-6 rounded-full bg-fd-primary/15 blur-3xl"
             aria-hidden
@@ -93,7 +93,7 @@ export default function HomePage() {
             width={833}
             height={142}
             priority
-            className="relative w-full rounded-xl shadow-2xl"
+            className="relative h-auto max-w-full rounded-xl shadow-2xl"
           />
         </div>
       </section>

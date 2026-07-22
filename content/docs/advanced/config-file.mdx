@@ -84,16 +84,6 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 | 自定义短语 | 通过 **设置 → 词库 → 短语** 添加（写入 `userdata.redb`） |
 | 应用兼容性规则 | 部分可通过设置修改，或编辑 `compat.toml` |
 
-## macOS 路径对照
-
-macOS 没有漫游 / 本机之分，两类数据都在 `~/Library/Application Support/WindInput/` 下，子目录结构与 Windows 完全一致——下文以 Windows 路径为例的说明同样适用，只需替换路径。
-
-| 用途 | Windows | macOS |
-| --- | --- | --- |
-| 用户数据（漫游） | `%APPDATA%\WindInput\` | `~/Library/Application Support/WindInput/` |
-| 缓存 / 日志 / 运行状态 | `%LOCALAPPDATA%\WindInput\` | 同上（`cache\` `logs\` 等子目录） |
-| 设置程序 | 开始菜单 / 安装目录 | `~/Applications/清风输入法设置.app` |
-
 ## 手工编辑 config.toml
 
 全局配置为 **TOML 格式**，用户配置文件首行带版本号 `version = 1`。方案配置（`*.schema.toml`）也是 TOML；RIME 词库文件（`*.dict.yaml`）为 YAML 格式。

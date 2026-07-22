@@ -3,6 +3,11 @@
 
 export const currentVersion = "0.109.0";
 
+// 下载走 Cloudflare R2（国内直连稳定）；GitHub Releases 作为备用渠道。
+export const r2Base = "https://dl.windinput.com";
+export const setupFileName = `WindInput-${currentVersion}-Setup.exe`;
+export const setupDownloadUrl = `${r2Base}/${setupFileName}`;
+
 export interface ReleaseEntry {
   version: string;
   /** 发布日期，YYYY-MM-DD；未知时省略 */
