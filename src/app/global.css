@@ -21,6 +21,16 @@
   white-space: nowrap;
 }
 
+/* 主页与文档页共用同一布局宽度：home 布局内置 1400px，notebook 文档布局
+   默认 97rem（1552px），宽屏下两条顶栏的居中盒不同宽导致起点错位。
+   统一到 97rem，并把文档顶栏内边距对齐主页的 16px。 */
+#nd-home-layout {
+  --fd-layout-width: 97rem;
+}
+#nd-subnav [data-header-body] {
+  padding-inline: 1rem;
+}
+
 /* 文档页顶栏与主页顶栏对齐：标题 → 链接靠左，搜索/主题/GitHub 靠右。
    notebook 布局默认是「标题(flex-1) → 中置搜索 → 右侧链接组」，这里用
    flex order 重排成主页的顺序。依赖 fumadocs-ui 16.11.5 的 DOM 结构
