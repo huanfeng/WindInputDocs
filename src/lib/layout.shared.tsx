@@ -1,7 +1,12 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
-import { appName, mainRepo } from "./shared";
+import { appName, githubUrl, navLinks } from "./shared";
 
+/**
+ * 两个布局共享的基础配置。顶栏本身由 `SiteNavbar` 通过 `slots.header`
+ * 接管（见 app/(home)/layout.tsx 与 app/docs/layout.tsx）；这里的
+ * links / githubUrl 仍要传入，供文档侧栏的移动端抽屉渲染同一批链接。
+ */
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
@@ -18,19 +23,7 @@ export function baseOptions(): BaseLayoutProps {
         </>
       ),
     },
-    links: [
-      { text: "主页", url: "/", active: "url" },
-      { text: "文档", url: "/docs", active: "nested-url" },
-      { text: "下载", url: "/download", active: "url" },
-      { text: "更新记录", url: "/changelog", active: "url" },
-      {
-        text: "主题编辑器",
-        url: "https://theme.windinput.com",
-        external: true,
-      },
-      { text: "主题市场", url: "https://market.windinput.com", external: true },
-    ],
-    // 顶栏 GitHub 图标指向主程序仓库
-    githubUrl: `https://github.com/${mainRepo.user}/${mainRepo.repo}`,
+    links: navLinks,
+    githubUrl,
   };
 }

@@ -16,77 +16,29 @@
   --color-fd-ring: hsl(208, 90%, 58%);
 }
 
-/* notebook 顶栏空间紧张时，中文链接会逐字换行，强制不折行 */
-#nd-subnav a {
-  white-space: nowrap;
-}
-
-/* 主页与文档页共用同一布局宽度：home 布局内置 1400px，notebook 文档布局
-   默认 97rem（1552px），宽屏下两条顶栏的居中盒不同宽导致起点错位。
-   统一到 97rem，并把文档顶栏内边距对齐主页的 16px。 */
-#nd-home-layout {
-  --fd-layout-width: 97rem;
-}
-#nd-subnav [data-header-body] {
-  padding-inline: 1rem;
-  border-bottom: none; /* 底边线改由下面的全宽伪元素绘制 */
-}
-
-/* 文档顶栏的背景/毛玻璃/底边线铺满视口（内容仍在 97rem 盒内居中），
-   与主页顶栏的全宽栏体一致；blur 也统一为主页的 16px。 */
-#nd-subnav {
-  background: transparent;
-  backdrop-filter: none;
-}
-#nd-subnav::before {
-  content: "";
-  position: absolute;
+/* 顶栏（src/components/site-navbar.tsx）在两个布局中的挂载方式不同：
+   主页是普通 sticky 流式元素，文档页是 grid 布局的一格。这里只做定位，
+   栏内的一切样式都来自那个共享组件，两页因此天然一致。 */
+#nd-home-layout > #site-navbar {
   top: 0;
-  bottom: 0;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  z-index: -1;
-  border-bottom: 1px solid var(--color-fd-border);
-  backdrop-filter: blur(16px);
-}
-#nd-subnav[data-transparent="false"]::before {
-  background-color: color-mix(
-    in oklab,
-    var(--color-fd-background) 80%,
-    transparent
-  );
 }
 
-/* 文档页顶栏与主页顶栏对齐：标题 → 链接靠左，搜索/主题/GitHub 靠右。
-   notebook 布局默认是「标题(flex-1) → 中置搜索 → 右侧链接组」，这里用
-   flex order 重排成主页的顺序。依赖 fumadocs-ui 16.11.5 的 DOM 结构
-   （版本已精确锁定），升级该依赖时需复查此段。 */
-#nd-subnav [data-header-body] > div:first-child {
-  order: 1;
-  flex: 0 0 auto; /* 取消标题区 flex-1，让链接紧随其后 */
+#nd-notebook-layout > #site-navbar {
+  grid-area: header;
+  grid-column: 1 / -1; /* 跨满整行，让栏体铺到视口两侧（默认只占中间三列） */
+  top: var(--fd-docs-row-1);
 }
-#nd-subnav [data-header-body] > button {
-  order: 3;
-  margin-inline-start: auto; /* 搜索框推到右侧 */
-  max-width: 240px;
-  border-radius: 9999px;
+
+/* 文档布局按此变量为内容区留出顶栏高度，默认 0，需与顶栏实际高度一致 */
+#nd-notebook-layout {
+  --fd-header-height: --spacing(14);
 }
-#nd-subnav [data-header-body] > div:last-child {
-  display: contents; /* 拆散右侧组，让其子项参与顶栏排布 */
-}
-#nd-subnav [data-header-body] > div:last-child > div:nth-of-type(1) {
-  order: 2; /* 导航链接 */
-  padding-inline: 1rem;
-}
-#nd-subnav [data-header-body] > div:last-child > div:nth-of-type(2) {
-  order: 6; /* 移动端搜索+侧栏按钮 */
-  margin-inline-start: auto;
-}
-#nd-subnav [data-header-body] > div:last-child > div:nth-of-type(3) {
-  order: 4; /* 主题切换 + 侧栏折叠 */
-}
-#nd-subnav [data-header-body] > div:last-child > a {
-  order: 5; /* GitHub 图标 */
+
+/* 两个布局的居中盒统一到同一宽度：home 内置 1400px，notebook 只把 97rem
+   当作 fallback 用、并未定义该变量，顶栏的居中盒因此需要显式给出。 */
+#nd-home-layout,
+#nd-notebook-layout {
+  --fd-layout-width: 97rem;
 }
 
 /* 首页候选窗截图：原图为物理像素抓取（833px 宽）。按当前屏幕像素密度

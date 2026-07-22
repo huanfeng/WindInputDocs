@@ -1,3 +1,5 @@
+import type { LinkItemType } from "fumadocs-ui/layouts/shared";
+
 export const appName = "清风输入法";
 export const docsRoute = "/docs";
 export const docsImageRoute = "/og/docs";
@@ -17,3 +19,14 @@ export const gitConfig = {
 };
 
 export const releasesUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}/releases`;
+export const githubUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}`;
+
+// 顶栏导航项。纯数据，供自定义顶栏与文档侧栏共用。
+export const navLinks: LinkItemType[] = [
+  { text: "主页", url: "/", active: "url" },
+  { text: "文档", url: "/docs", active: "nested-url" },
+  { text: "下载", url: "/download", active: "url" },
+  { text: "更新记录", url: "/changelog", active: "url" },
+  { text: "主题编辑器", url: "https://theme.windinput.com", external: true },
+  { text: "主题市场", url: "https://market.windinput.com", external: true },
+];
