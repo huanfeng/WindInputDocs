@@ -81,7 +81,8 @@ export default function HomePage() {
         <p className="mt-4 text-sm text-fd-muted-foreground">
           Windows 10 / 11 · macOS 版开发中
         </p>
-        {/* 实际候选窗截图（按原图尺寸展示，避免缩放模糊） */}
+        {/* 实际候选窗截图。原图是物理像素抓取（833×142），按屏幕像素密度
+            分档缩小展示，保证 1 图像像素 ≈ 1 物理像素，任何缩放档都不发糊 */}
         <div className="relative mt-14 max-w-full">
           <div
             className="absolute -inset-6 rounded-full bg-fd-primary/15 blur-3xl"
@@ -93,7 +94,7 @@ export default function HomePage() {
             width={833}
             height={142}
             priority
-            className="relative h-auto max-w-full rounded-xl shadow-2xl"
+            className="hero-screenshot relative h-auto rounded-xl shadow-2xl"
           />
         </div>
       </section>

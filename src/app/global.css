@@ -21,6 +21,61 @@
   white-space: nowrap;
 }
 
+/* 文档页顶栏与主页顶栏对齐：标题 → 链接靠左，搜索/主题/GitHub 靠右。
+   notebook 布局默认是「标题(flex-1) → 中置搜索 → 右侧链接组」，这里用
+   flex order 重排成主页的顺序。依赖 fumadocs-ui 16.11.5 的 DOM 结构
+   （版本已精确锁定），升级该依赖时需复查此段。 */
+#nd-subnav [data-header-body] > div:first-child {
+  order: 1;
+  flex: 0 0 auto; /* 取消标题区 flex-1，让链接紧随其后 */
+}
+#nd-subnav [data-header-body] > button {
+  order: 3;
+  margin-inline-start: auto; /* 搜索框推到右侧 */
+  max-width: 240px;
+  border-radius: 9999px;
+}
+#nd-subnav [data-header-body] > div:last-child {
+  display: contents; /* 拆散右侧组，让其子项参与顶栏排布 */
+}
+#nd-subnav [data-header-body] > div:last-child > div:nth-of-type(1) {
+  order: 2; /* 导航链接 */
+  padding-inline: 1rem;
+}
+#nd-subnav [data-header-body] > div:last-child > div:nth-of-type(2) {
+  order: 6; /* 移动端搜索+侧栏按钮 */
+  margin-inline-start: auto;
+}
+#nd-subnav [data-header-body] > div:last-child > div:nth-of-type(3) {
+  order: 4; /* 主题切换 + 侧栏折叠 */
+}
+#nd-subnav [data-header-body] > div:last-child > a {
+  order: 5; /* GitHub 图标 */
+}
+
+/* 首页候选窗截图：原图为物理像素抓取（833px 宽）。按当前屏幕像素密度
+   把 CSS 宽度缩小到对应档位，使 1 图像像素 ≈ 1 设备物理像素——
+   在 100%/125%/150%/200% 显示缩放下都保持点对点清晰。 */
+.hero-screenshot {
+  width: 833px;
+  max-width: 100%;
+}
+@media (min-resolution: 1.25dppx) {
+  .hero-screenshot {
+    width: 666px;
+  }
+}
+@media (min-resolution: 1.5dppx) {
+  .hero-screenshot {
+    width: 555px;
+  }
+}
+@media (min-resolution: 2dppx) {
+  .hero-screenshot {
+    width: 416px;
+  }
+}
+
 html {
   scrollbar-gutter: stable;
 }
