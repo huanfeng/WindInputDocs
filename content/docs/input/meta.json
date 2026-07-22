@@ -1,4 +1,11 @@
 {
   "title": "输入功能",
-  "pages": ["pinyin", "wubi", "mixed", "punctuation", "quick-input", "temp-modes"]
+  "pages": [
+    "pinyin",
+    "wubi",
+    "mixed",
+    "punctuation",
+    "quick-input",
+    "temp-modes"
+  ]
 }

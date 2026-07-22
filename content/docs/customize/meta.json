@@ -1,4 +1,11 @@
 {
   "title": "个性化",
-  "pages": ["settings", "hotkeys", "appearance", "dictionaries", "phrases", "schemas"]
+  "pages": [
+    "settings",
+    "hotkeys",
+    "appearance",
+    "dictionaries",
+    "phrases",
+    "schemas"
+  ]
 }
