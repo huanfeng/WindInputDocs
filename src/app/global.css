@@ -29,6 +29,32 @@
 }
 #nd-subnav [data-header-body] {
   padding-inline: 1rem;
+  border-bottom: none; /* 底边线改由下面的全宽伪元素绘制 */
+}
+
+/* 文档顶栏的背景/毛玻璃/底边线铺满视口（内容仍在 97rem 盒内居中），
+   与主页顶栏的全宽栏体一致；blur 也统一为主页的 16px。 */
+#nd-subnav {
+  background: transparent;
+  backdrop-filter: none;
+}
+#nd-subnav::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  z-index: -1;
+  border-bottom: 1px solid var(--color-fd-border);
+  backdrop-filter: blur(16px);
+}
+#nd-subnav[data-transparent="false"]::before {
+  background-color: color-mix(
+    in oklab,
+    var(--color-fd-background) 80%,
+    transparent
+  );
 }
 
 /* 文档页顶栏与主页顶栏对齐：标题 → 链接靠左，搜索/主题/GitHub 靠右。
