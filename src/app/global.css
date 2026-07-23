@@ -27,6 +27,11 @@
   grid-area: header;
   grid-column: 1 / -1; /* 跨满整行，让栏体铺到视口两侧（默认只占中间三列） */
   top: var(--fd-docs-row-1);
+  /* 两侧留白列是 minmax(min-content, 1fr)：顶栏一旦跨到它们头上，自身的
+     min-content 宽度（logo+站名+按钮，约 200px）就会被摊进这两列，把正文
+     挤窄——移动端尤其明显。inline-size containment 让顶栏的横向尺寸不再
+     反推给列宽，栏体照样铺满，留白列则可以收缩到 0。 */
+  contain: inline-size;
 }
 
 /* 文档布局按此变量为内容区留出顶栏高度，默认 0，需与顶栏实际高度一致 */
