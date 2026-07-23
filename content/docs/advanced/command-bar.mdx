@@ -116,9 +116,9 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `code()` / `code(n)` | 触发编码（第 n 字符起到末尾） |
 | `tail(s, n)` | 字符串 s 从第 n 字符起到末尾 |
 | `last()` / `last(n)` | 最近 / 倒数第 n 次上屏文本 |
-| `clip()` / `clip(n)` | 剪贴板文本 / 历史第 n 条（最多 9 条） |
-| `app()` / `title()` | 前台进程名 / 前台窗口标题 |
-| `sel()` | 前台选中文本（Windows 上暂未实现，返回空串） |
+| `clip()` | 当前剪贴板文本 |
+| `clip(n)` | 剪贴板历史第 n 条——**尚未实现**，参数被忽略，等同 `clip()` |
+| `app()` / `title()` / `sel()` | 前台进程名 / 窗口标题 / 选中文本——**Windows 上均返回空串**（仅 macOS 上报） |
 | `date(fmt)` / `date(fmt, offset)` | 日期，offset 形如 `"+1d"`、`"-2w"`、`"+3M"`、`"-1y"` |
 | `time()` / `time(fmt)` | 时间，默认 `"HH:mm:ss"` |
 | `now()` | 等价 `date("YYYY-MM-DD HH:mm:ss")` |
@@ -149,6 +149,14 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `num(s, base)` | 进制转换（2/8/10/16），如 `num("0xff", 10)` → `"255"` |
 | `help(name)` | 返回指定函数的简介 |
 
+<Callout type="warn" title="以下函数已注册但尚未实现">
+调用它们不会报错，但拿不到预期结果，请勿写进日常短语：
+
+- `t2s(s)` / `s2t(s)` / `pinyin(s)` —— 占位实现，**原样返回输入**
+- `ask(prompt)` / `pick(...)` —— 交互式弹窗，**未实现**
+- `clip(n)` 的历史查询、`proc.shell` 的 flags 参数
+</Callout>
+
 ### 动作函数（有副作用）
 
 部分函数有等价别名（`run` = `proc.run`、`shell` = `proc.shell`、`search` = `web.search`、`dict.addword` = `dict.add`、`ime.setting` = `setting.open`），推荐写规范名。
@@ -167,11 +175,64 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `preedit` / `toolbar` |
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
-| `setting.open(page)` / `setting.web(page)` | 打开设置页 / Web 版设置 |
+| `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
+| `setting.open(page)` / `setting.web(page)` | 打开设置页（`setting.web` 已废弃，会降级为原生设置页） |
 | `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic` |
 | `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
+| `wind.cli(...)` | **调用命令行子命令**，见下文 |
 
-`proc.shell` 的 flags（逗号分隔）控制 shell 类型与窗口：空 = `cmd /c` 静默；`term` = `cmd /k` 可见 console；`pwsh` = PowerShell 静默；`pwsh,term` = PowerShell 可见。
+<Callout type="warn" title="proc.shell 的 flags 暂未区分">
+`term` / `pwsh` 等 flag 参数当前**被忽略**，一律走默认 shell（Windows 为 `cmd /C`）。写了不报错，但不会得到可见 console 或 PowerShell。
+</Callout>
+
+### 撤销上屏：`ime.undo_commit()`
+
+按上屏历史删除最近一次上屏的内容——记录上屏了几个字符，就往前删几个。连续触发可逐条回退。
+
+```
+coun = $CC("撤销上屏", ime.undo_commit())
+```
+
+配合快捷键使用更顺手：把这条短语绑一个好按的编码，或用 `config.set` 给它挂全局热键。
+
+行为细节：
+
+- **正在打字时不动作** —— 输入缓冲非空（组合区有内容）时直接忽略，不会误删
+- **无上屏历史时删除 1 个字符**
+- 每撤销一次就从历史中弹出一条，推送失败会回滚该条记录
+
+<Callout type="warn" title="撤销不校验光标前的内容">
+它只按历史记录的字符数往前删，**不检查光标前实际是什么**。上屏后如果你在输入法之外移动过光标、或改过文本，撤销会删错位置的内容。
+
+另外计数按 UTF-16 单位，在使用退格兜底的宿主里遇到 emoji 可能多删。
+</Callout>
+
+### 调用命令行：`wind.cli(...)`
+
+把[命令行工具](/docs/advanced/cli)的任意子命令挂到短语上，用主程序自身执行。两种传参形式：
+
+```
+# 单参形式：按空白拆分
+cocr = $CC("重建词库缓存", wind.cli("schema rebuild"))
+codf = $CC("停用辅码库", wind.cli("schema dict disable wubi86 fl"))
+
+# 多参形式：逐个原样传递，用于含空格的路径
+cobk = $CC("备份", wind.cli("backup", "create", "D:\我的 备份\wind.zip"))
+```
+
+含空格的参数（尤其是文件路径）**必须用多参形式**，否则会被空白拆散成多个参数。
+
+<Callout type="warn" title="发射后不管，错误对你不可见">
+`wind.cli` 启动子进程后不回收输出与退出码。命令失败时**没有任何提示**——短语看起来正常执行了，实际可能什么都没做。
+
+调试新命令时，请先在终端里手动跑一遍确认无误，再写进短语。
+</Callout>
+
+从短语调用时输入法服务必然在线，所以 `schema` / `dict` / `phrase` / `backup` 这些需要在线的子命令都能正常连上。
+
+<Callout type="info" title="改配置优先用 config.set，不要绕 wind.cli">
+`config.set(key, value)` 与 `wind.cli("config set ...")` 效果相同，但前者在进程内直接生效并能拿到错误，后者是发射后不管。改配置一律用 `config.set` / `config.toggle`。
+</Callout>
 
 ### 按键 combo 格式
 

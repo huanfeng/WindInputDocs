@@ -1,0 +1,222 @@
+---
+title: 命令行工具
+description: 用 wind_input 命令行管理配置、方案、词库、短语与备份，可脚本化批量操作
+---
+
+清风输入法的主程序本身就是命令行工具：不带参数启动时是输入法服务，带子命令时执行一次操作后退出。适合脚本化配置、批量部署与故障排查。
+
+## 可执行文件
+
+| 文件 | 说明 |
+| --- | --- |
+| `wind_input.exe` | **主程序本体**，同时是 CLI 入口 |
+| `wind_cli.bat` | 薄包装器，与主程序一同安装 |
+
+两者都位于安装目录（正式版 `C:\Program Files\WindInput\`）。`wind_cli.bat` 做两件事：自动选择 release / dev 变体的 exe；首个参数不是已知子命令时自动补 `config` 前缀，因此 `wind_cli get ui.theme.name` 等价于 `wind_input config get ui.theme.name`。两者可互换使用，下文示例统一用 `wind_input`。
+
+<Callout type="warn" title="命令行不会等它跑完">
+主程序是 GUI 子系统程序，shell **不会等待它结束**——提示符会立即返回，输出随后才交错打印出来。
+
+要拿到完整输出或在脚本中串联命令，必须重定向或显式等待：
+
+```bat
+wind_input schema list > out.txt 2>&1
+start /wait wind_input schema rebuild
+```
+</Callout>
+
+## 在线与离线
+
+部分子命令需要输入法服务正在运行（走进程间通信），部分可直接操作文件：
+
+| 子命令 | 是否需要服务在线 |
+| --- | --- |
+| `config list` / `describe` / `get` / `export` | **不需要**，纯本地 |
+| `config set` / `import` | 优先在线（热重载）；**服务未运行时降级为直写配置文件**，下次启动生效 |
+| `schema` / `dict` / `phrase` / `backup` | **需要** |
+| `restart` | 均可 |
+| `help` / `--version` | 不需要 |
+
+需要在线的命令在服务未运行时会明确报错并退出。这是有意的：这些操作会写入单写者数据库或方案覆盖层，离线直写会与运行中的实例冲突。
+
+## 顶层命令
+
+```bat
+wind_input help                :: 顶层帮助（输出到 stdout）
+wind_input --version           :: 版本、构建时间与 git hash
+wind_input <子命令> help        :: 各子命令详细用法
+```
+
+<Callout type="info" title="没有 version 子命令，只有 --version / -V">
+同理也没有全局 `--json` 选项，JSON 只在特定命令的输出中出现（见下）。
+</Callout>
+
+## config
+
+唯一支持完全离线的子命令组。所有写入都经配置注册表校验，未知键、类型错误、枚举越界一律拒绝。
+
+| 命令 | 作用 |
+| --- | --- |
+| `config list [前缀]` | 列出配置键与类型，可按前缀过滤 |
+| `config describe <键>` | 显示键的类型、可选值与当前值（别名 `desc`） |
+| `config get <键>` | 读取当前值 |
+| `config set <键> <值>` | 设置单个键 |
+| `config export` | 导出完整配置为 TOML 到 stdout |
+| `config import <文件.toml>` | 批量导入 |
+
+```bat
+wind_input config list ui.candidate
+wind_input config describe ui.candidate.layout
+wind_input config get ui.theme.name
+wind_input config set ui.candidate.per_page 9
+wind_input config export > my-config.toml
+wind_input config import my-config.toml
+```
+
+在线成功时提示「已应用 N 项（已热重载）」；离线时提示「已写入 N 项（core 未运行，下次启动生效）」。
+
+<Callout type="warn" title="import 是全有或全无">
+导入前会校验全部条目，**任一项不合法即整体中止**，不会部分写入。
+</Callout>
+
+## schema
+
+管理输入方案配置与分类词库开关。**需要服务在线。**
+
+| 命令 | 作用 |
+| --- | --- |
+| `schema list` | 列出已安装方案，`*` 标记当前激活 |
+| `schema get <方案id>` | 输出该方案完整配置（格式化 JSON） |
+| `schema get <方案id> <键>` | 读取单个键（点路径） |
+| `schema set <方案id> <键> <值>` | 写入定制层覆盖，**方案文件本体不动** |
+| `schema reset <方案id>` | 清除该方案的**全部**定制 |
+| `schema rebuild` | 强制重建全部词库缓存 |
+| `schema dict list <方案id>` | 列出词库及启用状态 |
+| `schema dict enable <方案id> <词库id>` | 启用附加词库 |
+| `schema dict disable <方案id> <词库id>` | 停用附加词库 |
+
+```bat
+wind_input schema list
+wind_input schema get wubi86
+wind_input schema get wubi86 engine.codetable.max_code_length
+wind_input schema set wubi86 engine.codetable.max_code_length 4
+wind_input schema dict list wubi86
+wind_input schema dict disable wubi86 wubi86_district
+wind_input schema rebuild
+```
+
+几条重要约束：
+
+- **`schema set` 拒绝 `dictionaries` 路径** —— 词库开关请用 `schema dict enable|disable`。词库是数组，点路径到不了，且覆盖层必须保持稀疏形态，否则会把整份词库定义冻结成快照
+- **`schema reset` 不支持单键重置** —— 只能整体清除，传第二个参数会报用法错误
+- **`schema rebuild` 不接受参数** —— 只支持全量重建
+- **值的类型按现有值推断** —— 布尔接受 `true/1/yes/on` 与 `false/0/no/off`；数组与对象需写 JSON；现值为空的键会被拒绝
+- **不会凭空创建键** —— 拼错的键名会报错而非静默写入覆盖层
+
+`schema rebuild` 输出「已清除 N 个缓存文件」，若附带「M 个仍被占用」，再执行一次即可清掉，不影响正确性。
+
+## dict
+
+导入导出方案的用户数据。**需要服务在线。**
+
+| 命令 | 选项 |
+| --- | --- |
+| `dict export <方案id> <文件>` | `--sections a,b,...` |
+| `dict import <方案id> <文件>` | `--replace`（缺省为合并）、`--sections a,b,...` |
+
+可选的数据段：`userWords`（用户词库）、`tempWords`（临时词库）、`freq`（词频）、`shadow`（候选调整）。省略 `--sections` 时按引擎默认段处理。
+
+```bat
+wind_input dict export wubi86 backup.wdict
+wind_input dict export wubi86 words.wdict --sections userWords,freq
+wind_input dict import wubi86 words.wdict --replace --sections userWords
+```
+
+导入时自动识别 WindDict / Rime / TSV 格式，并逐段报告新增、更新、不变、跳过的条数。注意 `export` **不支持 `--replace`**。
+
+## phrase
+
+管理快捷短语。**需要服务在线。**
+
+| 命令 | 作用 |
+| --- | --- |
+| `phrase export <文件>` | 导出用户短语 |
+| `phrase import <文件>` | 导入用户短语（**合并**语义，同码同文以文件为准） |
+| `phrase reset-system` | 恢复系统预置短语，**不动你自建的短语** |
+
+```bat
+wind_input phrase export my-phrases.wdict
+wind_input phrase import my-phrases.wdict
+wind_input phrase reset-system
+```
+
+`phrase import` 没有替换模式，只有合并。要清空用户短语请用设置工具。
+
+## backup
+
+完整备份与还原。**需要服务在线。**
+
+| 命令 | 选项 |
+| --- | --- |
+| `backup create <文件.zip>` | `--stats`（含统计）、`--state`（含界面状态） |
+| `backup inspect <文件.zip>` | —— |
+| `backup restore <文件.zip>` | `--replace`（缺省为合并）、`--sections a,b,...` |
+
+可还原的域：`config`、`dict`、`temp`、`freq`、`shadow`、`phrase`、`schemas`、`themes`、`state`、`stats`。
+
+```bat
+wind_input backup create D:\bak\wind.zip --stats --state
+wind_input backup inspect D:\bak\wind.zip
+wind_input backup restore D:\bak\wind.zip --replace --sections config,phrase
+```
+
+`inspect` 会打印备份类型、创建时间、平台、版本与条目清单。`restore` 报告已还原项数，有冲突时提示「M 项已存在跳过；用 `--replace` 覆盖」。
+
+还原后部分改动即时刷新，若界面显示异常重启输入法即可。
+
+## restart
+
+重启输入法服务，**不接受任何参数**。
+
+```bat
+wind_input restart
+```
+
+服务在线时通过服务通道请求重启（与托盘菜单的「重启服务」同一条路径）；服务未运行时直接启动它，提示「服务未运行，已直接启动」。
+
+## 输出与退出码
+
+**输出流**：成功结果走 stdout；错误走 stderr。注意各子命令的用法帮助输出到 **stderr**，只有顶层 `wind_input help` 走 stdout——管道处理时需留意。
+
+成功提示统一以 `✓` 开头，警告以 `⚠` 开头。
+
+**JSON 输出**出现在这几处：`schema get <方案id>`（不带键时输出格式化 JSON）、`schema get` 命中数组或对象时、`config get` / `config describe` 的非字符串值（紧凑 JSON）。字符串值一律去掉引号裸输出。`config export` 输出的是 **TOML**。
+
+**退出码**：
+
+| 码 | 含义 |
+| --- | --- |
+| `0` | 成功（含打印帮助） |
+| `1` | 执行失败：服务未运行、远端报错、文件读写失败、键不存在、校验不通过 |
+| `2` | 用法错误：参数缺失、未知子命令、不支持的参数形式 |
+| `127` | `wind_cli.bat` 找不到目标 exe |
+
+特例：`config set` / `import` 在线执行且**全部条目都被跳过**时返回 `1`。
+
+## 在短语中调用
+
+命令直通车的 `wind.cli(...)` 可以把上述任意子命令挂到短语上：
+
+```
+cocr = $CC("重建词库缓存", wind.cli("schema rebuild"))
+cobk = $CC("备份", wind.cli("backup", "create", "D:\我的 备份\wind.zip"))
+```
+
+含空格的参数须用多参形式。注意它是发射后不管的，**命令失败不会有任何提示**。详见[命令直通车](/docs/advanced/command-bar#调用命令行windcli)。
+
+## 相关阅读
+
+- [命令直通车](/docs/advanced/command-bar) —— 在短语中执行动作与调用 CLI
+- [配置文件与数据目录](/docs/advanced/config-file) —— `config` 子命令的键路径
+- [备份与还原](/docs/advanced/backup) —— 图形界面的备份操作
+- [输入方案管理](/docs/customize/schemas) —— 方案文件结构与排序配置

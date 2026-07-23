@@ -91,8 +91,7 @@ layout = "xiaohe"               # xiaohe / ziranma / mspy / sogou / abc / ziguan
 # 码表引擎（五笔等）
 [engine.codetable]
 max_code_length = 4             # 最大码长（0 = 回退 4）
-base_sort = "weight"            # 基础排序：weight（默认）/ natural（字根序）
-input_chars = ""                # 输入码字符集，如 "a-x"（空 = 默认）
+base_sort = "weight"            # 基础排序维度，见下文「排序配置」
 
 # 混合引擎（五笔优先、拼音兜底）
 [engine.mixed]
@@ -119,7 +118,14 @@ label = "Emoji 表情"
 path = "wubi86/wubi86_jidian_emoji.dict.yaml"
 type = "rime_codetable"
 default_enabled = true          # 方案默认启用
-weight_as_order = true
+
+[[dictionaries]]
+id = "wubi86_district"
+label = "行政区域"
+path = "wubi86/wubi86_jidian_district.dict.yaml"
+type = "rime_codetable"
+base_order = 1                  # 排在主库（0）之后
+default_weight = 500            # 该库无权重列，整库定档 500
 ```
 
 常用字段：
@@ -134,13 +140,150 @@ weight_as_order = true
 | `default` | 是否为主词库；每方案有且仅一个 |
 | `default_enabled` | 附加词库的方案默认启用状态；省略视为未启用 |
 | `enabled` | 用户覆盖启用状态，由设置工具写入；未设时继承 `default_enabled` |
-| `weight_as_order` | 权重仅表示同码内排序序号，不参与跨码比较 |
+| `base_order` | 该库的层级基序档位，见下文[排序配置](#排序配置四件套) |
+| `default_weight` | 整库权重硬覆盖，见下文[排序配置](#排序配置四件套) |
 
-启用判定优先级：**`enabled` > `default_enabled` > 主词库始终启用**。若码表词库的权重不是真实词频而是同编码内的重码序号（如极点五笔的 10/20/30/40），加 `weight_as_order = true` 避免重码加权导致排序异常。
+启用判定优先级：**`enabled` > `default_enabled` > 主词库始终启用**。
+
+<Callout type="warn" title="weight_spec 尚未接线">
+方案文件里可能出现 `[dictionaries.weight_spec]`（`median` / `max` / `mode` 等）。它**当前不被读取**，仅作为词库权重分布的事实记录供方案作者查阅。跨库权重归一化尚未实现，现阶段用 `default_weight` + `base_order` 手工校准。
+</Callout>
+
+## 词库文件（.dict.yaml）
+
+词库文件沿用 Rime 的 `.dict.yaml` 外形，但**解析器是本输入法自己的**，与 librime 并不等价。理解下面这几条能避免绝大多数「词库加载了却不生效」的问题。
+
+### YAML 头只有两个键被读取
+
+<Callout type="warn" title="除 columns / import_tables 外，头部所有键一律被忽略——包括 name">
+解析器逐行扫描头部，**只认 `columns:`**（全部词库类型）与 **`import_tables:`**（仅 `type = "rime_pinyin"` 的词库）。其余键既不报错也不告警，直接跳过。
+
+这意味着 `name:` 写什么都**不影响任何行为**——词库的显示名来自方案文件的 `[[dictionaries]].label`，不是 YAML 头里的 `name`。同理 `version`、`use_preset_vocabulary`、`vocabulary` 等 Rime 键在这里全是装饰。
+</Callout>
+
+`sort:` 是个特例：它**会被读取，但只用来打一条日志告警**，不影响排序。词库生成工具甚至会主动清洗掉这个键。要控制排序请用下文的[排序配置四件套](#排序配置四件套)。
+
+```yaml
+---
+name: my_dict          # 被忽略（显示名取方案文件的 label）
+version: "1.0"         # 被忽略
+sort: by_weight        # 读取，但只触发一条 WARN 日志，不生效
+columns:               # ← 真正生效的键
+  - text
+  - code
+  - weight
+...
+你好	nihao	1000
+```
+
+### 分隔行：`...` 必需，`---` 可选
+
+正文的起点是**首个恰好等于 `...` 的行**。`---` 只是头部里的一行普通内容，写不写都行。
+
+<Callout type="error" title="缺少 `...` 会让整个词库静默变成零条目">
+找不到 `...` 时解析器按零条目处理，只在日志里留一条 WARN。词库看起来"加载成功"但一个候选都没有——这是最常见的自制词库失效原因。
+</Callout>
+
+### columns 支持的列名
+
+`columns` 只认三个名字，两种 YAML 写法（块序列 `- text` 与流式 `[text, code, weight]`）都支持：
+
+| 列名 | 必需性 | 缺失后果 |
+| --- | --- | --- |
+| `text` | **必需** | 整个词库被跳过并记 ERROR |
+| `code` | **必需** | 整个词库被跳过并记 ERROR |
+| `weight` | 可选 | 全库权重按 0 处理 |
+
+其他列名（如 Rime 的 `stem`）**语法合法但不取用，只作占位**——占位会顺延其后各列的下标，所以必须写全，不能省略中间列。
+
+### 不写 columns 会走启发式猜测
+
+省略 `columns:` 时，解析器会采样正文（最多 200 行 / 攒够 32 票）**投票判断列序**：逐列检查是否"像编码"（全部字符属于 `a-z`、`0-9` 及少数符号），恰有一列像码才计一票。
+
+- 平票或零票 → 回退 `text` `code` `weight`
+- 无论投票结果如何，**权重恒取第 3 列**
+- 每次走启发式都会记 WARN，日志里带票数与建议写法
+
+<Callout type="warn" title="始终显式写 columns">
+纯 ASCII 词条（符号库里的 `@`、命令直通车的 `$CC(...)`）会让投票判错，把词条当成编码列。列序是**文件级属性**、判定一次全文固定，一旦判反整个词库的编码与词条就是对调的。显式声明 `columns` 可以完全绕开这套启发式。
+</Callout>
+
+### 其他正文规则
+
+- **`# no comment` 指令** —— 整行恰好等于它时，其后所有 `#` 开头的行按数据而非注释解析
+- **只剥行尾空白，保留行首** —— 因为全角空格 U+3000 属于 Unicode 空白，用常规 trim 会把「全角空格」这个词条本身削掉
+- **空 text 或空 code 的行被跳过**
+- **权重解析失败记为 0** —— Rime 的 `50%` 相对权重语法未实现，会落到这里
+
+## 排序配置四件套
+
+`base_sort`、`base_order`、`default_weight`、`sort` 名字相近但**分属三个不同的文件层**，作用点完全不同。这是方案定制里最容易混淆的一组：
+
+| 名字 | 写在哪 | 作用 |
+| --- | --- | --- |
+| `base_sort` | 方案文件 `[engine.codetable]` | 选定全局排序**维度** |
+| `base_order` | 方案文件 `[[dictionaries]]` | 词库**层间**档位 |
+| `default_weight` | 方案文件 `[[dictionaries]]` | 整库权重**硬覆盖** |
+| `sort` | 词库 `.dict.yaml` 头部 | **死键**，只触发告警 |
+
+### base_sort —— 选定排序维度
+
+只对**码表引擎**生效，写在拼音方案里无效。
+
+| 取值 | 比较链 |
+| --- | --- |
+| `weight`（默认，留空同） | 权重降序 → `base_order` 升序 → 库内出现序 → … |
+| `natural` | `base_order` 升序 → 库内出现序 → …（**权重完全不参与**） |
+
+`natural` 即"字根序 / 文件原序"，适合按编码规则天然有序的码表。
+
+<Callout type="warn" title="不接受 Rime 的 by_weight / original 拼法">
+这两个 librime 写法被明确列为**非法值**而非别名。填入任何未知取值都会回退到 `weight` 并记一条告警——刻意不做兼容，是为了避免两套排序词汇被误当等价。
+</Callout>
+
+### base_order —— 词库之间的硬分档
+
+小整数档位，排序时作为**独立层级**参与，位置在**权重之后、库内出现序之前**。
+
+它存在的理由是：库内出现序是**每个词库各自从 0 起**的局部序号。没有 `base_order` 时跨库直接比较，会让小词库靠前的词条反超主词库深处的词条。给扩展库配 `base_order = 1` 就能让它整体排在主库（0）之后。
+
+<Callout type="info" title="系统词库建议取 >= 0">
+用户词、临时词等非系统层有默认的负档位（逻辑层 -4、用户层 -3 等）。系统词库若配负值会与这些层交错，产生难以预料的顺序。
+</Callout>
+
+### default_weight —— 整库权重硬覆盖
+
+设置后**无条件替换该词库每一条词条的权重**，词库自身的权重信息完全丢弃。
+
+用途是**没有权重列的附加库**：不设时全库 weight = 0，在权重模式下会整体沉底。给行政区域库配 `default_weight = 500` 就能让它落在设计者选定的档位。
+
+<Callout type="warn" title="有真实权重的库绝不要配">
+Emoji 库靠 200/199/198… 递减权重表达展示顺序，抹平就毁了它的排列；扩展词库带真实词频，抹平会丢掉词频信息。
+
+另外注意两个相互作用：整库同权会让库内自动退化为文件原序（等价 Rime 的 `sort: original`）；而 `base_sort = "natural"` 时权重根本不参与比较，此时配 `default_weight` 完全没有意义。
+</Callout>
+
+### 优先级串联
+
+```
+base_sort 选定比较器
+  ├─ weight  → 权重降序 → base_order 升序 → 库内出现序 → …
+  └─ natural → base_order 升序 → 库内出现序 → …（权重不参与）
+
+其中权重的值 = default_weight（若配置）或词库原始权重
+                └─ 覆盖发生在更早的取数层，不是排序层
+```
 
 ## 差异化覆盖（schema_overrides）
 
 全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。方案设置对话框中的附加词库开关则写入用户数据目录下的 `schemas\<方案ID>.schema.toml`，两者都不会被安装包升级覆盖。
+
+覆盖采用深合并，但有两条例外：
+
+- **数组整体替换** —— 如 `encoder.rules` 写了就是整份替换，不会逐条合并
+- **`[[dictionaries]]` 按 id 稀疏合并，且只接受 `enabled` 一个字段** —— `path`、`label`、`base_order`、`default_weight` 等永远以方案文件为准，覆盖层改不了
+
+第二条是刻意的：它保证用户层的词库开关不会把整份词库定义冻结成快照，否则方案升级后新增或改路径的词库都会失效。
 
 ## 从零创建自定义方案
 
