@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+// 从 src/ 静态导入而非放 public/：产物会带内容 hash（/_next/static/media/…），
+// 换图即换 URL，不会被 CDN 的长缓存挡住旧版本。尺寸也由导入对象自带。
+import screenshotCandidates from "@/assets/screenshot-candidates.png";
 
 const features = [
   {
@@ -81,18 +84,16 @@ export default function HomePage() {
         <p className="mt-4 text-sm text-fd-muted-foreground">
           Windows 10 / 11 · macOS 版开发中
         </p>
-        {/* 实际候选窗截图。原图是物理像素抓取（833×142），按屏幕像素密度
-            分档缩小展示，保证 1 图像像素 ≈ 1 物理像素，任何缩放档都不发糊 */}
+        {/* 实际候选窗截图。原图 1140×188，显示宽度按屏幕密度分档（见 global.css
+            的 .hero-screenshot），各档都是超采样，任何缩放下都不发糊 */}
         <div className="relative mt-14 max-w-full">
           <div
             className="absolute -inset-6 rounded-full bg-fd-primary/15 blur-3xl"
             aria-hidden
           />
           <Image
-            src="/screenshot-candidates.png"
+            src={screenshotCandidates}
             alt="清风输入法候选窗截图：输入 qing'feng，首选候选「清风」"
-            width={833}
-            height={142}
             priority
             className="hero-screenshot relative h-auto rounded-xl shadow-2xl"
           />

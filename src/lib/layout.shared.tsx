@@ -1,5 +1,6 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
+import logo from "@/assets/logo.png";
 import { appName, githubUrl, navLinks } from "./shared";
 
 /**
@@ -13,7 +14,7 @@ export function baseOptions(): BaseLayoutProps {
       title: (
         <>
           <Image
-            src="/logo.png"
+            src={logo}
             alt=""
             width={22}
             height={22}

@@ -24,6 +24,7 @@ import { Menu, PanelLeft } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { type ComponentProps, useState } from "react";
+import logo from "@/assets/logo.png";
 import { cn } from "@/lib/cn";
 import { appName, githubUrl, navLinks } from "@/lib/shared";
 
@@ -100,7 +101,7 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
               className="inline-flex shrink-0 items-center gap-2.5 font-semibold whitespace-nowrap"
             >
               <Image
-                src="/logo.png"
+                src={logo}
                 alt=""
                 width={22}
                 height={22}

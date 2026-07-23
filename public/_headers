@@ -5,8 +5,15 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
-# 站点图标与图片
-/*.png
+# 不用 /*.png：通配符会贪婪跨路径段，把上面的 /_next/static/* 也匹配到，而同名
+# 响应头在 _headers 里是「拼接」而非「覆盖」，会得出自相矛盾的 Cache-Control。
+# 页面里引用的图片都已改为从 src/ 静态导入，产物带内容 hash 走上面那条规则；
+# 这里剩下的是 Next 按约定生成、URL 不带 hash 的两类文件。
+/icon.png
+  Cache-Control: public, max-age=604800
+
+# 各文档页的 OG 卡片（app/og/docs/[...slug]/route.tsx 构建期生成）
+/og/*
   Cache-Control: public, max-age=604800
 
 # 搜索索引由构建期生成（api/search/route.ts），随每次部署更新
