@@ -22,7 +22,8 @@ pnpm lint         # biome 检查
 | --- | --- |
 | `content/docs/` | 全部文档页（MDX），`meta.json` 控制侧栏分组与顺序 |
 | `src/lib/shared.ts` | 站名、仓库地址等站点常量 |
-| `src/lib/releases.ts` | 版本号与更新记录数据（下载页/更新记录页数据源，暂手工维护） |
+| `data/releases.json` | 版本号与更新记录数据（**自动同步，勿手工修改**） |
+| `src/lib/releases.ts` | 上述数据的类型定义与派生量（`currentVersion`、下载直链） |
 | `src/lib/translations.ts` | fumadocs-ui 界面文案汉化表 |
 | `src/components/search.tsx` | 静态搜索客户端（Orama + mandarin tokenizer） |
 | `src/app/api/search/route.ts` | 构建期导出搜索索引（与客户端同款中文分词，两处必须一致） |
@@ -35,11 +36,32 @@ pnpm lint         # biome 检查
 - `advanced/` 进阶（命令直通车 / 配置文件 / 备份还原）
 - `reference/` 参考（快捷键总表 / FAQ）
 
-## 待接入
+## 部署与自动化
 
-- [ ] 部署链路（Cloudflare Pages，静态产物在 `out/`）
-- [ ] 版本号自动同步（`src/lib/releases.ts` 暂手工维护，待对齐主仓 `docs/VERSION` 发布链路）
-- [ ] 更新记录由发布流程自动追加（页面已建在 `/changelog`，数据源同上）
+站点由 **Cloudflare Pages**（项目 `windinput-docs`）直接从 `main` 分支构建部署到
+https://windinput.com 。GitHub Actions 只做校验，不负责发布。
+
+| 触发 | 动作 |
+| --- | --- |
+| Push / PR 到 `main` | `.github/workflows/docs.yml`：lint + 类型检查 + 构建校验；Cloudflare Pages 独立构建并部署（PR 有 preview） |
+| 主仓发布 Release（`repository_dispatch: changelog-updated`） | `.github/workflows/sync-changelog.yml`：提取 Release body 的 user-facing 段落 → 写入 `data/releases.json` → 开 PR 并自动合并 |
+| 每天 04:00 CST | 同上工作流的定时兜底，防跨仓 dispatch 事件丢失 |
+
+`data/releases.json` 是版本相关信息的**唯一数据源**：更新记录页逐条渲染它，
+下载页的直链版本号取它的首项。同步脚本是 `scripts/sync_release_notes.py`。
+
+### Cloudflare Pages 构建设置
+
+| 项 | 值 |
+| --- | --- |
+| Build command | `pnpm build` |
+| Build output directory | `out` |
+| Root directory | `/` |
+| Node 版本 | 由 `.node-version` 指定（22） |
+| pnpm 版本 | 由 `package.json` 的 `packageManager` 指定 |
+
+> `pnpm-workspace.yaml` 的 `allowBuilds` 字段需要 pnpm 10+ 才生效，
+> Pages 项目的 build image 需为 v3。
 
 > 下载直链走 Cloudflare R2（`https://dl.windinput.com/WindInput-<版本>-Setup.exe`，
 > 与旧站一致）；GitHub Releases 仅作备用渠道（国内访问较慢）。
