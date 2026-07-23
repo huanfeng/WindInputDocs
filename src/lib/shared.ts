@@ -1,6 +1,8 @@
 import type { LinkItemType } from "fumadocs-ui/layouts/shared";
 
 export const appName = "清风输入法";
+// 站点正式地址（Cloudflare Pages 项目 windinput-docs 绑定的域名），sitemap/robots 用
+export const siteUrl = "https://windinput.com";
 export const docsRoute = "/docs";
 export const docsImageRoute = "/og/docs";
 export const docsContentRoute = "/llms.mdx/docs";
@@ -14,7 +16,7 @@ export const mainRepo = {
 // 文档站自身仓库（「在 GitHub 上编辑」链接）
 export const gitConfig = {
   user: "huanfeng",
-  repo: "WindInputDocsNew",
+  repo: "WindInputDocs",
   branch: "main",
 };
 

@@ -1,7 +1,19 @@
 {
-  "name": "windinputdocsnew",
+  "name": "wind-input-docs",
   "version": "0.0.6",
   "private": true,
+  "description": "清风输入法文档站",
+  "license": "MIT",
+  "author": "huanfeng",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/huanfeng/WindInputDocs"
+  },
+  "homepage": "https://windinput.com",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=20.9"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",

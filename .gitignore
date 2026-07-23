@@ -20,6 +20,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# agent tooling state
+.omc/
+.omx/
+.remember/
+.playwright-mcp/
+
 # others
 .env*.local
 .vercel

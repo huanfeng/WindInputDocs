@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // 项目名必须与既有 Cloudflare Pages 项目一致，否则会新建项目、丢失 windinput.com 域名绑定
+  "name": "windinput-docs",
+  // Next 静态导出产物目录（next.config.mjs 的 output: "export"）
+  "pages_build_output_dir": "./out",
+  "compatibility_date": "2026-07-01"
+}
