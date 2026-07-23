@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Provider } from "@/components/provider";
-import { appName } from "@/lib/shared";
+import { appName, siteUrl } from "@/lib/shared";
 import "./global.css";
 
 export const metadata: Metadata = {
+  // 静态导出没有请求上下文，不设 metadataBase 会把 OG 图地址写成 http://localhost:3000
+  metadataBase: new URL(siteUrl),
   title: {
     default: appName,
     template: `%s | ${appName}`,
