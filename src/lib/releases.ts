@@ -21,6 +21,10 @@ export const releases: ReleaseEntry[] = releasesData;
 export const currentVersion = releases[0].version;
 
 // 下载走 Cloudflare R2（国内直连稳定）；GitHub Releases 作为备用渠道。
+//
+// 文件名口径以主仓打包脚本为准（pack-installer.sh / dev.ps1 均产出
+// WindInput-Setup-<版本>.exe），主仓 release-published.yml 按同名推送到 R2。
+// 早期这里写成了 WindInput-<版本>-Setup.exe（沿用 Go 版命名），直链恒 404。
 export const r2Base = "https://dl.windinput.com";
-export const setupFileName = `WindInput-${currentVersion}-Setup.exe`;
+export const setupFileName = `WindInput-Setup-${currentVersion}.exe`;
 export const setupDownloadUrl = `${r2Base}/${setupFileName}`;
