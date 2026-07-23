@@ -5,29 +5,25 @@ description: 中英文切换键、候选选择与翻页键组、以词定字、�
 
 在设置工具的「按键」页自定义快捷键与候选选择键。所有修改即时生效。
 
+<Callout type="info" title="配置项参考">
+本页讲各快捷键怎么用、可选哪些键。对应的配置键、可选值集合与默认值集中在[按键配置](/docs/advanced/config/keys)。
+</Callout>
+
 ## 中英文切换
 
-| 选项 | 配置项 | 说明 |
-| --- | --- | --- |
-| 切换按键 | `keys.toggle_mode_keys` | 用于切换中英文的修饰键（可多选，按下任意一个即切换） |
-| 切换时编码上屏 | `keys.commit_on_switch` | 中文切换为英文时，将已输入的编码直接上屏 |
-
-切换按键可选：
-
-| 选项 | 配置值 |
+| 选项 | 说明 |
 | --- | --- |
-| 左 Shift | `lshift` |
-| 右 Shift | `rshift` |
-| 左 Ctrl | `lctrl` |
-| 右 Ctrl | `rctrl` |
-| Caps Lock | `capslock` |
+| 切换按键 | 用于切换中英文的修饰键（可多选，按下任意一个即切换） |
+| 切换时编码上屏 | 中文切换为英文时，将已输入的编码直接上屏 |
+
+切换按键可选：左 Shift、右 Shift、左 Ctrl、右 Ctrl、Caps Lock。
 
 ## 候选词管理
 
-| 功能 | 配置项 | 可选值 |
-| --- | --- | --- |
-| 置顶词条 | `keys.pin_candidate` | Ctrl + 数字 / Ctrl + Shift + 数字 / 不使用 |
-| 删除词条 | `keys.delete_candidate` | Ctrl + 数字 / Ctrl + Shift + 数字 / 不使用 |
+| 功能 | 可选快捷键 |
+| --- | --- |
+| 置顶词条 | Ctrl + 数字 / Ctrl + Shift + 数字 / 不使用 |
+| 删除词条 | Ctrl + 数字 / Ctrl + Shift + 数字 / 不使用 |
 
 置顶将候选词固定到首位；删除隐藏候选词（单字不可删除）。
 
@@ -41,77 +37,70 @@ description: 中英文切换键、候选选择与翻页键组、以词定字、�
 
 ### 次选/三选快捷键
 
-选中第 2、3 位候选词，配置项 `keys.select_key_groups`：
+选中第 2、3 位候选词：
 
-| 选项 | 配置值 | 按键 |
-| --- | --- | --- |
-| 分号/引号 | `semicolon_quote` | `;` 选第 2 候选，`'` 选第 3 候选 |
-| 逗号/句号 | `comma_period` | `,` / `.` |
-| 左/右 Shift | `lrshift` | 左 Shift / 右 Shift |
-| 左/右 Ctrl | `lrctrl` | 左 Ctrl / 右 Ctrl |
+| 选项 | 按键 |
+| --- | --- |
+| 分号/引号 | `;` 选第 2 候选，`'` 选第 3 候选 |
+| 逗号/句号 | `,` / `.` |
+| 左/右 Shift | 左 Shift / 右 Shift |
+| 左/右 Ctrl | 左 Ctrl / 右 Ctrl |
 
 ### 高亮移动按键
 
-在候选列表中移动选中项，配置项 `keys.highlight_keys`：
+在候选列表中移动选中项：
 
-| 选项 | 配置值 | 按键 |
-| --- | --- | --- |
-| 方向键 | `arrows` | ↑ / ↓ |
-| Tab | `tab` | Tab / Shift+Tab |
+| 选项 | 按键 |
+| --- | --- |
+| 方向键 | ↑ / ↓ |
+| Tab | Tab / Shift+Tab |
 
 ### 翻页快捷键
 
-候选翻页，配置项 `keys.page_keys`：
+候选翻页：
 
-| 选项 | 配置值 | 按键 |
-| --- | --- | --- |
-| Page Up/Down | `pageupdown` | Page Up / Page Down |
-| 减号/等号 | `minus_equal` | `-` 上一页 / `=` 下一页 |
-| 方括号 | `brackets` | `[` 上一页 / `]` 下一页 |
-| Shift+Tab/Tab | `shift_tab` | Shift+Tab 上一页 / Tab 下一页 |
-| 逗号/句号 | `comma_period` | `,` 上一页 / `.` 下一页 |
+| 选项 | 按键 |
+| --- | --- |
+| Page Up/Down | Page Up / Page Down |
+| 减号/等号 | `-` 上一页 / `=` 下一页 |
+| 方括号 | `[` 上一页 / `]` 下一页 |
+| Shift+Tab/Tab | Shift+Tab 上一页 / Tab 下一页 |
+| 逗号/句号 | `,` 上一页 / `.` 下一页 |
 
 ### 以词定字
 
-输入词组后按指定键只取第 1 或第 2 个字，配置项 `keys.select_char_keys`：
+输入词组后按指定键只取第 1 或第 2 个字：
 
-| 选项 | 配置值 | 按键 |
-| --- | --- | --- |
-| 逗号/句号 | `comma_period` | `,` 取首字 / `.` 取末字 |
-| 减号/等号 | `minus_equal` | `-` / `=` |
-| 方括号 | `brackets` | `[` / `]` |
+| 选项 | 按键 |
+| --- | --- |
+| 逗号/句号 | `,` 取首字 / `.` 取末字 |
+| 减号/等号 | `-` / `=` |
+| 方括号 | `[` / `]` |
 
 ## 功能快捷键
 
 每项以「修饰键 + 主键」的形式在对话框中编辑，部分支持注册为全局快捷键。
 
-| 功能 | 配置项 | 默认值 |
-| --- | --- | --- |
-| 切换输入方案 | `keys.switch_engine` | `Ctrl + Shift + E` |
-| 切换全角/半角 | `keys.toggle_full_width` | `Shift + Space` |
-| 切换中/英文标点 | `keys.toggle_punct` | `Ctrl + .` |
-| 切换简入繁出 | `keys.toggle_s2t` | `Ctrl + Shift + J` |
-| 显示/隐藏工具栏 | `keys.toggle_toolbar` | `Ctrl + Shift + \` |
-| 打开设置 | `keys.open_settings` | `Ctrl + Shift + ]` |
-| 快捷加词 | `keys.add_word` | `Ctrl + =` |
-| 切换到本输入法 | `keys.activate_ime` | `Ctrl + Shift + [` |
+| 功能 | 默认快捷键 |
+| --- | --- |
+| 切换输入方案 | `Ctrl + Shift + E` |
+| 切换全角/半角 | `Shift + Space` |
+| 切换中/英文标点 | `Ctrl + .` |
+| 切换简入繁出 | `Ctrl + Shift + J` |
+| 显示/隐藏工具栏 | `Ctrl + Shift + \` |
+| 打开设置 | `Ctrl + Shift + ]` |
+| 快捷加词 | `Ctrl + =` |
+| 切换到本输入法 | `Ctrl + Shift + [` |
 
 - **切换简入繁出**——开关简体输入→繁体输出，变体在「输入 → 简入繁出」中选择。
 - **切换到本输入法**——在任意应用中一键切换到本输入法；经系统的输入法直接切换机制注册，天生全局，无需额外设置。
 
-另有「界面截图」快捷键（`keys.take_screenshot`，默认 `Ctrl + Shift + F11`）未在设置界面暴露，仅可在 `config.toml` 中修改。
+另有「界面截图」快捷键（默认 `Ctrl + Shift + F11`）未在设置界面暴露，仅可在配置文件中修改，见[按键配置](/docs/advanced/config/keys)。
 
 ## 全局快捷键
 
 默认情况下，快捷键只在输入法激活时响应，全局快捷键列表默认为空。在「打开设置」的热键编辑对话框中勾选「全局」，即可注册为系统全局快捷键（输入法未激活时也生效）。
 
-「切换到本输入法」是例外：它经系统的输入法直接切换机制注册，天生全局，不参与 `global_hotkeys` 列表。
+「切换到本输入法」是例外：它经系统的输入法直接切换机制注册，天生全局，不参与全局快捷键列表。
 
-全局项汇总写入配置：
-
-```toml
-[keys]
-global_hotkeys = ["open_settings"]
-```
-
-配置项 `keys.global_hotkeys` 层面支持的动作有 `switch_engine`、`toggle_full_width`、`toggle_punct`、`toggle_toolbar`、`open_settings`、`take_screenshot`、`toggle_s2t`。设置界面当前只暴露「打开设置」的全局勾选，其余可在 [`config.toml`](/docs/advanced/config-file) 中直接填写。
+支持设为全局的功能有：切换输入方案、切换全角/半角、切换中/英文标点、显示/隐藏工具栏、打开设置、界面截图、切换简入繁出。设置界面当前只暴露「打开设置」的全局勾选，其余可在配置文件中直接填写，见[按键配置](/docs/advanced/config/keys)。

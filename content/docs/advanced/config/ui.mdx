@@ -1,0 +1,228 @@
+---
+title: 外观配置
+description: ui 域全部配置项——候选窗、编码与翻页、悬停提示、状态气泡、工具栏、字体主题
+---
+
+`[ui]` 域控制输入法的**外观行为与布局**：候选窗排布、编码显示方式、翻页、悬停提示、状态气泡、工具栏，以及字体与主题的选择。
+
+注意区分职责：**纯视觉样式**（颜色、圆角、透明度、字号基线、边距等）由**主题**决定，见[外观与主题](/docs/customize/appearance)；本页配置的是**行为与布局**（显示什么、怎么排、放哪里）。二者交汇处（如候选字号、翻页栏显隐）本页字段可覆盖主题基线。
+
+<Callout type="info" title="默认值来源">
+本页默认值以系统预置 `data/config.toml` 的 `[ui]` 段为准。部分字段的程序内置缺省与预置值不同（例如加载缺失该键的旧配置时按内置缺省回退），本页以预置值为准。
+</Callout>
+
+## 候选窗——基本（ui.candidate）
+
+```toml
+[ui.candidate]
+font_size = 18                  # 候选文本字号
+font_size_follow_theme = true   # 字号跟随主题
+per_page = 7                    # 每页候选数
+per_page_extended = 0           # 扩展档每页候选数
+max_chars = 16                  # 候选文本最大显示字数
+layout = "horizontal"           # 候选排布方向
+hide_window = false             # 隐藏候选窗
+index_labels = ""               # 自定义序号标签
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `font_size` | 浮点 | — | `18` | 候选文本字号；`0` 亦表示跟随主题 `behavior.font_size`。`font_size_follow_theme` 开启时本值被忽略 |
+| `font_size_follow_theme` | 布尔 | — | `true` | 字号跟随主题：开启时忽略 `font_size`，改用主题 `behavior.font_size` |
+| `per_page` | 整数 | — | `7` | 每页显示的候选数 |
+| `per_page_extended` | 整数 | — | `0` | 扩展档（临拼 / 快捷 / 短语等 overlay 模式）每页候选数；`0` = 与 `per_page` 相同 |
+| `max_chars` | 整数 | — | `16` | 候选文本最大显示字数，超出截断并加省略号（`0` = 不限）；仅影响显示，上屏用完整原文 |
+| `layout` | 枚举 | `horizontal` / `vertical` | `"horizontal"` | 候选排布方向：横排 / 竖排 |
+| `hide_window` | 布尔 | — | `false` | 隐藏候选窗（不显示候选列表） |
+| `index_labels` | 字符串 | — | `""` | 自定义序号标签（如 `"asdfg"`，每字符一个槽位）；留空 = 默认 `1`–`9`。槽位不足处回退数字 |
+
+## 候选窗——编码显示（ui.candidate）
+
+```toml
+preedit_display = "app_inline"  # 编码（组合区）显示方式
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `preedit_display` | 枚举 | `app_inline` / `candidate_top` / `candidate_inline` | `"app_inline"` | 编码（组合区）显示方式，取代旧的 `inline_preedit` + `preedit_mode` 组合 |
+
+三个取值的含义：
+
+- `app_inline`（默认）：编码内嵌应用光标处，候选窗**不**显示 preedit 栏。
+- `candidate_top`：候选窗顶部独立 preedit 栏。
+- `candidate_inline`：编码作为候选窗首单元内联。
+
+## 候选窗——上翻行为（ui.candidate）
+
+候选窗被顶到光标上方时的两个**正交**开关，可单独或叠加。
+
+```toml
+flip_when_above = false          # 上翻时反转候选排列顺序
+swap_preedit_when_above = false  # 上翻时交换编码栏与候选栏位置
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `flip_when_above` | 布尔 | — | `false` | 候选窗在光标上方时反转候选项排列顺序 |
+| `swap_preedit_when_above` | 布尔 | — | `false` | 候选窗在光标上方时交换编码栏与候选栏位置（编码区沉底贴光标）；与 `flip_when_above` 正交，可叠加 |
+
+## 候选窗——翻页栏（ui.candidate）
+
+```toml
+pager_bar_display = ""     # 翻页栏显示覆盖
+page_number_display = ""   # 页码文字显示覆盖
+pager_in_preedit = false   # 翻页栏并入编码栏行
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `pager_bar_display` | 枚举 | `""` / `hide` / `auto` / `always` | `""` | 翻页栏显示覆盖：`""` = 跟随主题；`hide` = 不显示；`auto` = 超过 1 页才显示；`always` = 始终显示 |
+| `page_number_display` | 枚举 | `""` / `show` / `hide` | `""` | 页码文字显示覆盖：`""` = 跟随主题；`show` = 显示；`hide` = 隐藏 |
+| `pager_in_preedit` | 布尔 | — | `false` | 翻页栏并入编码栏行、右对齐显示（竖排省一行）；仅"非嵌入编码"（有独立编码栏，即 `candidate_top`）时生效 |
+
+## 候选窗——定位（ui.candidate）
+
+```toml
+position_mode = "follow_caret"  # 候选窗定位方式
+custom_x = 0                    # 固定模式内容左上 X（拖动落盘）
+custom_y = 0                    # 固定模式内容左上 Y（拖动落盘）
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `position_mode` | 枚举 | `follow_caret` / `fixed` | `"follow_caret"` | 候选窗定位方式：`follow_caret` = 跟随光标（默认）；`fixed` = 固定屏幕坐标，不再随光标移动、也不再上翻（`flip` / `swap_when_above` 随之失效） |
+| `custom_x` | 整数 | — | `0` | 固定模式下内容左上屏幕 X（不含阴影扩边） |
+| `custom_y` | 整数 | — | `0` | 固定模式下内容左上屏幕 Y（不含阴影扩边） |
+
+<Callout type="warn" title="程序维护项：candidate.custom_x / custom_y">
+`ui.candidate.custom_x` / `custom_y` 仅 `position_mode = "fixed"` 时生效，且由用户**拖动候选窗时自动落盘**，设置工具刻意不暴露：手填绝对坐标既不直观、又会与拖动互相覆盖。`(0, 0)` 视作"尚未设定"，首次显示落到屏幕默认锚点。
+</Callout>
+
+## 字体（ui.font）
+
+```toml
+[ui.font]
+family = ""                # 字体族名
+path = ""                  # 字体文件路径
+render_mode = "directwrite" # 文本渲染后端
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `family` | 字符串 | — | `""` | 候选窗字体族名；留空 = 使用系统 / 主题默认字体 |
+| `path` | 字符串 | — | `""` | 字体文件路径（加载非系统安装的字体文件时使用）；留空 = 按 `family` 从系统查找 |
+| `render_mode` | 枚举 | `directwrite` / `gdi` | `"directwrite"` | 文本渲染后端：`directwrite`（默认，抗锯齿更佳）/ `gdi`（兼容旧渲染） |
+
+## 主题（ui.theme）
+
+```toml
+[ui.theme]
+name = "default"   # 主题名
+style = "system"   # 明暗风格
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `name` | 字符串 | — | `"default"` | 当前主题名（对应主题包 / 主题目录） |
+| `style` | 字符串（隐性枚举） | `system` / `light` / `dark` | `"system"` | 明暗风格：`system` = 跟随系统；`light` = 浅色；`dark` = 深色 |
+
+主题的具体样式定义（配色、圆角、字号基线等）见[外观与主题](/docs/customize/appearance)。
+
+## 模式指示（ui.mode_indicator）
+
+进入临时拼音 / 双拼 / 快捷 / 英文 / 快符等模式时的标识。
+
+```toml
+[ui.mode_indicator]
+style = "short"   # 模式标识样式
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `style` | 枚举 | `short` / `full` / `none` | `"short"` | 模式标识样式：`short` = 短称（拼 / 双 / 快 / 英 / 符）；`full` = 全称（如"临时拼音"）；`none` = 不显示 |
+
+## 状态气泡（ui.status）
+
+中英 / 标点 / 全半角 / 简繁 / 大写锁定等状态切换时的瞬时提示气泡。样式（字号 / 透明度 / 圆角 / 配色）跟随主题（`theme.views.status`），此处为行为与位置。
+
+```toml
+[ui.status]
+enabled = true                # 是否启用状态气泡
+duration = 800                # 自动隐藏时长（毫秒）
+display_mode = "temp"         # 显示模式
+schema_name_style = "full"    # 方案名显示样式
+position_mode = "follow_caret" # 位置模式
+offset_x = 0                  # follow_caret 水平偏移
+offset_y = 0                  # follow_caret 垂直偏移
+custom_x = 0                  # fixed 固定 X（拖动落盘）
+custom_y = 0                  # fixed 固定 Y（拖动落盘）
+items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容段
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `true` | 是否启用状态提示气泡（`false` = 完全不显示） |
+| `duration` | 整数 | — | `800` | 自动隐藏时长（毫秒）；`display_mode = "always"` 时忽略 |
+| `display_mode` | 枚举 | `temp` / `always` | `"temp"` | 显示模式：`temp` = 临时（`duration` 后隐藏，默认）；`always` = 常驻（激活 / 获焦时显示，失焦隐藏） |
+| `schema_name_style` | 枚举 | `full` / `short` | `"full"` | 方案名显示样式：`full` = 全名（默认）；`short` = 图标短称（`icon_label`，无则回退全名） |
+| `position_mode` | 枚举 | `follow_caret` / `fixed` | `"follow_caret"` | 位置模式：`follow_caret` = 跟随光标（默认）；`fixed` = 固定屏幕坐标（`custom_x` / `custom_y`） |
+| `offset_x` | 整数 | — | `0` | `follow_caret` 下相对默认位置（光标下方居中）的水平偏移（像素，正 = 右） |
+| `offset_y` | 整数 | — | `0` | `follow_caret` 下相对默认位置的垂直偏移（像素，正 = 下） |
+| `custom_x` | 整数 | — | `0` | `fixed` 模式的固定屏幕 X（像素） |
+| `custom_y` | 整数 | — | `0` | `fixed` 模式的固定屏幕 Y（像素） |
+| `items` | 字符串数组 | `schema` / `punct` / `full_width` / `s2t` / `caps` | `["schema", "punct", "full_width", "s2t", "caps"]` | 气泡显示哪些内容段；**留空 = 全部显示**。可选项：`schema`（输入方案 / 中英）、`punct`（标点状态）、`full_width`（全半角）、`s2t`（简繁）、`caps`（大写锁定）。列表顺序无关，渲染顺序固定 |
+
+<Callout type="warn" title="程序维护项：status.custom_x / custom_y">
+`ui.status.custom_x` / `custom_y` 仅 `position_mode = "fixed"` 时生效，由用户**拖动气泡时自动落盘**，设置工具刻意不暴露（与 `ui.candidate.custom_x/y` 同一决策）。日常调整位置请用 `offset_x` / `offset_y`。
+</Callout>
+
+## 悬停提示（ui.tooltip）
+
+鼠标悬停候选时弹出的提示。原 `ui.tooltip.{code,pinyin,chaizi,debug}.*` 子表已拍平为平铺字段。
+
+```toml
+[ui.tooltip]
+delay = 200               # 提示延迟显示时间（毫秒）
+code_enabled = true       # 编码提示
+pinyin_enabled = true     # 拼音提示
+pinyin_heteronyms = true  # 显示多音字所有读音
+pinyin_max_readings = 0   # 每字最多显示读音数
+chaizi_enabled = false    # 拆字提示
+debug_enabled = false     # 调试提示
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `delay` | 整数 | — | `200` | 提示延迟显示时间（毫秒） |
+| `code_enabled` | 布尔 | — | `true` | 编码提示（显示候选对应编码） |
+| `pinyin_enabled` | 布尔 | — | `true` | 拼音提示（显示候选拼音读音） |
+| `pinyin_heteronyms` | 布尔 | — | `true` | 显示多音字的所有读音 |
+| `pinyin_max_readings` | 整数 | — | `0` | 每字最多显示读音数（`0` = 不限） |
+| `chaizi_enabled` | 布尔 | — | `false` | 拆字提示 |
+| `debug_enabled` | 布尔 | — | `false` | 调试提示（内部诊断信息） |
+
+<Callout type="warn" title="高级项：tooltip.pinyin_max_readings">
+`ui.tooltip.pinyin_max_readings` 为高级项，设置工具不直接编辑，一般无需改动；仅在需要限制多音字读音显示数量时通过 `config.toml` 手改，`0` 表示不限。
+</Callout>
+
+## 工具栏（ui.toolbar）
+
+```toml
+[ui.toolbar]
+visible = true              # 是否显示常驻工具栏
+hide_in_fullscreen = true   # 全屏时自动隐藏
+auto_hide = false           # 无交互超时后自动隐藏
+auto_hide_delay = 5         # 自动隐藏超时（秒）
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `visible` | 布尔 | — | `true` | 是否显示常驻工具栏（启动初值，运行时可经菜单切换） |
+| `hide_in_fullscreen` | 布尔 | — | `true` | 前台应用全屏时自动隐藏工具栏 |
+| `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
+| `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
+
+## 相关阅读
+
+- [外观与主题](/docs/customize/appearance) — 主题包与视觉样式（配色 / 圆角 / 字号基线）
+- [配置文件与数据目录](/docs/advanced/config) — `config.toml` 的分层合并与手工编辑

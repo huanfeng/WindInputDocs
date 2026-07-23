@@ -1,10 +1,10 @@
 ---
 title: 配置文件与数据目录
-description: 数据的两层结构、%APPDATA% 与 %LOCALAPPDATA% 目录职责、同结构覆盖机制与 config.toml 手工编辑
+description: 数据的两层结构、目录职责、覆盖机制、三层合并，以及按域组织的完整配置项参考
 ---
 
 <Callout type="warn" title="高级主题">
-普通用户通过[设置工具](/docs/customize/settings)即可完成全部配置，修改即时生效。本页面向需要手动放置文件或编辑 `config.toml` 的用户。
+普通用户通过[设置工具](/docs/customize/settings)即可完成全部配置，修改即时生效。本分类面向需要手动放置文件、编辑 `config.toml`、或查阅**每个配置项确切含义**的用户。
 </Callout>
 
 ## 数据的两层结构
@@ -61,7 +61,7 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 
 ```text
 %LOCALAPPDATA%\WindInput\
-├── cache\        # 词库编译缓存（.wdb），可安全删除，下次自动重建
+├── cache\        # 词库编译缓存（.wdat），可安全删除，下次自动重建
 ├── logs\         # 运行日志
 └── state.toml    # 运行时状态（工具栏位置、上次中英/标点模式等）
 ```
@@ -71,18 +71,6 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 | `cache\` | 词库编译缓存，可安全删除，会自动重建 |
 | `logs\` | 日志文件，默认日志目录 |
 | `state.toml` | 运行时状态（上次中英/标点状态、工具栏位置等，程序维护，勿手改） |
-
-## 放置规则速查
-
-| 需求 | 放到哪里 |
-| --- | --- |
-| 调整全局配置 | 通过设置工具修改，或编辑 `config.toml` |
-| 新增第三方输入方案 | `schemas\<方案ID>.schema.toml`，并在 `config.toml` 的 `schema.available` 中登记 |
-| 替换 / 扩充内置方案的词库 | 在 `schemas\` 下放置词库文件，方案文件中通过 `dictionaries` 引用 |
-| 新增自定义主题 | `themes\<主题名>\theme.toml`，在设置工具"外观"页选用 |
-| 微调内置主题 | 在 `themes\` 下创建**同名**目录与 `theme.toml`，自动覆盖内置版本 |
-| 自定义短语 | 通过 **设置 → 词库 → 短语** 添加（写入 `userdata.redb`） |
-| 应用兼容性规则 | 部分可通过设置修改，或编辑 `compat.toml` |
 
 ## 手工编辑 config.toml
 
@@ -96,56 +84,39 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 
 三层深合并：表递归合并（高层键覆盖 / 新增低层同名键），标量与数组由高层整体覆盖。保存时按 diff 只写与默认不同的字段。
 
-### 顶层配置域
+<Callout type="info" title="本参考页的默认值以系统预置为准">
+下面各域参考页标注的"默认值"，取自随程序分发的 `data\config.toml`（第 2 层）。少数字段的代码内置默认值（第 1 层）与之不同，会在对应条目上注明——你实际拿到的是系统预置值。
+</Callout>
 
-配置按七个正交大类组织：
+也可以用命令行读写配置，无需手动编辑文件：
 
-| 域 | 内容 |
-| --- | --- |
-| `[schema]` | 方案选择与全局引擎配置（码表 / 拼音 / 混输） |
-| `[input]` | 输入行为：标点、智能符号、配对、临时英文 / 拼音、网址、简繁、命令栏、启动默认状态 |
-| `[keys]` | 全部按键：切换键、选择 / 翻页 / 以词定字键、功能快捷键、无效按键策略 |
-| `[ui]` | 外观：候选窗、字体、主题、模式指示、悬停提示、状态气泡、工具栏 |
-| `[stats]` | 输入统计开关 |
-| `[compat]` | 应用兼容性与宿主渲染 |
-| `[debug]` | 日志 |
-
-### 常用字段示例
-
-```toml
-[schema]
-active = "wubi86"                        # 当前方案
-available = ["wubi86", "wubi86_pinyin"]  # 可循环切换的方案列表（顺序即切换顺序）
-
-[input.default]
-remember_last_state = false              # 记忆上次的中英/全半角/标点状态
-chinese_mode = true                      # 启动默认中文（remember 关时生效）
-chinese_punct = true                     # 启动默认中文标点
-
-[input.cmdbar]
-candidate_prefix = "⚡"                  # 副作用命令候选的前缀符号（命令栏始终开启，仅前缀可配）
-
-[ui.candidate]
-per_page = 7                             # 每页候选数
-layout = "horizontal"                    # horizontal / vertical
-
-[ui.theme]
-name = "default"                         # 主题名（default / msime 或自定义主题目录名）
-style = "system"                         # system / light / dark
-
-[compat]
-host_render_processes = ["SearchHost.exe"]  # 宿主渲染进程白名单（修改后需重启）
-
-[debug]
-log_level = "info"                       # error / warn / info / debug / trace（修改后需重启）
+```bat
+wind_input config get ui.candidate.per_page
+wind_input config set ui.candidate.per_page 9
+wind_input config describe ui.candidate.layout
 ```
 
-<Callout type="info" title="更多字段">
-各配置域字段较多，完整清单与含义请在[设置工具](/docs/customize/settings)对应页面查看；按键相关见[快捷键](/docs/customize/hotkeys)。
+见[命令行工具 · config](/docs/advanced/cli#config)。
+
+## 配置项分域参考
+
+配置按七个正交大类组织，逐域列出每个配置项的类型、可选值、默认值与含义：
+
+| 域 | 内容 | 参考页 |
+| --- | --- | --- |
+| `[schema]` | 方案选择与全局引擎配置（码表 / 拼音 / 混输 / 调频 / 造词） | [方案与引擎配置](/docs/advanced/config/schema) |
+| `[input]` | 输入行为：标点、智能符号、配对、临时英文 / 拼音、网址、简繁、命令栏 | [输入行为配置](/docs/advanced/config/input) |
+| `[keys]` | 全部按键：切换、选择 / 翻页 / 以词定字、功能快捷键、全局热键 | [按键配置](/docs/advanced/config/keys) |
+| `[ui]` | 外观：候选窗、字体、主题、模式指示、悬停提示、状态气泡、工具栏 | [外观配置](/docs/advanced/config/ui) |
+| `[stats]` `[compat]` `[debug]` | 输入统计、宿主渲染白名单、日志调试 | [统计、兼容与调试](/docs/advanced/config/misc) |
+
+<Callout type="info" title="改配置的另外两条路">
+除手工编辑外，[设置工具](/docs/customize/settings)提供图形界面（覆盖绝大多数常用项），[命令行 config](/docs/advanced/cli#config) 可脚本化读写。功能页面只讲"这个功能怎么用"，配置项的确切键名与取值一律查本分类。
 </Callout>
 
 ## 相关阅读
 
 - [核心概念](/docs/start/concepts) — 方案 / 词库 / 配置的分工
+- [命令行工具](/docs/advanced/cli) — 用 `config` 子命令读写配置
+- [命令直通车](/docs/advanced/command-bar) — 用 `config.set` / `config.get` 在短语里读写配置
 - [备份与还原](/docs/advanced/backup) — 一键打包与换机迁移
-- [命令直通车](/docs/advanced/command-bar) — 用 `config.set` / `config.get` 读写配置项

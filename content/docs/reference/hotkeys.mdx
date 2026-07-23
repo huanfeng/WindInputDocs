@@ -1,23 +1,23 @@
 ---
 title: 快捷键总表
-description: 清风输入法全部快捷键的分类速查，含默认值、配置项与可自定义范围。
+description: 清风输入法全部快捷键的分类速查，含默认键位与可自定义范围。
 ---
 
-本页汇总清风输入法的全部快捷键，按用途分类。带「配置项」列的快捷键均可在[设置工具](/docs/customize/settings)或[配置文件](/docs/advanced/config-file)中自定义。
+本页汇总清风输入法的全部快捷键，按用途分类。可自定义的快捷键均可在[设置工具](/docs/customize/settings)中调整，其确切配置键与取值见[按键配置](/docs/advanced/config/keys)。
 
 ## 模式切换
 
-| 快捷键 | 功能 | 配置项 | 默认值 |
-| --- | --- | --- | --- |
-| `Shift` | 切换中英文模式 | `keys.toggle_mode_keys` | `["lshift", "rshift"]` |
-| `Ctrl + Space` | 开启/关闭输入法 | 系统快捷键 | — |
-| `Shift + Space` | 切换全角/半角 | `keys.toggle_full_width` | `shift+space` |
-| `Ctrl + .` | 切换中英文标点 | `keys.toggle_punct` | `ctrl+.` |
-| `Ctrl + Shift + E` | 切换输入方案 | `keys.switch_engine` | `ctrl+shift+e` |
-| `Ctrl + Shift + [` | 切换到清风输入法 | `keys.activate_ime` | `ctrl+shift+[` |
+| 快捷键 | 功能 |
+| --- | --- |
+| `Shift` | 切换中英文模式（默认左右 Shift 均可） |
+| `Ctrl + Space` | 开启/关闭输入法（系统快捷键） |
+| `Shift + Space` | 切换全角/半角 |
+| `Ctrl + .` | 切换中英文标点 |
+| `Ctrl + Shift + E` | 切换输入方案 |
+| `Ctrl + Shift + [` | 切换到清风输入法 |
 
-<Callout type="info" title="activate_ime 说明">
-`keys.activate_ime` 用于从其它输入法快速切回清风输入法（写入系统 DirectSwitch 热键，作用于全局）。留空则不注册该热键。
+<Callout type="info" title="切换到清风输入法">
+「切换到清风输入法」用于从其它输入法快速切回清风（写入系统 DirectSwitch 热键，作用于全局）。留空则不注册该热键。
 </Callout>
 
 ## 候选操作
@@ -31,25 +31,25 @@ description: 清风输入法全部快捷键的分类速查，含默认值、配�
 
 ### 二三候选快捷上屏
 
-可通过 `keys.select_key_groups` 配置，支持以下方案（可多选）：
+可配置以下方案（可多选）：
 
-| 方案 | 按键 | 配置值 |
-| --- | --- | --- |
-| 分号/引号 | `;` / `'` | `semicolon_quote` |
-| 逗号/句号 | `,` / `.` | `comma_period` |
-| 左右 Shift | `LShift` / `RShift` | `lrshift` |
-| 左右 Ctrl | `LCtrl` / `RCtrl` | `lrctrl` |
+| 方案 | 按键 |
+| --- | --- |
+| 分号/引号 | `;` / `'` |
+| 逗号/句号 | `,` / `.` |
+| 左右 Shift | `LShift` / `RShift` |
+| 左右 Ctrl | `LCtrl` / `RCtrl` |
 
 ### 翻页
 
-可通过 `keys.page_keys` 配置，支持以下方案（可多选）：
+可配置以下方案（可多选）：
 
-| 方案 | 按键 | 配置值 |
-| --- | --- | --- |
-| Page Up/Down | `Page Up` / `Page Down` | `pageupdown` |
-| 减号/等号 | `-` / `=` | `minus_equal` |
-| 方括号 | `[` / `]` | `brackets` |
-| Tab | `Shift+Tab` / `Tab` | `shift_tab` |
+| 方案 | 按键 |
+| --- | --- |
+| Page Up/Down | `Page Up` / `Page Down` |
+| 减号/等号 | `-` / `=` |
+| 方括号 | `[` / `]` |
+| Tab | `Shift+Tab` / `Tab` |
 
 ## 输入编辑
 
@@ -60,21 +60,21 @@ description: 清风输入法全部快捷键的分类速查，含默认值、配�
 
 ## 功能热键
 
-| 快捷键 | 功能 | 配置项 | 默认值 |
-| --- | --- | --- | --- |
-| `Ctrl + Shift + ]` | 打开设置工具 | `keys.open_settings` | `ctrl+shift+]` |
-| `Ctrl + Shift + \` | 显示/隐藏工具栏 | `keys.toggle_toolbar` | `ctrl+shift+\` |
-| `Ctrl + Shift + J` | 开启/关闭简入繁出 | `keys.toggle_s2t` | `ctrl+shift+j` |
-| `Ctrl + Shift + F11` | 截图 | `keys.take_screenshot` | `ctrl+shift+f11` |
-| `Ctrl + =` | 快捷加词 | `keys.add_word` | `ctrl+equal` |
-| `Ctrl + Shift + 数字` | 删除候选词 | `keys.delete_candidate` | `ctrl+shift+number` |
-| `Ctrl + 数字` | 置顶候选词 | `keys.pin_candidate` | `ctrl+number` |
+| 快捷键 | 功能 |
+| --- | --- |
+| `Ctrl + Shift + ]` | 打开设置工具 |
+| `Ctrl + Shift + \` | 显示/隐藏工具栏 |
+| `Ctrl + Shift + J` | 开启/关闭简入繁出 |
+| `Ctrl + Shift + F11` | 截图 |
+| `Ctrl + =` | 快捷加词 |
+| `Ctrl + Shift + 数字` | 删除候选词 |
+| `Ctrl + 数字` | 置顶候选词 |
 
 ## 快捷输入
 
 ### 快捷输入模式（默认 `;` 触发）
 
-在中文模式下按 `;`（分号）进入快捷输入模式。快捷输入是一种「混输模式」，其触发键**可配置**：默认方案 `quick_mix` 的触发键为 `schema.mix_modes[].trigger_keys`（默认 `["semicolon"]`），可在设置工具的方案 / 混输编辑入口中修改。
+在中文模式下按 `;`（分号）进入快捷输入模式。快捷输入是一种「混输模式」，其触发键**可配置**（默认分号），可在设置工具的方案 / 混输编辑入口中修改。
 
 | 输入 | 功能 | 示例 |
 | --- | --- | --- |
@@ -100,7 +100,7 @@ description: 清风输入法全部快捷键的分类速查，含默认值、配�
 
 ### 日期时间变量
 
-在自定义短语中可使用以下变量（支持 `$var` 和 `${var}` 两种语法，`$$` 转义为 `$`）：
+在自定义短语中可使用以下变量（支持 `$var` 和 `${var}` 两种语法，`$$` 转义为 `$`）。这是完整清单，没有日期时间以外的变量：
 
 | 变量 | 说明 | 变量 | 说明 |
 | --- | --- | --- | --- |
@@ -108,10 +108,11 @@ description: 清风输入法全部快捷键的分类速查，含默认值、配�
 | `$M` | 月份（不补零） | `$DD` | 两位日期 |
 | `$D` | 日期（不补零） | `$HH` | 两位小时 |
 | `$mm` | 两位分钟 | `$ss` | 两位秒 |
-| `$W` | 星期（中文） | `$YC` | 中文年份 |
+| `$WC` | 星期（中文，如「日」） | `$YC` | 中文年份 |
 | `$MC` | 中文月份 | `$DC` | 中文日期 |
-| `$uuid` | UUID | `$ts` | 秒级时间戳 |
-| `$tsms` | 毫秒时间戳 | | |
+| `$ts` | 秒级时间戳 | `$tsms` | 毫秒时间戳 |
+
+需要 UUID、时间戳等内容时，用系统短语编码 `uuid` / `tmts`，或用[命令直通车](/docs/advanced/command-bar)的函数语法。
 
 ### zz 系列符号输入
 
@@ -161,7 +162,7 @@ description: 清风输入法全部快捷键的分类速查，含默认值、配�
 | 标点顶字 | 输入标点时自动上屏首选（可配置） |
 | 五码顶字 | 输入第 5 个编码时自动上屏首选（可配置） |
 
-临时拼音的触发键由 `input.temp_pinyin.trigger_keys` 配置，默认 `["backtick"]`（反引号）；可改成其它键或多个键。
+临时拼音的触发键可配置，默认为反引号；可改成其它键或多个键。
 
 ## 临时英文模式
 
@@ -171,16 +172,8 @@ description: 清风输入法全部快捷键的分类速查，含默认值、配�
 2. 继续输入英文内容
 3. 按 `Space` 或 `Enter` 上屏后自动恢复中文模式
 
-除 `Shift + 字母` 外，还可通过 `input.temp_english.trigger_keys` 指定符号键触发临时英文（默认为空，即仅 `Shift + 字母` 触发）。
+除 `Shift + 字母` 外，还可指定符号键触发临时英文（默认为空，即仅 `Shift + 字母` 触发）。
 
 ## 自定义中英文切换键
 
-中英文切换键（`keys.toggle_mode_keys`）支持以下选项：
-
-| 选项 | 配置值 |
-| --- | --- |
-| 左 Shift | `lshift` |
-| 右 Shift | `rshift` |
-| 左 Ctrl | `lctrl` |
-| 右 Ctrl | `rctrl` |
-| CapsLock | `capslock` |
+中英文切换键支持以下选项（可多选）：左 Shift、右 Shift、左 Ctrl、右 Ctrl、CapsLock。
