@@ -37,11 +37,26 @@ export default function ChangelogPage() {
                 </time>
               )}
             </div>
-            <ul className="mt-3 list-inside list-disc space-y-1.5 text-fd-muted-foreground">
-              {r.notes.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
+            {/* 同步脚本在 Release 未填更新说明时也会写入版本条目（下载页的直链
+                只依赖版本号），因此 notes 可能为空 */}
+            {r.notes.length > 0 ? (
+              <ul className="mt-3 list-inside list-disc space-y-1.5 text-fd-muted-foreground">
+                {r.notes.map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-fd-muted-foreground">
+                本次发布未提供更新说明，详见{" "}
+                <a
+                  href={releasesUrl}
+                  className="text-fd-primary hover:underline"
+                >
+                  GitHub Releases
+                </a>
+                。
+              </p>
+            )}
           </section>
         ))}
       </div>

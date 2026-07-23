@@ -13,6 +13,8 @@
   因此嵌套层级会被拍平，行内标记（粗体/代码/链接）会被剥掉。
   Release notes 写成单层列表时无损。
 - 同版本重复同步会覆盖原条目，不会重复插入（幂等）。
+- 没有标记块时仍写入版本条目，只是 notes 为空——下载页的直链只依赖版本号，
+  不应被更新说明的有无卡住。但空 notes 不会覆盖已有的非空内容。
 """
 
 import json
@@ -51,23 +53,20 @@ def main():
         else None
     )
 
+    # 更新说明可能缺失（Release 未填标记块，或占位文本未替换），此时仍要写入版本
+    # 条目：下载页的直链只依赖 version，不该被"更新日志写没写"卡住。
     section = extract_user_section(release.get("body", ""))
-    if not section:
-        print(f"v{version} 没有用户向更新说明，跳过。")
-        return
-
-    notes = to_notes(section)
+    notes = to_notes(section) if section else []
     if not notes:
-        print(f"v{version} 的用户向段落解析后为空，跳过。")
-        return
+        print(f"v{version} 没有可用的用户向更新说明，只写版本号。")
 
     entry = {"version": version}
     if date:
         entry["date"] = date
     entry["notes"] = notes
 
-    changed = upsert(entry)
-    print(f"{'已更新' if changed else '无变化'}：v{version}（{len(notes)} 条）")
+    changed, written = upsert(entry)
+    print(f"{'已更新' if changed else '无变化'}：v{version}（{len(written['notes'])} 条）")
 
 
 def extract_user_section(body: str) -> str | None:
@@ -124,19 +123,35 @@ def strip_inline(text: str) -> str:
 
 
 def version_key(version: str):
-    """语义化版本排序键；无法解析时退化为字符串比较，保证不抛异常。"""
-    parts = re.findall(r"\d+", version)
-    return ([int(p) for p in parts], version)
+    """语义化版本排序键；无法解析时退化为字符串比较，保证不抛异常。
+
+    同版本号的正式版须排在预发布版之前：只按数字排会让 0.111.0-rc.1 解析成
+    [0,111,0,1] 从而压过 0.111.0 的 [0,111,0]，令 rc 长期占据列表首位、把
+    下载直链指向预发布包。
+    """
+    core, _, pre = version.partition("-")
+    nums = [int(p) for p in re.findall(r"\d+", core)]
+    return (nums, 0 if pre else 1, version)
 
 
-def upsert(entry: dict) -> bool:
-    """插入或覆盖版本条目，按版本号降序保存。返回是否有实际变更。"""
+def upsert(entry: dict) -> tuple[bool, dict]:
+    """插入或覆盖版本条目，按版本号降序保存。
+
+    返回 (是否有实际变更, 最终落库的条目)。后者供日志区分"只写了版本号"与
+    "空 notes 被保护、沿用了旧内容"这两种同样是 0 条解析结果的情况。
+    """
     with open(RELEASES_JSON, encoding="utf-8") as f:
         releases = json.load(f)
 
     existing = next((r for r in releases if r.get("version") == entry["version"]), None)
+
+    # 空的更新说明不覆盖已有内容：定时兜底每天都会重跑同一个 tag，若那次没能
+    # 解析出标记块（body 被改动、格式变化等），不该把先前同步到的条目抹空。
+    if existing and not entry["notes"] and existing.get("notes"):
+        entry = {**entry, "notes": existing["notes"]}
+
     if existing == entry:
-        return False
+        return False, entry
 
     releases = [r for r in releases if r.get("version") != entry["version"]]
     releases.append(entry)
@@ -145,7 +160,7 @@ def upsert(entry: dict) -> bool:
     with open(RELEASES_JSON, "w", encoding="utf-8", newline="\n") as f:
         json.dump(releases, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    return True
+    return True, entry
 
 
 if __name__ == "__main__":
