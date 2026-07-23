@@ -1,0 +1,77 @@
+name: Sync Changelog from Release
+
+# 主仓 WindInput 发布 Release 时通过 repository_dispatch 触发，
+# 从 Release body 的 user-facing 标记块提取更新说明写入 data/releases.json。
+# schedule 是兜底：跨仓 dispatch 事件偶发丢失时，第二天定时任务会补上。
+
+on:
+  repository_dispatch:
+    types:
+      - changelog-updated
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要同步的 Release tag（留空则取 latest）"
+        required: false
+        type: string
+  schedule:
+    # 每天 04:00 CST 比对一次 latest release
+    - cron: "0 20 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-changelog
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # repository_dispatch 走 client_payload，手动触发走 inputs，定时触发两者皆空
+          TAG: ${{ github.event.client_payload.tag || inputs.tag }}
+        run: |
+          if [ -n "$TAG" ]; then
+            gh api "repos/huanfeng/WindInput/releases/tags/$TAG" > /tmp/release.json
+          else
+            gh api repos/huanfeng/WindInput/releases/latest > /tmp/release.json
+          fi
+          RESOLVED=$(jq -r '.tag_name' /tmp/release.json)
+          echo "Resolved tag: $RESOLVED"
+          echo "tag=$RESOLVED" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Sync release notes into data/releases.json
+        run: python3 scripts/sync_release_notes.py /tmp/release.json
+
+      - name: Create PR
+        id: create-pr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          # 用 PAT 而非 GITHUB_TOKEN，否则创建的 PR 不会触发 docs.yml 校验
+          token: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
+          title: "docs: 同步更新日志 ${{ steps.release.outputs.tag }}"
+          branch: auto/sync-changelog
+          commit-message: "docs: 同步更新日志 ${{ steps.release.outputs.tag }}"
+          body: |
+            自动从 GitHub Release 提取用户向更新说明，写入 `data/releases.json`。
+
+            该文件同时驱动 `/changelog` 更新记录页与 `/download` 下载直链版本号。
+          labels: documentation
+
+      - name: Enable auto-merge (rebase)
+        if: steps.create-pr.outputs.pull-request-operation != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
+        run: gh pr merge --rebase --auto ${{ steps.create-pr.outputs.pull-request-number }}
