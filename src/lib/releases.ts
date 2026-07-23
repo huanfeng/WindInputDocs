@@ -1,12 +1,9 @@
-// 版本与更新记录数据源。
-// 目前手工维护；待接入主仓 docs/VERSION 发布链路后由发布流程自动更新（见 README「待接入」）。
-
-export const currentVersion = "0.109.0";
-
-// 下载走 Cloudflare R2（国内直连稳定）；GitHub Releases 作为备用渠道。
-export const r2Base = "https://dl.windinput.com";
-export const setupFileName = `WindInput-${currentVersion}-Setup.exe`;
-export const setupDownloadUrl = `${r2Base}/${setupFileName}`;
+// 版本与更新记录。
+//
+// 数据源是 data/releases.json，由 .github/workflows/sync-changelog.yml 在主仓发布
+// Release 时自动写入（scripts/sync_release_notes.py），**不要手工编辑那个文件**。
+// 本模块只负责类型约束与派生量。
+import releasesData from "../../data/releases.json";
 
 export interface ReleaseEntry {
   version: string;
@@ -17,11 +14,13 @@ export interface ReleaseEntry {
 }
 
 // 按约定：更新记录从文档站上线时的版本起算，更早的历史见 GitHub Releases。
-export const releases: ReleaseEntry[] = [
-  {
-    version: "0.109.0",
-    notes: [
-      "当前版本。更新记录自本版本起在此发布，更早的版本变更请见 GitHub Releases。",
-    ],
-  },
-];
+// JSON 中始终新版本在前，由同步脚本保证顺序。
+export const releases: ReleaseEntry[] = releasesData;
+
+// 最新版本即列表首项——下载直链与更新记录共用同一数据源，避免两处手工同步产生漂移。
+export const currentVersion = releases[0].version;
+
+// 下载走 Cloudflare R2（国内直连稳定）；GitHub Releases 作为备用渠道。
+export const r2Base = "https://dl.windinput.com";
+export const setupFileName = `WindInput-${currentVersion}-Setup.exe`;
+export const setupDownloadUrl = `${r2Base}/${setupFileName}`;

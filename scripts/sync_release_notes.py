@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""从 GitHub Release body 提取用户向更新说明，写入 data/releases.json。
+
+用法：
+    python3 scripts/sync_release_notes.py <release.json>
+
+<release.json> 是 `gh api repos/huanfeng/WindInput/releases/...` 的原始输出。
+
+约定：
+- Release body 中用 `<!-- user-facing:start -->` / `<!-- user-facing:end -->`
+  包裹面向用户的更新说明（主仓侧的既有约定，本脚本不改变它）。
+- 标记块内是 Markdown 列表。站点的 notes 字段是纯文本数组（渲染成扁平 <li>），
+  因此嵌套层级会被拍平，行内标记（粗体/代码/链接）会被剥掉。
+  Release notes 写成单层列表时无损。
+- 同版本重复同步会覆盖原条目，不会重复插入（幂等）。
+"""
+
+import json
+import os
+import re
+import sys
+from datetime import datetime
+
+RELEASES_JSON = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data",
+    "releases.json",
+)
+
+USER_START = "<!-- user-facing:start -->"
+USER_END = "<!-- user-facing:end -->"
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} <release.json>", file=sys.stderr)
+        sys.exit(1)
+
+    with open(sys.argv[1], encoding="utf-8") as f:
+        release = json.load(f)
+
+    version = release.get("tag_name", "").lstrip("v")
+    if not version:
+        print("ERROR: release 缺少 tag_name", file=sys.stderr)
+        sys.exit(1)
+
+    raw_date = release.get("published_at", "")
+    date = (
+        datetime.fromisoformat(raw_date.replace("Z", "+00:00")).strftime("%Y-%m-%d")
+        if raw_date
+        else None
+    )
+
+    section = extract_user_section(release.get("body", ""))
+    if not section:
+        print(f"v{version} 没有用户向更新说明，跳过。")
+        return
+
+    notes = to_notes(section)
+    if not notes:
+        print(f"v{version} 的用户向段落解析后为空，跳过。")
+        return
+
+    entry = {"version": version}
+    if date:
+        entry["date"] = date
+    entry["notes"] = notes
+
+    changed = upsert(entry)
+    print(f"{'已更新' if changed else '无变化'}：v{version}（{len(notes)} 条）")
+
+
+def extract_user_section(body: str) -> str | None:
+    """取出 Release body 中的用户向段落。"""
+    body = body.replace("\r\n", "\n").replace("\r", "\n")
+
+    m = re.search(
+        rf"{re.escape(USER_START)}\n(.*?)\n{re.escape(USER_END)}",
+        body,
+        re.DOTALL,
+    )
+    if m:
+        content = m.group(1).strip()
+        # 主仓的 Release 模板里留了占位文本，未编辑时不应同步
+        if re.match(r"^\s*>?\s*暂未填写", content):
+            return None
+        return content
+
+    # 旧格式兼容：`## 更新记录` 到 `---` 分隔符
+    m = re.search(r"\n## 更新记录\n(.*?)(?:\n---(?:\n|$)|$)", body, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+
+    return None
+
+
+def to_notes(section: str) -> list[str]:
+    """Markdown 段落 → 纯文本条目数组。"""
+    notes = []
+    for raw in section.split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        # 列表项：去掉任意层级的项目符号（层级被拍平）
+        line = re.sub(r"^[-*+]\s+", "", line)
+        # 标题：去掉 # 前缀，保留文字
+        line = re.sub(r"^#{1,6}\s+", "", line)
+        # 引用：去掉 > 前缀
+        line = re.sub(r"^>\s*", "", line)
+        line = strip_inline(line)
+        if line:
+            notes.append(line)
+    return notes
+
+
+def strip_inline(text: str) -> str:
+    """剥掉行内 Markdown 标记，保留可读文字。"""
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)  # [文字](链接) → 文字
+    text = re.sub(r"`([^`]+)`", r"\1", text)  # `代码` → 代码
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)  # **粗体** → 粗体
+    text = re.sub(r"__([^_]+)__", r"\1", text)
+    text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\1", text)  # *斜体* → 斜体
+    return text.strip()
+
+
+def version_key(version: str):
+    """语义化版本排序键；无法解析时退化为字符串比较，保证不抛异常。"""
+    parts = re.findall(r"\d+", version)
+    return ([int(p) for p in parts], version)
+
+
+def upsert(entry: dict) -> bool:
+    """插入或覆盖版本条目，按版本号降序保存。返回是否有实际变更。"""
+    with open(RELEASES_JSON, encoding="utf-8") as f:
+        releases = json.load(f)
+
+    existing = next((r for r in releases if r.get("version") == entry["version"]), None)
+    if existing == entry:
+        return False
+
+    releases = [r for r in releases if r.get("version") != entry["version"]]
+    releases.append(entry)
+    releases.sort(key=lambda r: version_key(r.get("version", "")), reverse=True)
+
+    with open(RELEASES_JSON, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(releases, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    return True
+
+
+if __name__ == "__main__":
+    main()
