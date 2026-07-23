@@ -23,7 +23,7 @@ const features = [
   {
     icon: ShieldCheck,
     title: "开源免费，隐私无忧",
-    body: "代码完全开源，永久免费。输入内容只在本机处理，绝不上传。",
+    body: "核心代码完全开源，永久免费。输入内容只在本机处理，绝不上传。",
   },
   {
     icon: Settings2,
