@@ -3,10 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   currentVersion,
+  releases,
   setupDownloadUrl,
   setupFileName,
 } from "@/lib/releases";
 import { releasesUrl } from "@/lib/shared";
+
+// 下载页顶部展示最新版本的更新说明——数据源与直链同为 releases[0]，
+// 不会与 /changelog 漂移。notes 可能为空（同步脚本只写了版本号）。
+const latest = releases[0];
 
 export const metadata: Metadata = {
   title: "下载",
@@ -79,6 +84,35 @@ export default function DownloadPage() {
           （国内访问较慢）
         </p>
       </div>
+
+      {latest.notes.length > 0 && (
+        <section className="mt-12 rounded-lg border bg-fd-card/50 p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 className="font-semibold text-fd-foreground">
+              本次更新{" "}
+              <span className="font-mono text-fd-primary">
+                v{latest.version}
+              </span>
+            </h2>
+            {latest.date && (
+              <time className="text-sm text-fd-muted-foreground">
+                {latest.date}
+              </time>
+            )}
+          </div>
+          <ul className="mt-3 list-inside list-disc space-y-1.5 text-sm leading-relaxed text-fd-muted-foreground">
+            {latest.notes.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+          </ul>
+          <Link
+            href="/changelog"
+            className="mt-3 inline-block text-sm text-fd-primary hover:underline"
+          >
+            查看完整更新记录 →
+          </Link>
+        </section>
+      )}
 
       <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
         {editions.map((e) => (
