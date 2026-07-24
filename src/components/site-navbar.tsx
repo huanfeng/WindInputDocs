@@ -20,7 +20,7 @@ import {
   SearchTrigger,
 } from "fumadocs-ui/layouts/shared/slots/search-trigger";
 import { ThemeSwitch } from "fumadocs-ui/layouts/shared/slots/theme-switch";
-import { Menu, PanelLeft } from "lucide-react";
+import { ArrowUpRight, Menu, PanelLeft } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { type ComponentProps, useState } from "react";
@@ -225,7 +225,16 @@ function NavbarLink({
       )}
       {...props}
     >
-      {item.type === "icon" ? item.icon : item.text}
+      {item.type === "icon" ? (
+        item.icon
+      ) : item.external ? (
+        <span className="inline-flex items-center gap-0.5">
+          {item.text}
+          <ArrowUpRight className="size-3.5 opacity-70" aria-hidden />
+        </span>
+      ) : (
+        item.text
+      )}
     </Link>
   );
 }
