@@ -1,11 +1,21 @@
 # 下载网关 Worker（windinput-dl）
 
-给 `dl.windinput.com` 的下载加上**下载计数**，同时继续从 R2 直出安装包。
+给 `dl.windinput.com` 的安装包下载加上**下载计数**。
 
-- `GET /<文件名>` —— 从 R2 取对象返回（支持 Range 续传 / 条件请求），并在「下载起始请求」时给对应版本计数 +1。
+- `GET /WindInput-Setup-<版本>.exe` —— 从 R2 取对象返回（支持 Range 续传 / 条件请求），并在「下载起始请求」时给对应版本计数 +1。
 - `GET /api/stats` —— 返回 `{ total, versions: [{ version, count }] }`，供文档站下载页展示。数据落 D1，读走边缘缓存（≤5 分钟延迟）。
 
-下载 URL 与文件名**不变**，只是 `dl.windinput.com` 背后从「R2 自定义域直连」换成「本 Worker 绑定 R2」。文档站侧无需改直链。
+## 路径分流（省 Worker 额度的关键）
+
+`dl.windinput.com` 的「底座」是 **R2 自定义域（直连、不经 Worker）**，只在**安装包**与 **stats** 两个路径上叠加窄 Worker 路由：
+
+```
+dl.windinput.com/WindInput-Setup-*  ─► Worker（计数 + R2 直出）   ← 唤起 Worker
+dl.windinput.com/api/*              ─► Worker（stats）           ← 唤起 Worker
+dl.windinput.com/其它（latest.json…）─► R2 直连                   ← 不唤起 Worker
+```
+
+Worker 路由优先级高于 R2 自定义域：匹配路径归 Worker，其余落到 R2。这样**升级检查等高频请求走 R2 直连、不消耗 Worker 额度**，Worker 调用数 ≈ 真实安装包下载数。下载 URL 与文件名**不变**，文档站侧无需改直链。
 
 ## 首次部署
 
@@ -24,23 +34,25 @@ pnpm db:init:remote
 
 # 3) 填 wrangler.jsonc 里的 bucket_name（= 主仓 release-published.yml 推送的 R2 桶名）
 
-# 4) 切换 dl.windinput.com 的归属（关键，见下）后部署
+# 4) 完成 dl.windinput.com 的域名归属（关键，见下）后部署
 pnpm deploy
 ```
 
-### 切换 dl.windinput.com（务必按顺序）
+### 配置 dl.windinput.com（分流模型，务必按顺序）
 
-同一个主机名不能同时是「R2 自定义域」和「Worker 自定义域」。
+目标：`dl.windinput.com` 归 **R2 自定义域**，Worker 只叠加两条窄路由。
 
-1. Cloudflare 控制台 → R2 → 目标桶 → **Settings → Custom Domains**，移除 `dl.windinput.com`。
-2. `pnpm deploy`。`wrangler.jsonc` 里的 `routes: [{ pattern: "dl.windinput.com", custom_domain: true }]` 会让 wrangler 为本 Worker 重新创建该自定义域（含证书签发，DNS 生效需几分钟）。
-3. 验证：
+1. **若之前把它设成了 Worker 自定义域**：先在 Cloudflare 控制台 → **Workers & Pages → windinput-dl → Settings → Domains & Routes** 删除 `dl.windinput.com` 那条 **Custom Domain**。
+2. Cloudflare 控制台 → **R2 → windinput 桶 → Settings → Custom Domains**，绑定 `dl.windinput.com`（含证书签发，DNS 生效需几分钟）。此时下载已可直连 R2（尚无计数）。
+3. `pnpm deploy`。`wrangler.jsonc` 里的两条 `routes`（`/WindInput-Setup-*` 与 `/api/*`，均 `zone_name: windinput.com`）会被创建，安装包下载与 stats 从此走 Worker。
+4. 验证：
    ```bash
-   curl -I  https://dl.windinput.com/WindInput-Setup-<版本>.exe   # 200 + accept-ranges: bytes
-   curl -s  https://dl.windinput.com/api/stats                     # {"total":...,"versions":[...]}
+   curl -sI https://dl.windinput.com/WindInput-Setup-<版本>.exe  # 200 + accept-ranges: bytes（走 Worker）
+   curl -s  https://dl.windinput.com/api/stats                    # {"total":...,"versions":[...]}（走 Worker）
+   curl -sI https://dl.windinput.com/<某个非安装包文件>            # 由 R2 直接返回，不进 Worker
    ```
 
-> 回滚：删除本 Worker 的自定义域，再在 R2 桶重新绑定 `dl.windinput.com`，即恢复直连（计数停止，下载不受影响）。
+> 回滚：在 Workers 控制台删除这两条 route，即恢复纯 R2 直连（计数停止，下载不受影响）。保留 R2 自定义域即可。
 
 ## 计数口径
 
@@ -50,17 +62,17 @@ pnpm deploy
 
 ## 免费额度承载力
 
-R2 网关方案下**每次下载都穿过 Worker**，瓶颈是 Worker 每日请求数，不是带宽（R2 出站免费，穿 Worker 不额外计费）。
+得益于路径分流，**只有安装包下载与 stats 请求唤起 Worker**；升级检查等高频流量走 R2 直连，不计入 Worker 额度。所以 Worker 调用数 ≈ 真实下载数，离免费线很远。
 
-| 资源 | 免费额度 | 每次下载消耗 |
+| 资源 | 免费额度 | 消耗来源 |
 |---|---|---|
-| Worker 请求 | 10 万 / 天 | 浏览器下载 1 次；多线程下载器 N 次（每线程 1） |
-| D1 写行 | 10 万 / 天 | 1 行 |
+| Worker 请求 | 10 万 / 天 | 仅安装包下载 + stats（升级检查不计） |
+| D1 写行 | 10 万 / 天 | 每次安装包下载 1 行 |
 | D1 读行 | 500 万 / 天 | stats 读 N 行（N=版本数），且有边缘缓存 |
-| R2 Class B（读） | 1000 万 / 月 | 1 |
+| R2 Class B（读） | 1000 万 / 月 | 每次经 R2 的请求 1（含升级检查直连） |
 | 出站带宽 | R2 出站免费 | 0 计费 |
 
-对输入法量级，离免费线很远。唯一现实风险是某天请求量 > 10 万/天 → Worker 返回 429（下载失败）。届时升级 **Workers Paid（$5/月，含 1000 万请求/月）** 即可，代码无需改动。
+带宽不是瓶颈（R2 出站免费，穿 Worker 也不额外计费）。真要撞线只可能是安装包**下载**本身 > 10 万/天，那属于该庆祝的量级；届时升级 **Workers Paid（$5/月，含 1000 万请求/月）** 即可，代码无需改动。
 
 ## 本地开发
 

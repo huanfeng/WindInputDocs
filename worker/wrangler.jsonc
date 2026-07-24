@@ -6,13 +6,25 @@
 	"observability": {
 		"enabled": true
 	},
-	// dl.windinput.com 由「R2 自定义域」改为本 Worker 的自定义域。
-	// 先在 Cloudflare R2 → 该桶 → Settings 里移除 dl.windinput.com 自定义域，
-	// 再 wrangler deploy，wrangler 会据此创建 Worker 自定义域。详见 README.md。
+	// 路径分流：dl.windinput.com 的「底座」是 R2 自定义域（直连、不经 Worker），
+	// 只在安装包与 stats 两个路径上叠加窄 Worker 路由。匹配到的走 Worker（计数），
+	// 其余请求（升级检查 / latest.json 等）由 R2 直接返回，不唤起 Worker、不耗额度。
+	//
+	// 前置（控制台，务必先做，见 README.md）：
+	//   1) 删除本 Worker 在 dl.windinput.com 上的旧「自定义域」；
+	//   2) 在 R2 → windinput 桶 → Custom Domains 重新绑定 dl.windinput.com。
+	// 之后再 wrangler deploy，wrangler 会创建下面两条路由。
+	//
+	// Worker 路由优先级高于 R2 自定义域：匹配路径归 Worker，未匹配落到 R2。
+	// /api/* 必须纳入，否则 stats 会落到 R2 变 404。
 	"routes": [
 		{
-			"pattern": "dl.windinput.com",
-			"custom_domain": true
+			"pattern": "dl.windinput.com/WindInput-Setup-*",
+			"zone_name": "windinput.com"
+		},
+		{
+			"pattern": "dl.windinput.com/api/*",
+			"zone_name": "windinput.com"
 		}
 	],
 	// bucket_name 必须与主仓 release-published.yml 推送的 R2 桶一致，否则取不到文件。
