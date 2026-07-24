@@ -1,0 +1,20 @@
+{
+  "name": "windinput-dl-worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "清风输入法下载网关 Worker（R2 直出 + D1 下载计数）",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typegen": "wrangler types",
+    "types:check": "tsc --noEmit",
+    "db:init:local": "wrangler d1 execute windinput-downloads --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute windinput-downloads --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "typescript": "^6.0.3",
+    "wrangler": "^4"
+  }
+}

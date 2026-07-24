@@ -1,6 +1,7 @@
 import { Apple, HardDrive, Package } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DownloadStats } from "@/components/download-stats";
 import {
   currentVersion,
   releases,
@@ -83,6 +84,7 @@ export default function DownloadPage() {
           </a>
           （国内访问较慢）
         </p>
+        <DownloadStats />
       </div>
 
       {latest.notes.length > 0 && (

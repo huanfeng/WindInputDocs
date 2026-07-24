@@ -28,3 +28,7 @@ export const currentVersion = releases[0].version;
 export const r2Base = "https://dl.windinput.com";
 export const setupFileName = `WindInput-Setup-${currentVersion}.exe`;
 export const setupDownloadUrl = `${r2Base}/${setupFileName}`;
+
+// 下载计数接口，由 worker/（绑定 dl.windinput.com 的下载网关 Worker）提供。
+// 返回 { total: number, versions: { version, count }[] }。Worker 未部署时前端静默降级。
+export const statsUrl = `${r2Base}/api/stats`;

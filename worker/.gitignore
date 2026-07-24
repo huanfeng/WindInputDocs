@@ -1,0 +1,5 @@
+# worker 独立安装/构建产物，不随文档站一起提交
+node_modules/
+.wrangler/
+worker-configuration.d.ts
+*.log
