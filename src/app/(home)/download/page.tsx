@@ -2,6 +2,7 @@ import { Apple, HardDrive, Package } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DownloadStats } from "@/components/download-stats";
+import { ReleaseNotes } from "@/components/release-notes";
 import {
   currentVersion,
   releases,
@@ -102,11 +103,9 @@ export default function DownloadPage() {
               </time>
             )}
           </div>
-          <ul className="mt-3 list-inside list-disc space-y-1.5 text-sm leading-relaxed text-fd-muted-foreground">
-            {latest.notes.map((n) => (
-              <li key={n}>{n}</li>
-            ))}
-          </ul>
+          <div className="mt-3 text-sm leading-relaxed">
+            <ReleaseNotes notes={latest.notes} />
+          </div>
           <Link
             href="/changelog"
             className="mt-3 inline-block text-sm text-fd-primary hover:underline"

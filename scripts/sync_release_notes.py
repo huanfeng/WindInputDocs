@@ -9,9 +9,9 @@
 约定：
 - Release body 中用 `<!-- user-facing:start -->` / `<!-- user-facing:end -->`
   包裹面向用户的更新说明（主仓侧的既有约定，本脚本不改变它）。
-- 标记块内是 Markdown 列表。站点的 notes 字段是纯文本数组（渲染成扁平 <li>），
-  因此嵌套层级会被拍平，行内标记（粗体/代码/链接）会被剥掉。
-  Release notes 写成单层列表时无损。
+- 标记块是 Markdown。站点的 notes 是字符串数组：标题行保留 `#` 前缀（前端渲染成
+  小节标题），列表项转为纯文本条目。嵌套层级被拍平，行内标记（粗体/代码/链接）被剥掉。
+  Release notes 写成「## 小节 + 单层列表」时无损。
 - 同版本重复同步会覆盖原条目，不会重复插入（幂等）。
 - 没有标记块时仍写入版本条目，只是 notes 为空——下载页的直链只依赖版本号，
   不应被更新说明的有无卡住。但空 notes 不会覆盖已有的非空内容。
@@ -94,16 +94,25 @@ def extract_user_section(body: str) -> str | None:
 
 
 def to_notes(section: str) -> list[str]:
-    """Markdown 段落 → 纯文本条目数组。"""
+    """Markdown 段落 → 条目数组。
+
+    标题行（`#`~`######`）**保留** `#` 前缀，供前端识别并渲染为小节标题；
+    其余列表项 / 引用去掉行首符号，行内标记一律剥掉，得到纯文本条目。
+    列表层级仍被拍平（站点按扁平结构渲染，标题分组即可）。
+    """
     notes = []
     for raw in section.split("\n"):
         line = raw.strip()
         if not line:
             continue
+        if re.match(r"^#{1,6}\s+", line):
+            # 保留 # 前缀（前端据此分组），仅剥掉行内标记
+            line = strip_inline(line)
+            if line:
+                notes.append(line)
+            continue
         # 列表项：去掉任意层级的项目符号（层级被拍平）
         line = re.sub(r"^[-*+]\s+", "", line)
-        # 标题：去掉 # 前缀，保留文字
-        line = re.sub(r"^#{1,6}\s+", "", line)
         # 引用：去掉 > 前缀
         line = re.sub(r"^>\s*", "", line)
         line = strip_inline(line)

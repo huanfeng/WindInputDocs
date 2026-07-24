@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReleaseNotes } from "@/components/release-notes";
 import { releases } from "@/lib/releases";
 import { releasesUrl } from "@/lib/shared";
 
@@ -40,11 +41,9 @@ export default function ChangelogPage() {
             {/* 同步脚本在 Release 未填更新说明时也会写入版本条目（下载页的直链
                 只依赖版本号），因此 notes 可能为空 */}
             {r.notes.length > 0 ? (
-              <ul className="mt-3 list-inside list-disc space-y-1.5 text-fd-muted-foreground">
-                {r.notes.map((n) => (
-                  <li key={n}>{n}</li>
-                ))}
-              </ul>
+              <div className="mt-3">
+                <ReleaseNotes notes={r.notes} />
+              </div>
             ) : (
               <p className="mt-3 text-fd-muted-foreground">
                 本次发布未提供更新说明，详见{" "}
