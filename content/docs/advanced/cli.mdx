@@ -92,8 +92,8 @@ wind_input config import my-config.toml
 | `schema reset <方案id>` | 清除该方案的**全部**定制 |
 | `schema rebuild` | 强制重建全部词库缓存 |
 | `schema dict list <方案id>` | 列出词库及启用状态 |
-| `schema dict enable <方案id> <词库id>` | 启用附加词库 |
-| `schema dict disable <方案id> <词库id>` | 停用附加词库 |
+| `schema dict enable <方案id> <词库id>...` | 启用附加词库（**可一次多个**） |
+| `schema dict disable <方案id> <词库id>...` | 停用附加词库（**可一次多个**） |
 
 ```bat
 wind_input schema list
@@ -102,12 +102,14 @@ wind_input schema get wubi86 engine.codetable.max_code_length
 wind_input schema set wubi86 engine.codetable.max_code_length 4
 wind_input schema dict list wubi86
 wind_input schema dict disable wubi86 wubi86_district
+wind_input schema dict enable wubi86 wubi86_district wubi86_symbol
 wind_input schema rebuild
 ```
 
 几条重要约束：
 
 - **`schema set` 拒绝 `dictionaries` 路径** —— 词库开关请用 `schema dict enable|disable`。词库是数组，点路径到不了，且覆盖层必须保持稀疏形态，否则会把整份词库定义冻结成快照
+- **`schema dict enable|disable` 可一次传多个词库 id** —— 会先整体校验（词库须存在、主库不可停用），**任一非法即中止，不做部分应用**
 - **`schema reset` 不支持单键重置** —— 只能整体清除，传第二个参数会报用法错误
 - **`schema rebuild` 不接受参数** —— 只支持全量重建
 - **值的类型按现有值推断** —— 布尔接受 `true/1/yes/on` 与 `false/0/no/off`；数组与对象需写 JSON；现值为空的键会被拒绝
@@ -173,6 +175,24 @@ wind_input backup restore D:\bak\wind.zip --replace --sections config,phrase
 `inspect` 会打印备份类型、创建时间、平台、版本与条目清单。`restore` 报告已还原项数，有冲突时提示「M 项已存在跳过；用 `--replace` 覆盖」。
 
 还原后部分改动即时刷新，若界面显示异常重启输入法即可。
+
+## 路径与内部目录变量
+
+`dict` / `phrase` / `backup` 的文件参数支持相对路径（相对当前终端的工作目录），也支持内部目录变量——用 `${变量名}` 写法引用输入法自己的目录，无需硬编码安装位置或用户名（脚本跨机可移植）：
+
+| 变量 | 指向 | 典型位置 |
+| --- | --- | --- |
+| `${APP_DIR}` | 程序安装目录（`wind_input.exe` 所在目录） | `C:\Program Files\WindInput` |
+| `${USER_DATA}` | 漫游用户数据目录 | `%APPDATA%\WindInput` |
+| `${LOCAL_DATA}` | 本机用户数据目录（不随漫游同步） | `%LOCALAPPDATA%\WindInput` |
+
+```bat
+wind_input backup create ${LOCAL_DATA}\backups\wind.zip
+wind_input dict export wubi86 ${USER_DATA}\my-words.wdict
+wind_input phrase import .\phrases.wdict
+```
+
+dev 变体（`wind_input_dev.exe`）自动指向 `WindInputDev` 对应目录。变量名拼错或 `${` 未闭合会**报错退出**，不会静默按字面目录写文件。含空格的路径在短语里用 `wind.cli` 时须用多参形式。
 
 ## restart
 

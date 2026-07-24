@@ -176,7 +176,7 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
 | `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
-| `setting.open(page)` / `setting.web(page)` | 打开设置页（`setting.web` 已废弃，会降级为原生设置页） |
+| `setting.open(page)` / `setting.web(page)` | 打开设置的指定页（`page` 见下；`setting.web` 已废弃，等价于 `setting.open`） |
 | `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic` |
 | `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
 | `wind.cli(...)` | **调用命令行子命令**，见下文 |
@@ -184,6 +184,28 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 <Callout type="warn" title="proc.shell 的 flags 暂未区分">
 `term` / `pwsh` 等 flag 参数当前**被忽略**，一律走默认 shell（Windows 为 `cmd /C`）。写了不报错，但不会得到可见 console 或 PowerShell。
 </Callout>
+
+### 打开设置页：`setting.open(page)`
+
+`page` 是目标页的规范 id，直接跳到对应标签页：
+
+| `page` | 页面 |
+| --- | --- |
+| `schema` | 方案 |
+| `input` | 输入 |
+| `keys` | 按键 |
+| `ui` | 外观 |
+| `dict` | 词库 |
+| `advanced` | 高级 |
+| `about` | 关于 |
+| `""`（空串） | 默认页 |
+
+```
+cost = $CC("打开设置", setting.open(""))
+codc = $CC("词库管理", setting.open("dict"))
+```
+
+未知 id 会被设置端忽略并落到默认页。`setting.web(page)` 是等价别名（旧 Web 版设置已废弃）。
 
 ### 撤销上屏：`ime.undo_commit()`
 
