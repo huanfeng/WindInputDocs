@@ -79,10 +79,7 @@ export default function DownloadPage() {
           </Link>
         </div>
         <p className="mt-4 text-sm text-fd-muted-foreground">
-          Cloudflare R2 全球 CDN，国内直连
-        </p>
-        <p className="mt-1 text-sm text-fd-muted-foreground">
-          备用渠道：
+          Cloudflare R2 全球 CDN，国内直连 · 备用渠道：
           <a href={releasesUrl} className="text-fd-primary hover:underline">
             GitHub Releases
           </a>
