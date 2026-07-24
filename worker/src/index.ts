@@ -133,18 +133,14 @@ function resolveRange(
 }
 
 /**
- * 是否算作「一次下载的起点」。
- * - 无 Range：浏览器普通点击下载。
- * - Range 从 0 开始且不是 `bytes=0-0`（下载器常用的 1 字节探测）。
+ * 是否算作「一次下载的起点」：只统计完全不带 Range 的请求。
+ *
+ * 浏览器点击下载的首个请求不带 Range，计 1 次即可。带 Range 的请求一律不计——
+ * 它们要么是下载器的分段/续传，要么是浏览器紧随首个请求发出的可续传二次请求
+ * （`Range: bytes=0-`）。早期把 `bytes=0-` 也计入，导致一次点击被记成 2 次。
  */
 function isDownloadStart(request: Request): boolean {
-  const range = request.headers.get("range");
-  if (!range) return true;
-  const m = /^bytes=(\d+)-(\d*)$/.exec(range.trim());
-  if (!m) return false;
-  const start = Number(m[1]);
-  const end = m[2] === "" ? Number.POSITIVE_INFINITY : Number(m[2]);
-  return start === 0 && end !== 0;
+  return request.headers.get("range") === null;
 }
 
 async function bumpCount(env: Env, version: string): Promise<void> {
