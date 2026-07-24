@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowDownToLine } from "lucide-react";
 import { useEffect, useState } from "react";
 import { currentVersion, statsUrl } from "@/lib/releases";
 
@@ -16,7 +15,8 @@ const fmt = (n: number) => n.toLocaleString("en-US");
  * 纯客户端拉取：静态导出没有服务端，计数是实时变化的，不能在构建期定值。
  * Worker 未部署或请求失败时静默不渲染，不影响页面其余部分。
  *
- * 数据到达后淡入 + 轻微上移，避免数字突然「跳」出来。
+ * 渲染为行内 <span>，追加在「Cloudflare R2 全球 CDN」那一行末尾——不新增块级
+ * 高度，数据到达时只做透明度淡入（不做位移），避免把下方内容顶得抖动。
  */
 export function DownloadStats() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -47,21 +47,16 @@ export function DownloadStats() {
     stats.versions.find((v) => v.version === currentVersion)?.count ?? 0;
 
   return (
-    <div
-      className={`mt-5 flex justify-center transition-all duration-500 ease-out ${
-        shown ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
+    <span
+      className={`transition-opacity duration-500 ${
+        shown ? "opacity-100" : "opacity-0"
       }`}
     >
-      <span className="inline-flex items-center gap-1.5 rounded-full border bg-fd-card/50 px-3 py-1 text-xs text-fd-muted-foreground">
-        <ArrowDownToLine className="size-3.5 text-fd-primary" aria-hidden />
-        本版本{" "}
-        <span className="font-semibold text-fd-foreground">{fmt(current)}</span>
-        <span className="text-fd-muted-foreground/40">·</span>
-        累计{" "}
-        <span className="font-semibold text-fd-foreground">
-          {fmt(stats.total)}
-        </span>
-      </span>
-    </div>
+      {" · 本版本已下载 "}
+      <span className="font-medium text-fd-foreground">{fmt(current)}</span>
+      {" 次，累计 "}
+      <span className="font-medium text-fd-foreground">{fmt(stats.total)}</span>
+      {" 次"}
+    </span>
   );
 }

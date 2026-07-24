@@ -84,8 +84,8 @@ export default function DownloadPage() {
             GitHub Releases
           </a>
           （国内访问较慢）
+          <DownloadStats />
         </p>
-        <DownloadStats />
       </div>
 
       {latest.notes.length > 0 && (
