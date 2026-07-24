@@ -80,7 +80,6 @@ export default function DownloadPage() {
         </div>
         <p className="mt-4 text-sm text-fd-muted-foreground">
           Cloudflare R2 全球 CDN，国内直连
-          <DownloadStats />
         </p>
         <p className="mt-1 text-sm text-fd-muted-foreground">
           备用渠道：
@@ -89,6 +88,7 @@ export default function DownloadPage() {
           </a>
           （国内访问较慢）
         </p>
+        <DownloadStats />
       </div>
 
       {latest.notes.length > 0 && (

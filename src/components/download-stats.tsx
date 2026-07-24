@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowDownToLine } from "lucide-react";
 import { useEffect, useState } from "react";
 import { currentVersion, statsUrl } from "@/lib/releases";
 
@@ -11,26 +12,29 @@ interface Stats {
 const fmt = (n: number) => n.toLocaleString("en-US");
 
 /**
- * 下载量展示。数据来自下载网关 Worker 的 /api/stats。
+ * 下载量徽章。数据来自下载网关 Worker 的 /api/stats。
  * 纯客户端拉取：静态导出没有服务端，计数是实时变化的，不能在构建期定值。
- * Worker 未部署或请求失败时静默不渲染，不影响页面其余部分。
  *
- * 渲染为行内 <span>，追加在「Cloudflare R2 全球 CDN」那一行末尾——不新增块级
- * 高度，数据到达时只做透明度淡入（不做位移），避免把下方内容顶得抖动。
+ * 防抖动：外层容器用 min-h 从一开始就把徽章高度占好，数据到达时徽章只在原位
+ * 做透明度淡入（不做位移、不新增高度），不会把下方内容顶下去。
+ * 仅当请求失败 / Worker 未部署时收起容器（罕见），静默降级。
  */
 export function DownloadStats() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [failed, setFailed] = useState(false);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
     const ac = new AbortController();
     fetch(statsUrl, { signal: ac.signal })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: Stats | null) => {
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("bad status"))))
+      .then((data: Stats) => {
         if (data && typeof data.total === "number") setStats(data);
+        else setFailed(true);
       })
       .catch(() => {
-        // 网络错误 / Worker 未部署：静默降级。
+        // AbortController.abort() 也会走到这里，但组件已卸载，setState 被忽略。
+        setFailed(true);
       });
     return () => ac.abort();
   }, []);
@@ -41,22 +45,31 @@ export function DownloadStats() {
     return () => cancelAnimationFrame(id);
   }, [stats]);
 
-  if (!stats) return null;
+  if (failed) return null;
 
   const current =
-    stats.versions.find((v) => v.version === currentVersion)?.count ?? 0;
+    stats?.versions.find((v) => v.version === currentVersion)?.count ?? 0;
 
   return (
-    <span
-      className={`transition-opacity duration-500 ${
-        shown ? "opacity-100" : "opacity-0"
-      }`}
-    >
-      {" · 本版本已下载 "}
-      <span className="font-medium text-fd-foreground">{fmt(current)}</span>
-      {" 次，累计 "}
-      <span className="font-medium text-fd-foreground">{fmt(stats.total)}</span>
-      {" 次"}
-    </span>
+    <div className="mt-5 flex min-h-7 justify-center">
+      {stats && (
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border bg-fd-card/50 px-3 py-1 text-xs text-fd-muted-foreground transition-opacity duration-500 ${
+            shown ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <ArrowDownToLine className="size-3.5 text-fd-primary" aria-hidden />
+          本版本{" "}
+          <span className="font-semibold text-fd-foreground">
+            {fmt(current)}
+          </span>
+          <span className="text-fd-muted-foreground/40">·</span>
+          累计{" "}
+          <span className="font-semibold text-fd-foreground">
+            {fmt(stats.total)}
+          </span>
+        </span>
+      )}
+    </div>
   );
 }
