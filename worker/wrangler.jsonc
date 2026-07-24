@@ -1,26 +1,34 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "windinput-dl",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-07-01",
-  "observability": { "enabled": true },
-
-  // dl.windinput.com 由「R2 自定义域」改为本 Worker 的自定义域。
-  // 先在 Cloudflare R2 → 该桶 → Settings 里移除 dl.windinput.com 自定义域，
-  // 再 wrangler deploy，wrangler 会据此创建 Worker 自定义域。详见 README.md。
-  "routes": [{ "pattern": "dl.windinput.com", "custom_domain": true }],
-
-  // bucket_name 必须与主仓 release-published.yml 推送的 R2 桶一致，否则取不到文件。
-  "r2_buckets": [
-    { "binding": "BUCKET", "bucket_name": "REPLACE_WITH_R2_BUCKET_NAME" }
-  ],
-
-  // database_id 由 `wrangler d1 create windinput-downloads` 输出后填入。
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "windinput-downloads",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
-    }
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "windinput-dl",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-01",
+	"observability": {
+		"enabled": true
+	},
+	// dl.windinput.com 由「R2 自定义域」改为本 Worker 的自定义域。
+	// 先在 Cloudflare R2 → 该桶 → Settings 里移除 dl.windinput.com 自定义域，
+	// 再 wrangler deploy，wrangler 会据此创建 Worker 自定义域。详见 README.md。
+	"routes": [
+		{
+			"pattern": "dl.windinput.com",
+			"custom_domain": true
+		}
+	],
+	// bucket_name 必须与主仓 release-published.yml 推送的 R2 桶一致，否则取不到文件。
+	"r2_buckets": [
+		{
+			"binding": "BUCKET",
+			"bucket_name": "windinput"
+		}
+	],
+	// database_id 由 `wrangler d1 create windinput-downloads` 输出后填入。
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "windinput-downloads",
+			"database_id": "8296a7fa-7d43-4c6a-af11-d13a6239efdf",
+			"remote": true
+		}
+	]
 }
