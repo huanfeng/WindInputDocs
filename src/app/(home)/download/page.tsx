@@ -89,7 +89,7 @@ export default function DownloadPage() {
       </div>
 
       {latest.notes.length > 0 && (
-        <section className="mt-12 rounded-lg border bg-fd-card/50 p-5">
+        <section className="mt-8 rounded-lg border bg-fd-card/50 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="font-semibold text-fd-foreground">
               本次更新{" "}

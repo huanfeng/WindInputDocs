@@ -51,7 +51,7 @@ export function DownloadStats() {
     stats?.versions.find((v) => v.version === currentVersion)?.count ?? 0;
 
   return (
-    <div className="mt-5 flex min-h-7 justify-center">
+    <div className="mt-3 flex min-h-7 justify-center">
       {stats && (
         <span
           className={`inline-flex items-center gap-1.5 rounded-full border bg-fd-card/50 px-3 py-1 text-xs text-fd-muted-foreground transition-opacity duration-500 ${
