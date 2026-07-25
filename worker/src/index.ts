@@ -133,14 +133,19 @@ function resolveRange(
 }
 
 /**
- * 是否算作「一次下载的起点」：只统计完全不带 Range 的请求。
+ * 是否算作「一次下载的起点」，用于计数。目标是让「浏览器点击下载」与「客户端在线更新」
+ * 各恰好计 1 次。计以下两种请求：
  *
- * 浏览器点击下载的首个请求不带 Range，计 1 次即可。带 Range 的请求一律不计——
- * 它们要么是下载器的分段/续传，要么是浏览器紧随首个请求发出的可续传二次请求
- * （`Range: bytes=0-`）。早期把 `bytes=0-` 也计入，导致一次点击被记成 2 次。
+ * - **无 Range**：浏览器点击下载的首个请求；小安装包（<8MB）的在线更新走单连接下载也无
+ *   Range。浏览器紧随的 `bytes=0-` 可续传请求不算，避免一次点击记 2 次。
+ * - **恰好 `bytes=0-0`**：wind-setting 在线更新对 ≥8MB 的安装包，下载前必定发且只发一次
+ *   `Range: bytes=0-0` 探测服务端是否支持分片；随后的分片 `bytes=X-Y` 不计。以此让
+ *   「分片式在线更新」也计为 1 次下载（在线更新也是用户下载了一次）。
  */
 function isDownloadStart(request: Request): boolean {
-  return request.headers.get("range") === null;
+  const range = request.headers.get("range");
+  if (range === null) return true;
+  return range.trim() === "bytes=0-0";
 }
 
 async function bumpCount(env: Env, version: string): Promise<void> {
