@@ -35,6 +35,7 @@ short_name = "符"                # 模式指示短称（可选；留空取 name
 trigger_keys = ["backslash"]     # 引导键列表（必填，至少一个）
 schema = "quick_symbols"         # 引用的方案 id（必填）
 hotkey = ""                      # 专用直达热键（可选，如 "ctrl+shift+u"；空=不注册）
+show_all_on_enter = false        # 进入模式即展示候选（可选，默认 false，见下文）
 ```
 
 引导键取键名，支持常用符号键，也支持单个字母 `a`–`z`：
@@ -90,6 +91,40 @@ hotkey = ""                      # 专用直达热键（可选，如 "ctrl+shift
 - **手动选择**：始终按数字 / 空格选择，适合需要精确控制时
 
 被引用的方案不会出现在正常的方案切换列表中，只在按下引导键时懒加载触发。方案文件与码表词库的写法见[输入方案管理](/docs/customize/schemas)。
+
+## 精确匹配与空码补全
+
+特殊模式的候选检索是否走**精确匹配**、以及空码时是否**补全后续编码**，同样由被引用方案的 `[engine.codetable]` 决定，规则与该方案作普通方案时完全一致（见[码表引擎配置](/docs/advanced/config/schema#码表引擎schemacodetable)）：
+
+- `single_code_input`：精确匹配模式，关闭前缀枚举，只显示编码完全匹配的候选
+- `single_code_complete`：精确匹配下当前编码无精确候选、但更长前缀有候选时，补一条「首位后续码」。**任意未满码长**都会补（不限某个具体码长），只有打满全码仍无候选时才不补
+
+<Callout type="warn" title="设置工具里的「精准匹配」不会流到特殊模式">
+在设置工具中对**当前码表方案**（如五笔）开启的「精准匹配」，只写入那个方案的覆盖层，**不会自动应用到特殊模式引用的方案**。特殊模式方案若自己没配，会回落到全局基线 `schema.codetable`（其中 `single_code_input` 默认为 `false`），因而表现为「主方案精确匹配、特殊模式却不精确」。
+
+要让某个特殊模式也精确匹配，需在**它引用的方案**上单独开启：改方案文件 `<方案id>.schema.toml` 的 `[engine.codetable]` 段，或用户覆盖层 `schema_overrides/<方案id>.toml` 的 `[codetable]` 段（后者等同设置工具对该方案的写入）。
+</Callout>
+
+例如在被引用方案的 `[engine.codetable]` 段开启精确匹配：
+
+```toml
+[engine.codetable]
+single_code_input = true
+# single_code_complete 全局默认为 true，会自动继承；也可显式写死
+```
+
+## 进入即展示候选
+
+默认情况下，进入特殊模式后候选窗为空，敲入编码才出候选。把该模式的 `show_all_on_enter` 设为 `true`，则**一进入就展示被引用方案码表的候选**，可直接翻页浏览——适合快符、生僻字分类符号这类**小码表**。
+
+展示数量**遵循该方案的 `single_code_input`**：
+
+- **非精确匹配模式**：展示码表首页候选，按[每页候选数](/docs/advanced/config/ui)分页浏览
+- **精确匹配模式**：最多展示 1 条（与 `single_code_complete`「取首位后续码」同语义）
+
+<Callout type="info" title="仅宜小码表">
+`show_all_on_enter` 面向小符号表。若引用的是大码表（成千上万条），进入时会遍历整表取首页，有一定开销，不建议开启。
+</Callout>
 
 ## 候选行为
 
