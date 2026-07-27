@@ -172,6 +172,16 @@ export default function DownloadPage() {
           </li>
         </ul>
       </div>
+
+      {/* 「无数字签名」这条须知正上方就是 SmartScreen 的坑，而代码签名证书恰是赞助
+          资金的首要用途——入口放在这里，用途与痛点自然衔接 */}
+      <p className="mt-8 text-center text-sm text-fd-muted-foreground">
+        清风输入法开源免费。如果它帮到了你，欢迎
+        <Link href="/sponsor" className="text-fd-primary hover:underline">
+          支持这个项目
+        </Link>
+        。
+      </p>
     </main>
   );
 }

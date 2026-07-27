@@ -138,6 +138,23 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* 支持项目。放在特性之后、页面末尾——读者看完项目做了什么，再谈支持 */}
+      <section className="border-t bg-fd-card/50">
+        <div className="mx-auto w-full max-w-5xl px-6 py-12 text-center">
+          <h2 className="text-lg font-semibold">开源免费，由业余时间维护</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-fd-muted-foreground">
+            没有广告、没有内购。一个 Star、一份问题反馈，或是一次小额赞助，
+            都会让它走得更远。
+          </p>
+          <Link
+            href="/sponsor"
+            className="mt-5 inline-block rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-fd-accent"
+          >
+            支持项目
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

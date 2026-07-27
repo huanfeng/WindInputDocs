@@ -13,12 +13,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/docs": 0.9,
     "/download": 0.8,
     "/changelog": 0.5,
+    "/sponsor": 0.4,
   };
 
   const paths = [
     "/",
     "/download",
     "/changelog",
+    "/sponsor",
     ...source.getPages().map((page) => page.url),
   ];
 
