@@ -319,15 +319,34 @@ formula = "AaBaCaZa"
 
 公式语法：`A` / `B` / `C` / `Z` = 第 1、2、3、末个字；`a` / `b` = 该字的第 1、2 个编码（如 `Aa` = 第 1 字第 1 码）。
 
-形码方案还可挂**拆字库**，在候选悬停提示里显示构字信息（路径相对 `data\schemas\`）：
+<Callout type="info" title="行为参数在全局配置">
+上屏策略、调频、造词、模糊音、临时拼音等行为都是全局配置，集中在 `config.toml` 的 `[schema.codetable]` / `[schema.pinyin]` / `[schema.mix]`，不写在方案文件里。自定义短语也是全局共享的，通过设置工具添加，见[自定义短语](/docs/customize/phrases)。
+</Callout>
+
+## 拆字配置（engine.chaizi）
+
+形码方案可挂**拆字库**，在候选悬停提示里显示构字信息。整段配置写在方案文件的 `[engine.chaizi]` 下，路径相对 `data\schemas\`：
 
 ```toml
 [engine.chaizi]
 db_path = "wubi86/wubi86_chaizi.txt"   # 拆字库（字\t字根\t编码）
-font_path = "wubi86/HeiTiZiGen.ttf"    # 字根字体 TTF（可选）
-font_family = "黑体字根"               # 字根字体的 DirectWrite 家族名（可选）
+font_path = "wubi86/HeiTiZiGen.ttf"    # 字根字体 TTF（可选，仅参与导入导出打包）
+font_family = "黑体字根"               # 字根字体的 DirectWrite 家族名（可选，实际渲染依据）
 ```
 
-<Callout type="info" title="行为参数在全局配置">
-上屏策略、调频、造词、模糊音、临时拼音等行为都是全局配置，集中在 `config.toml` 的 `[schema.codetable]` / `[schema.pinyin]` / `[schema.mix]`，不写在方案文件里。自定义短语也是全局共享的，通过设置工具添加，见[自定义短语](/docs/customize/phrases)。
+| 键 | 必填 | 说明 |
+| --- | --- | --- |
+| `db_path` | 是 | 拆字库文件，制表符分隔的三列：`字\t字根\t编码` |
+| `font_path` | 否 | 字根字体 TTF；**只用于导入导出打包**，不参与渲染 |
+| `font_family` | 否 | 字根字体的 DirectWrite 家族名；渲染时的实际依据 |
+
+### 字根字体：font_path 与 font_family
+
+两个字体项的分工与直觉不同，注意区分：
+
+- **`font_path`** —— 在 Windows 上**不会被直接加载渲染**。它只在方案的导入/导出时起作用：导出时把这个 TTF 一并打包进方案压缩包，导入时随方案一起落到用户数据目录。要让字体真正可用，必须把该字体文件**手动安装到系统**（双击 TTF → 安装，或右键「为所有用户安装」）。
+- **`font_family`** —— 决定渲染时实际使用哪套字体，必须填写字体**安装到 Windows 后的家族名**，而不是文件名或文件路径。家族名可在「设置 → 个性化 → 字体」或双击字体文件的预览窗口中查看。
+
+<Callout type="warn" title="字体没装，字根就退回默认字体显示">
+若字体未安装到系统，或 `font_family` 与系统中的家族名不一致，DirectWrite 找不到对应字体，拆字提示会静默回退到默认字体渲染——不会报错，但字根形状是错的。排查时优先核对系统字体列表里的名称拼写（含全角/半角、空格差异）。
 </Callout>
