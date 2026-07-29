@@ -107,6 +107,7 @@ shift_behavior = "temp_english" # Shift 键行为
 trigger_keys = []             # 额外触发键（符号键进入临英）
 allow_symbols = false         # 临英缓冲内允许符号
 space_as_input = false        # 空格作为输入字符而非上屏
+candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布局」）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -117,6 +118,7 @@ space_as_input = false        # 空格作为输入字符而非上屏
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
 | `allow_symbols` | 布尔 | — | `false` | 临英缓冲内是否允许符号字符 |
 | `space_as_input` | 布尔 | — | `false` | 空格是否作为输入字符（而非触发上屏） |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临英期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局)。英文候选一行放得下，全局竖排时常设 `horizontal` |
 
 ## 大写锁定（input.capslock）
 
@@ -137,6 +139,7 @@ cancel_on_mode_switch = false  # 中英模式切换时取消大写锁定
 [input.temp_pinyin]
 enabled = true              # 临时拼音总开关
 trigger_keys = ["backtick"] # 引导键（默认反引号）
+candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布局」）
 # hotkey = ""               # 专用直达热键，预置文件未写，默认空（不注册）
 ```
 
@@ -145,6 +148,45 @@ trigger_keys = ["backtick"] # 引导键（默认反引号）
 | `enabled` | 布尔 | — | `true` | 临时拼音总开关 |
 | `trigger_keys` | 字符串数组 | — | `["backtick"]` | 引导键（如 `backtick` / `z` / `semicolon`），默认反引号 |
 | `hotkey` | 字符串 | — | `""` | 专用直达热键（如 `"ctrl+shift+p"`，空串 = 不注册）；与 `trigger_keys` 引导键共存，热键进入时组合区不写引导符。预置文件未写，默认空 |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临拼期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局) |
+
+## 模式级候选布局
+
+临时拼音、临时英文、网址输入、快捷输入、引导键特殊模式、快捷加词，各有一个同名的 `candidate_layout`，语义完全一致：
+
+| 取值 | 含义 |
+| --- | --- |
+| `follow` | 跟随全局 [`ui.candidate.layout`](/docs/advanced/config/ui)——你改全局，本模式跟着改 |
+| `vertical` | 进入本模式期间强制竖排，退出自动恢复 |
+| `horizontal` | 进入本模式期间强制横排，退出自动恢复 |
+
+它不是布尔开关：`follow` 与 `vertical` 的区别只在**全局本身是竖排时**才显现——前者跟着全局变，后者恒定竖排。也正因如此，才能表达「全局竖排、但临时英文横排」这种组合（英文候选一行放得下，竖排反而占屏）。
+
+各模式的键位置不同：
+
+| 模式 | 配置键 | 出厂默认 | 设置工具 |
+| --- | --- | --- | --- |
+| 临时拼音 | `input.temp_pinyin.candidate_layout` | `follow` | ✅ 下拉 |
+| 临时英文 | `input.temp_english.candidate_layout` | `follow` | ✅ 下拉 |
+| 快捷输入 | `schema.mix_modes` 中 `quick_mix` 的 `candidate_layout` | `vertical` | ✅ 下拉 |
+| 网址输入 | `input.url.candidate_layout` | `follow` | 暂不显示（该模式当前不产出候选） |
+| 特殊模式 | `schema.special_modes[].candidate_layout` | `follow` | 仅配置文件，见[引导键特殊模式](/docs/advanced/config/special-modes#候选窗布局) |
+| 快捷加词 | `input.add_word.candidate_layout` | `vertical` | 仅配置文件 |
+
+快捷输入与特殊模式是**每实例**的——你配了多个融合模式或多个特殊模式时，每个各设各的，互不影响。
+
+## 快捷加词（input.add_word）
+
+按加词热键（默认 `Ctrl+=`）弹出的加词面板，目前只有布局一项可配。
+
+```toml
+[input.add_word]
+candidate_layout = "vertical"   # 加词面板的候选窗布局
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"vertical"` | 加词面板期间的候选窗排列方向。默认竖排——面板是「标题行 + 词行」两行提示，竖排更易读 |
 
 ## 自动配对（input.auto_pair）
 
@@ -175,12 +217,14 @@ jump_out_keys = ["right_symbol"]                   # 跳出配对的按键
 [input.url]
 enabled = false                                # 网址模式总开关
 prefixes = ["www.", "http", "https", "ftp."]    # 触发前缀
+candidate_layout = "follow"                     # 候选窗布局（当前无实际效果，见下）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `false` | 网址输入模式总开关 |
 | `prefixes` | 字符串数组 | — | `["www.", "http", "https", "ftp."]` | 触发前缀（恰好匹配即进入网址模式） |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 见[模式级候选布局](#模式级候选布局)。**当前无实际效果**——网址模式不产出候选，候选窗不出现，故设置工具里也不显示这一项 |
 
 ## 简入繁出（input.s2t）
 

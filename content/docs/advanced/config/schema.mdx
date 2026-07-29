@@ -223,22 +223,34 @@ enable_pinyin_abbrev = true          # 拼音产出简拼候选（声母缩写�
 
 ## 快捷输入（schema.quick_input）
 
-日期 / 计算等内置类方案的配置。
+只放**与候选来源无关**的全局行为，目前仅一个键。
 
 ```toml
 [schema.quick_input]
-enabled = true          # 快捷输入总开关
-force_vertical = true    # 进入快捷输入时强制竖排候选，退出恢复
 decimal_places = 6       # 计算器结果小数位数
-enable_english = true    # 快捷（融合）模式混入英文候选
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `enabled` | 布尔 | — | `true` | 快捷输入总开关 |
-| `force_vertical` | 布尔 | — | `false`（预置为 `true`） | 进入快捷输入时切竖排候选，退出恢复原布局 |
-| `decimal_places` | 整数 | — | `6` | 计算器结果小数位数 |
-| `enable_english` | 布尔 | — | `true` | 快捷（融合）模式是否混入英文候选（低优先级排在拼音后）；独立于 `schema.mix.enable_english` |
+| `decimal_places` | 整数 | — | `6` | 计算器结果小数位数（`0` = 取整） |
+
+快捷输入的其余设置**都不在这一段**，而在内置「快捷」融合模式（`schema.mix_modes` 里 id 为 `quick_mix` 的那一项）上：
+
+| 想改什么 | 去哪 |
+| --- | --- |
+| 开哪些候选来源、优先级 | `members` —— 有无即开关，顺序即优先级 |
+| 候选窗横排 / 竖排 | `candidate_layout` |
+| 触发键 / 禁用整个功能 | `trigger_keys` —— 清空即进不去，故没有单独的总开关 |
+
+<Callout type="warn" title="三个已移除的键">
+旧版本这一段还有 `enabled`、`force_vertical`、`enable_english`，现已全部移除，写在配置里不会有任何效果：
+
+- `enabled` 从未被任何逻辑读取，关掉不产生效果，故删除。禁用改为清空 `quick_mix` 的 `trigger_keys`
+- `force_vertical`（布尔）→ `quick_mix` 的 `candidate_layout`（三态）。它的判定条件本就是「这个融合实例含快捷来源」，属于实例的属性，却被放在了与实例无关的全局段。**存量配置会在启动时自动迁移**：`true` → `vertical`，`false` → `follow`
+- `enable_english` → 改为 `members` 里有没有 `english` 这一项。它与 `members` 曾是双真相源。**存量配置同样自动迁移**：`false` → 从 members 移除 `english`
+
+注意 `schema.mix.enable_english` 是**另一个键**（管混输里的英文候选），仍然有效，没有被删。
+</Callout>
 
 更多用法见[快捷输入](/docs/input/quick-input)。
 
@@ -250,8 +262,16 @@ enable_english = true    # 快捷（融合）模式混入英文候选
 
 | 键 | 类型 | 说明 |
 | --- | --- | --- |
-| `special_modes` | 结构体数组 | 特殊模式列表（各自带码表 + 上屏策略，引导键触发）。子字段见[临时模式](/docs/advanced/config/special-modes) |
-| `mix_modes` | 结构体数组 | 临时混输模式列表（引导键触发，合并多个成员方案的候选）。子字段见[临时模式](/docs/advanced/config/special-modes) |
+| `special_modes` | 结构体数组 | 特殊模式列表（各自带码表 + 上屏策略，引导键触发）。子字段见[引导键特殊模式](/docs/advanced/config/special-modes) |
+| `mix_modes` | 结构体数组 | 临时混输模式列表（引导键触发，合并多个成员方案的候选）。内置一项 `quick_mix` 即[快捷输入](/docs/input/quick-input) |
+
+两者都是**每实例**配置：同一份列表里的不同条目各有自己的引导键、候选来源与 `candidate_layout`，互不影响。
+
+<Callout type="warn" title="这两项不要写进 data/config.toml">
+它们的默认值定义在程序内部。系统预置文件 `data/config.toml` 一旦写出这两个数组，就会**整体替换**内置默认、把当时的定义冻结成快照——日后版本给内置「快捷」加候选来源或改触发键，都会被这份陈旧快照静默遮蔽。
+
+要改就改**用户配置**（`%APPDATA%\WindInput\config.toml`），或直接用设置工具。
+</Callout>
 
 ## 相关阅读
 

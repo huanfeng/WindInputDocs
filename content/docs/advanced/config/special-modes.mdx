@@ -36,6 +36,7 @@ trigger_keys = ["backslash"]     # 引导键列表（必填，至少一个）
 schema = "quick_symbols"         # 引用的方案 id（必填）
 hotkey = ""                      # 专用直达热键（可选，如 "ctrl+shift+u"；空=不注册）
 show_all_on_enter = false        # 进入模式即展示候选（可选，默认 false，见下文）
+candidate_layout = "follow"      # 候选窗布局（可选，默认 follow，见下文）
 ```
 
 引导键取键名，支持常用符号键，也支持单个字母 `a`–`z`：
@@ -124,6 +125,24 @@ single_code_input = true
 
 <Callout type="info" title="仅宜小码表">
 `show_all_on_enter` 面向小符号表。若引用的是大码表（成千上万条），进入时会遍历整表取首页，有一定开销，不建议开启。
+</Callout>
+
+## 候选窗布局
+
+`candidate_layout` 决定**进入本模式期间**候选窗的排列方向，退出后自动恢复：
+
+| 取值 | 含义 |
+| --- | --- |
+| `follow`（默认） | 跟随全局 [`ui.candidate.layout`](/docs/advanced/config/ui)——你改全局，本模式跟着改 |
+| `vertical` | 本模式期间强制竖排 |
+| `horizontal` | 本模式期间强制横排 |
+
+**每个特殊模式各设各的**：快符表可以竖排、生僻字表可以横排，互不影响。
+
+`follow` 与 `vertical` 的区别只在全局本身是竖排时才显现——前者跟着全局变，后者恒定竖排。搭配 `show_all_on_enter = true` 时通常设 `vertical`：一进入就铺开的符号表，竖排一屏能看到更多条目。
+
+<Callout type="info" title="这是所有模式共用的机制">
+临时拼音、临时英文、快捷输入也各有同名的 `candidate_layout`，取值与语义完全一致，只是那三个在设置工具里有下拉可选。特殊模式因为是用户自建的列表，只能在配置文件里写。
 </Callout>
 
 ## 候选行为
