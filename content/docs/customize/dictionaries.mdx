@@ -3,6 +3,8 @@ title: 词库与词频
 description: 管理方案词库与附加词库、维护用户词、调频与候选置顶，以及候选排序的基本原理
 ---
 
+import { Since } from "@/components/since";
+
 打过的字词、手动造的词、调频记录都属于**用户数据**，与方案自带的预置词库分层存放。设置工具的「词库」页面统一管理这些数据，所有修改即时生效。
 
 ## 词库管理界面
@@ -25,6 +27,24 @@ description: 管理方案词库与附加词库、维护用户词、调频与候�
 - 删除、清空等破坏性操作均有二次确认
 
 快捷短语的管理见[自定义短语](/docs/customize/phrases)，本页聚焦方案词库与词频。
+
+### 直接打开到指定方案 <Since v="0.113" /> [#open-at-current-schema]
+
+从输入法菜单选「词库管理」时，直接落在**你当前正在用的那套方案**上，不再停在「快捷短语」让你再选一次。
+
+要跳得更准，可以用命令行参数指定方案与数据类型：
+
+```bat
+wind_setting.exe --page dict --schema wubi86 --type shadow
+```
+
+也可以挂成短语，用编码一键直达：
+
+```
+cods = $CC("五笔候选调整", setting.open("dict", "--schema=wubi86 --type=shadow"))
+```
+
+取值与降级规则见[设置工具的命令行参数](/docs/advanced/cli#dict-deep-link)。
 
 ## 附加词库开关
 

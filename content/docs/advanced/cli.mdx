@@ -3,6 +3,8 @@ title: 命令行工具
 description: 用 wind_input 命令行管理配置、方案、词库、短语与备份，可脚本化批量操作
 ---
 
+import { Since } from "@/components/since";
+
 清风输入法的主程序本身就是命令行工具：不带参数启动时是输入法服务，带子命令时执行一次操作后退出。适合脚本化配置、批量部署与故障排查。
 
 ## 可执行文件
@@ -231,6 +233,48 @@ wind_input restart
 | `127` | `wind_cli.bat` 找不到目标 exe |
 
 特例：`config set` / `import` 在线执行且**全部条目都被跳过**时返回 `1`。
+
+## 设置工具的命令行参数
+
+以上子命令属于主程序 `wind_input.exe`。**设置工具是另一个可执行文件** `wind_setting.exe`（同在安装目录），它不接受上述子命令，只认自己的一组参数——用来在启动时直接定位到某个页面：
+
+| 参数 | 说明 |
+| --- | --- |
+| `--page <id>` / `--<id>` | 定位到指定页：`schema` / `input` / `keys` / `ui` / `dict` / `advanced` / `about` |
+| `--tab <n>` | 定位到第 n 个标签页 |
+| `--light` / `--dark` | 强制明 / 暗主题 |
+
+```bat
+wind_setting.exe --page keys
+wind_setting.exe --about
+```
+
+设置工具是单实例的：已经开着时再执行一次，会激活已有窗口并切到目标页，不会开出第二个窗口。
+
+### 直达词库的指定方案与类型 <Since v="0.113" /> [#dict-deep-link]
+
+`--page dict` 时可再带两个参数，直接落到某个方案的某类数据，省去进页面后手动选两级下拉：
+
+| 参数 | 取值 |
+| --- | --- |
+| `--schema <id>` | 方案 id（如 `wubi86`）、引擎族名（`pinyin` / `codetable` / `mixed`）或 `phrase`（快捷短语） |
+| `--type <id>` | `user-dict`（别名 `dict`）/ `temp` / `freq` / `shadow` / `phrase-system` / `phrase-user` |
+
+两个参数**各自可选**，也可与快捷式 `--dict` 连用：
+
+```bat
+wind_setting.exe --page dict --schema wubi86 --type shadow   :: 五笔的候选调整
+wind_setting.exe --page dict --type freq                     :: 当前数据域的词频
+wind_setting.exe --dict --schema pinyin                      :: 拼音域，子标签沿用上次
+```
+
+双拼等方案在词库页被折叠进「拼音」域，传它们的 id 会落到拼音域。
+
+<Callout type="info" title="定位不了不会报错，只会退一步">
+方案 id 拼错，或该方案没有请求的数据类型（比如**拼音方案没有「候选调整」**），设置工具会落到最接近的位置并弹提示说明，而不是打不开或停在错误的地方。
+</Callout>
+
+这组参数同样可以从[命令直通车](/docs/advanced/command-bar#setting-open-args)里用 `setting.open("dict", "--schema=wubi86 --type=shadow")` 触发，无需自己拼命令行。
 
 ## 在短语中调用
 
