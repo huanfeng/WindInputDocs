@@ -195,6 +195,11 @@ primary = "#0066CC"     # 只改主色，其余外观沿用 default
 process = "Weixin.exe"        # 进程名（不区分大小写）
 comment = "微信 - 使用 rect.top 定位候选框"
 caret_use_top = true          # 使用 caret rect 的 top 而非 bottom 定位候选框
+
+[[apps]]
+process = "Everything.exe"
+comment = "文件搜索框，默认英文"
+initial_mode = "english"      # 进入该应用时初始为英文，之后仍可手动切换
 ```
 
 | 字段 | 类型 | 说明 |
@@ -202,5 +207,20 @@ caret_use_top = true          # 使用 caret rect 的 top 而非 bottom 定位�
 | `process` | string | 进程名，不区分大小写，如 `Notepad.exe` |
 | `comment` | string | 备注说明，仅用于文档与可读性 |
 | `caret_use_top` | bool | 使用 caret rect 的 `top` 而非 `bottom` 定位候选框 |
+| `first_show_mode` | string | 候选框首显策略：`wait`（默认）/ `fast` / `instant` |
+| `initial_mode` | string | 进入该应用时的初始中英状态：`english` / `chinese`；不写＝跟随全局 |
+| `initial_punct` | string | 进入该应用时的初始中英标点，取值同上；不写＝跟随全局 |
 
 `caret_use_top` 适用于 `GetTextExt` 返回的 height 不稳定的 WebView 应用（如微信的 Qt WebView 输入框，height 在 1↔20px 间跳变导致 bottom 漂移，但 top 始终稳定）。清风输入法已内置微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在用户 `compat.toml` 中添加规则；修改后通过托盘菜单的**重载配置**即可生效。
+
+### 应用独立的初始输入状态
+
+`initial_mode` 与 `initial_punct` 让特定应用在获得焦点时自动切到指定状态，适合文件搜索框、终端、代码编辑器这类主要输入英文的场景。
+
+最快的设置方式是**不改文件**：在目标应用里右键点击输入法图标 → **应用独立配置（<进程名>）** → **初始输入模式** → 选择「英文」。菜单会把等效规则写入用户层 `compat.toml` 并立即生效，同一子菜单下还可设置初始标点与候选窗首显策略。选择「跟随全局」即清除该应用的规则。
+
+<Callout type="warn" title="这是「初始值」而不是「锁定」">
+- 每次焦点**从别的应用**切进来时套用一次。停留在该应用期间可以随时手动切换中英文，同一应用内换输入框（例如搜索框与结果列表之间）不会重新套用。
+- 焦点**离开**规则应用后，下一个应用会重新按全局规则决定自己的状态。在出厂默认设置下（`input.default.state_scope = "global"` 且 `remember_last_state = false`），这意味着它回到 `input.default.chinese_mode` 这个默认值，而**不是**它自己上次的状态。若希望每个应用各自精确记住上次状态，请另行设置 `input.default.state_scope = "app"`，两者可以叠加。
+- 没有配置任何 `initial_*` 规则的两个应用之间切换，输入状态一律保持不变，不受本功能影响。
+</Callout>
