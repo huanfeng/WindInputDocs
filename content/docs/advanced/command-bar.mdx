@@ -71,6 +71,11 @@ zzgo = $SS("常用站点", $CC("百度", open("https://baidu.com")), $CC("GitHub
 - **字符串内插**：字符串中用 `{expr}` 内插子表达式，如 `$CC("百度搜 {clip()}", open("https://baidu.com/s?wd={url(clip())}"))`
 - **`$$` 转义**：要输出字面 `$` 就写 `$$`，否则 `$M` 之类会被当模板变量替换。例如 `text = "工资: $$M"` 显示 `工资: $M`
 - **`.` 仅作命名空间**：`.` 只用于函数名分隔（`clip.copy`、`key.tap`），不能取属性或索引。用 `last(1)` 而非 `last.1`，用 `len(code)` 而非 `code.length`
+- **具名参数**：部分函数接受 `名字=值` 形式的可选参数（目前是 `proc.run` 的 `cwd` / `verb` / `show` 和 `proc.shell` 的 `cwd`），如 `proc.run("dict.exe", cwd="D:\\Dict")`。规则三条：必须写在所有位置参数**之后**、同一个名字不能写两次、名字必须是该函数登记过的（写错会报错，不会被当没写过）。值和普通参数一样可以内插，如 `cwd="{clip()}"`。
+
+<Callout type="info" title="`k=v` 与 `{k: v}` 不是一回事">
+`k=v` 是**函数**的参数，管这一次调用；`$CC(..., {prefix: false})` 那种花括号是**短语**的修饰符，管这条候选怎么显示。两者位置和作用对象都不同，写错地方会直接报错而不是悄悄生效。
+</Callout>
 
 ## 路径里的反斜杠要写两个
 
@@ -214,8 +219,8 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | --- | --- |
 | `type(s)` | 经 TSF 上屏文本，不污染剪贴板 |
 | `open(target)` | 打开 URL / 文件 / 程序（http(s) 走浏览器，其他走 ShellExecute） |
-| `proc.run(cmd, ...args)` | 异步启动进程 |
-| `proc.shell(cmdline, flags?)` | 执行 shell 命令，flags 见下 |
+| `proc.run(cmd, ...args, cwd?, verb?, show?)` | 异步启动进程，三个具名参数见下 |
+| `proc.shell(cmdline, flags?, cwd?)` | 执行 shell 命令，flags 见下、`cwd` 见下 |
 | `key.tap(combo)` / `key.seq(...combos)` | 单次按键 / 按键序列 |
 | `key.hold(combo)` / `key.release(combo)` | 按下 / 抬起（须成对使用） |
 | `key.type(text)` | Unicode 直输，绕过键盘布局（走 SendInput，非 TSF） |
@@ -232,6 +237,69 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 
 <Callout type="warn" title="proc.shell 的 flags 暂未区分">
 `term` / `pwsh` 等 flag 参数当前**被忽略**，一律走默认 shell（Windows 为 `cmd /C`）。写了不报错，但不会得到可见 console 或 PowerShell。
+</Callout>
+
+### 工作目录：`cwd=`
+
+被启动的程序**总有一个确定的工作目录**，规则如下：
+
+| 写法 | 工作目录 |
+| --- | --- |
+| `proc.run("D:\\Dict\\dict.exe")` | `D:\Dict`（程序自己所在的目录） |
+| `proc.run("notepad.exe")` | 用户主目录（`%USERPROFILE%`） |
+| `proc.run("x.exe", cwd="D:\\Data")` | `D:\Data` |
+| `proc.shell("dict -q 词")` | 用户主目录 |
+| `proc.shell("dict -q 词", cwd="D:\\Dict")` | `D:\Dict` |
+
+不写 `cwd` 时，`proc.run` 默认取**被启动程序所在的目录**——等同于你在资源管理器里双击它。靠相对路径找数据文件的程序（各类词典、绿色版工具）正是按这个前提写的，所以多数情况下不需要写 `cwd`。
+
+`proc.shell` 是把整条命令行交给 shell，认不出目标程序，所以默认只能落到主目录。**命令里带相对路径就必须显式写 `cwd`。**
+
+`cwd` 支持[内部目录变量](#内部目录变量)，也支持内插：
+
+```
+# 用输入法自己的目录
+cotool = $CC("[跑工具]", proc.run("${APP_DIR}\\tools\\t.exe", cwd="${APP_DIR}\\tools"))
+
+# 查词：词库在程序目录下，靠相对路径加载
+codc = $CC("查 {last(1)}", proc.run("D:\\Dict\\dict.exe", "{last(1)}", cwd="D:\\Dict"))
+```
+
+<Callout type="warn" title="`cwd` 写了个不存在的目录会被忽略">
+此时程序仍会启动，但工作目录退回默认值，只在日志里留一条警告。之所以不直接失败，是因为你的目的是启动程序而不是校验路径——但这也意味着 `cwd` 路径写错时**表面上一切正常**，只是程序又找不到它的数据了。排查这类问题先检查路径拼写和[反斜杠](#路径里的反斜杠要写两个)。
+</Callout>
+
+### 管理员运行与窗口状态：`verb=` `show=`
+
+只对 `proc.run` 有效，且**只在 Windows 生效**（macOS 会忽略并在日志留一条说明）。
+
+| `verb` | 效果 |
+| --- | --- |
+| 省略 | 该文件类型的默认动作 |
+| `open` | 打开 |
+| `runas` | **以管理员身份运行**（会弹 UAC 提示） |
+| `edit` / `print` | 编辑 / 打印 |
+| `explore` / `properties` | 在资源管理器中浏览 / 打开属性对话框 |
+
+| `show` | 效果 |
+| --- | --- |
+| 省略 / `normal` | 正常窗口 |
+| `min` | 最小化启动，且不抢焦点 |
+| `max` | 最大化启动 |
+| `hidden` | 不显示窗口 |
+
+```
+# 以管理员身份跑一个维护脚本
+coadm = $CC("[管理员运行]", proc.run("D:\\tools\\fix.exe", verb="runas"))
+
+# 后台静默启动，不打断当前打字
+cobg = $CC("[后台同步]", proc.run("D:\\tools\\sync.exe", show="hidden", cwd="D:\\tools"))
+```
+
+取值必须是上表里的**小写**词，写错（含大小写不符，如 `verb="RUNAS"`）会直接报错并列出合法取值——这个校验在所有平台一致，所以在 macOS 上写错也会当场发现，不会等到换台 Windows 机器才炸。
+
+<Callout type="warn" title="`hidden` 不会让程序变成后台服务">
+它只是不显示窗口。程序本身如果会弹对话框或自己创建窗口，照样会出现；反过来，一个需要你操作的程序设了 `hidden` 就变成了看不见摸不着的进程，只能去任务管理器结束。
 </Callout>
 
 ### 打开设置页：`setting.open(page)`
