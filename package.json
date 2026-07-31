@@ -20,7 +20,8 @@
     "start": "serve out",
     "types:check": "next typegen && fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
-    "lint": "biome check",
+    "lint": "pnpm lint:mdx && biome check",
+    "lint:mdx": "node scripts/check-mdx.mjs",
     "format": "biome format --write"
   },
   "dependencies": {
