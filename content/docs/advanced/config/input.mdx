@@ -3,10 +3,12 @@ title: 输入行为配置
 description: input 域全部配置项——标点、智能符号、自动配对、临时英文/拼音、网址、简繁、命令栏
 ---
 
+import { Since } from "@/components/since";
+
 `[input]` 域涵盖**输入行为**的方方面面：全局按键语义（回车 / 空格 / 小键盘 / 候选过滤）、启动默认状态、标点与智能符号、自动配对、临时英文 / 临时拼音、网址输入、简入繁出、命令栏与短语前缀。这里的配置与具体方案无关，对所有方案统一生效。
 
 <Callout type="info" title="默认值来源">
-本页默认值以系统预置 `data/config.toml` 的 `[input]` 段为准。未写进预置文件的字段（如 `symbol.smart_method`、`top_commit_mode`、`temp_pinyin.hotkey`），默认值取自程序内置代码默认，已在对应行说明。
+本页默认值以系统预置 `data/config.toml` 的 `[input]` 段为准。未写进预置文件的字段（如 `top_commit_mode`、`temp_pinyin.hotkey`），默认值取自程序内置代码默认，已在对应行说明。
 </Callout>
 
 ## 全局输入行为
@@ -78,22 +80,38 @@ custom_enabled = false    # 自定义标点映射总开关
 
 ## 智能符号（input.symbol）
 
-同一中文标点在时限内连按两次，将前一个删改 / 替换为英文符号。
+同一标点在时限内连按两次，将前一个删改 / 替换为另一种形态。三个总开关互相独立，各管一种上下文，都默认关。
 
 ```toml
 [input.symbol]
-smart_mode = false                       # 智能符号总开关
+smart_mode = false                       # 中文标点状态：连按 → 换英文
 smart_timeout_ms = 500                   # 连按判定时限（毫秒）
 smart_chars = "。，？！：；、～￥·……——"  # 参与转换的中文标点集合
-# smart_method = "hold_composition"      # 替换方案，预置文件未写，取代码默认
+smart_method = "delete_replace"          # 替换方案
+english_punct_mode = false               # 中文输入 + 标点切英文：连按 → 换中文
+english_mode = false                     # 英文输入模式：连按 → 换中文
+english_chars = ".,?!:;"                 # 上面两个英文场景共用的源字符集合
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `smart_mode` | 布尔 | — | `false` | 智能符号模式总开关 |
+| `smart_mode` | 布尔 | — | `false` | 中文标点状态下的智能符号总开关（连按 → 换英文；数字后智能标点场景方向相反） |
 | `smart_timeout_ms` | 整数 | — | `500` | 连按两次的判定时限（毫秒） |
 | `smart_chars` | 字符串 | — | `"。，？！：；、～￥·……——"` | 参与智能符号转换的中文标点集合（子串包含匹配，含成对 / 多字符标点） |
-| `smart_method` | 枚举 | `delete_replace` / `hold_composition` | `"hold_composition"` | 替换方案：`delete_replace` = press1 直接提交中文符号、press2 删改（部分 Chromium 应用光标偏移）；`hold_composition` = press1 开启 TSF 组合态展示中文符号、press2 替换提交英文、超时后自动提交中文无删改（推荐）。预置文件未写，默认取代码 `hold_composition` |
+| `smart_method` | 枚举 | `delete_replace` / `hold_composition` | `"delete_replace"` | 替换方案：`delete_replace` = press1 直接提交中文符号、press2 删改，所见即所得、体感更好，但依赖对宿主做删改（部分 Chromium 应用光标偏移）；`hold_composition` = press1 开启 TSF 组合态展示中文符号、press2 替换提交英文、超时后自动提交中文，全程不删改，兼容性更好 |
+| `english_punct_mode` | 布尔 | — | `false` | 中文输入模式 + 标点切到英文时的智能符号（连按 → 换中文）。用于「用英文标点写中文、偶尔要个中文句号」 |
+| `english_mode` | 布尔 | — | `false` | 英文输入模式下的智能符号（连按 → 换中文） |
+| `english_chars` | 字符串 | — | `".,?!:;"` | 上面两个英文场景**共用**的源字符集合。存**按键本身的 ASCII 标点**（`.` 而非 `。`），与存中文产物的 `smart_chars` 不同 |
+
+### 英文态智能符号 <Since v="0.113" /> [#english-smart-symbol]
+
+`english_punct_mode` 与 `english_mode` 是 0.113 新增的两个开关，方向与 `smart_mode` 相反——**连按英文标点换成中文的**。拆成两个而不是一个，是因为场景不同：前者是「正文是中文、标点用英文，偶尔要个中文句号」，后者是「正在打英文」。多数人只需要前者，英文态保持纯净。
+
+<Callout type="warn" title="english_mode 的影响面更大">
+开启 `english_mode` 后，输入法会把 `english_chars` 里的键**接管**（原本英文半角下这些键直接透传给应用），不接管就到不了引擎。因此它默认关闭。
+
+`english_chars` 里**不建议放配对符**（`(`、`[`、`{`、`"`、`'` 等）：英文模式下这些键被接管后配对改由引擎处理，而输入法 DLL 的跳出栈是空的，Tab 跳出会失效。
+</Callout>
 
 ## 临时英文（input.temp_english）
 
