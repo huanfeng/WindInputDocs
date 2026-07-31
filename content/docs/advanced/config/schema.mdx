@@ -3,6 +3,8 @@ title: 方案与引擎配置
 description: schema 域全部配置项——方案选择、码表与拼音引擎、混输、调频、自动造词
 ---
 
+import { Since } from "@/components/since";
+
 `[schema]` 域管理**方案选择**与**全局引擎基线**。这里配置的码表、拼音、混输等参数是**所有同类方案共用的公共基线**；单个方案若需与基线不同，通过 `schema_overrides/<方案ID>.toml` 逐字段覆盖（仅 `schema.codetable` 支持方案级 override，`schema.pinyin` / `schema.mix` 全局唯一）。方案本身的定义与覆盖机制见[自定义方案](/docs/customize/schemas)。
 
 <Callout type="info" title="默认值来源">
@@ -63,16 +65,45 @@ z_key_repeat = true           # z 键重复输入
 
 ```toml
 [schema.codetable.frequency]
-enabled = false        # 码表调频总开关
-protect_top_n = 1      # 锁定码表原始前 N 位（仅纯码表生效）
-strategy = "top"       # top = 一次到顶 MRU / step = 逐次提升
+enabled = false          # 码表调频总开关
+strategy = "top"         # top = 一次到顶 MRU / step = 逐次提升
+protect_top_n = 0        # 全码位（码长 ≥ 4）锁定原始前 N 位
+protect_top_n_len1 = 1   # 一简位（码长 1）
+protect_top_n_len2 = 1   # 二简位（码长 2）
+protect_top_n_len3 = 0   # 三简位（码长 3）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `false` | 码表调频总开关（取代旧 `user_frequency`） |
-| `protect_top_n` | 整数 | — | `1` | 锁定码表原始前 N 位不被调频挤动，仅纯码表方案生效 |
 | `strategy` | 枚举 | `top` / `step` | `"top"` | 词频应用策略：`top` = 一次到顶 MRU；`step` = 逐次提升 |
+| `protect_top_n` | 整数 | — | `0` | 码长 ≥ 4 的**全码位**锁定原始前 N 位不被调频挤动（`0` = 不保护） |
+| `protect_top_n_len1` | 整数 | — | `1` | 码长 1 的**一简位** |
+| `protect_top_n_len2` | 整数 | — | `1` | 码长 2 的**二简位** |
+| `protect_top_n_len3` | 整数 | — | `0` | 码长 3 的**三简位** |
+
+### 首选保护按码长分级 <Since v="0.113" /> [#protect-by-code-len]
+
+四个 `protect_top_n*` 都只对**纯码表方案**（及混输的码表侧）生效，按**本次输入的码长**决定用哪一档。
+
+0.112 及以前只有一个标量 `protect_top_n`，对所有码长一视同仁，无论取什么值都有一头顾不上：
+
+- 取 `1`（旧出厂值）：一简二简保住了，但**全码位的首选也被永久锁死**，调频只对第 2 位以后有效
+- 取 `0`：全码位调频正常，但**一简二简当场失守**
+
+失守的根源是词库与调频用了两条不同的轴。词库靠权重表达简码的钦定地位（生成时给一简 9999、二简 9950、三简 9000），而调频重排的比较链**不看权重**，只看「有没有被选过」。五笔一简的 25 个编码每个都是二选一（如 `a` → 工 9999 / 戈 9998），次选字被误选一次就永久翻转，且码表侧的「用过」不衰减。
+
+分级后出厂即为：一简、二简保住词库首选，三简与全码位放开——全码位才是调频该起作用的地方。
+
+<Callout type="warn" title="老配置不会自动迁移">
+本次**不做配置迁移**。已经手动开过码表调频的用户，其用户配置里冻结着旧的 `protect_top_n = 1`（配置写回不剔除等于默认的键），全码位仍然锁死，需自行在设置页把「全码位保护前 N 项」改成 `0`。三个新增的分级键在老配置里缺省，会自动取新默认值，故**简码保护对老用户自动生效**。
+
+码表调频出厂 `enabled = false`，没开过的用户不受影响。
+</Callout>
+
+<Callout type="info" title="保护名额只在精确候选里取">
+保护名额从**精确匹配**（编码与输入完全相同）的候选里取，不足则少保护，该码位没有精确候选就不保护。这样名额多于精确候选时，不会把前缀补全出来的长词一并钉死在前面。
+</Callout>
 
 ## 码表自动造词（schema.codetable.auto_phrase）
 
@@ -198,7 +229,7 @@ show_source_hint = false             # 显示候选来源标记
 enable_english = false               # 启用英文候选
 pinyin_only_overflow = true          # 超码长时仅查拼音
 top_code_override_pinyin = false     # 顶码覆盖拼音
-auto_commit_block_on_pinyin = false  # 满码上屏遇拼音候选则否决
+auto_commit_block_on_pinyin = true   # 满码上屏遇拼音候选则否决
 auto_commit_block_on_english = false # 满码上屏遇英文候选则否决
 min_pinyin_length = 2                # 拼音最小触发长度
 min_english_length = 3               # 英文最小触发长度
@@ -213,13 +244,19 @@ enable_pinyin_abbrev = true          # 拼音产出简拼候选（声母缩写�
 | `enable_english` | 布尔 | — | `false` | 启用英文候选 |
 | `pinyin_only_overflow` | 布尔 | — | `true` | 超码长时仅查拼音 |
 | `top_code_override_pinyin` | 布尔 | — | `false` | 顶码偏好：顶码覆盖拼音 |
-| `auto_commit_block_on_pinyin` | 布尔 | — | `false` | 满码上屏遇拼音候选则否决（粗粒度，默认关，细粒度拦截由 `block_commit_on_pinyin_word` 承担） |
+| `auto_commit_block_on_pinyin` | 布尔 | — | `true` | 满码上屏遇拼音候选则否决（粗粒度：只要有拼音候选就拦，不看拼音成不成词）。与细粒度的 `block_commit_on_pinyin_word` 叠加，任一命中即否决。它同时管顶码上屏，也是**满码空码清空**的总闸，见下 |
 | `auto_commit_block_on_english` | 布尔 | — | `false` | 满码上屏遇英文候选则否决（仅 `enable_english` 开时有意义） |
 | `min_pinyin_length` | 整数 | — | `2` | 拼音最小触发长度；`0` = 回退 2 |
 | `min_english_length` | 整数 | — | `3` | 英文最小触发长度；`0` = 回退 3 |
 | `block_commit_on_pinyin_word` | 布尔 | — | `true` | 拼音歧义拦截：整串是强拼音词时否决码表自动 / 顶码上屏（如 wangba→网吧） |
 | `pinyin_word_min_weight` | 整数 | — | `0` | 拼音歧义拦截的词强度权重阈值；`0` = 仅结构判据（≥2 汉字且消费整串） |
 | `enable_pinyin_abbrev` | 布尔 | — | `true` | 混输时拼音是否产出简拼候选（声母缩写）；关闭后混输里拼音只认全拼，候选更干净。仅影响混输的拼音子引擎，纯拼音方案不受影响 |
+
+<Callout type="info" title="auto_commit_block_on_pinyin 也是「满码空码清空」的总闸">
+它开着时，[`schema.codetable.clear_on_empty_max`](#码表引擎schemacodetable) 会被拼音侧拦下：「已有拼音候选」或「拼音还没打完」都不清空。关掉它则拼音不再干预，满码只剩「部分匹配」的拼音候选时即清空（如 `nunl`，候选「嫩」只解释了前 3 码 `nun`）。
+
+仍在打的词不受影响——`wanl` 有前缀补全候选（`wanle` → 完了，消费整串），照常拦住清空。
+</Callout>
 
 ## 快捷输入（schema.quick_input）
 
