@@ -28,6 +28,7 @@ show_source_hint = false           # 显示候选来源标记（码表/拼音）
 min_pinyin_length = 2              # 拼音最小触发长度（0=回退 2）
 pinyin_only_overflow = true        # 超码长时仅查拼音
 enable_english = false             # 启用英文候选
+enable_pinyin_abbrev = true        # 拼音产出简拼候选（nh → 你好）
 ```
 
 | 字段 | 说明 | 出厂默认 |
@@ -36,8 +37,13 @@ enable_english = false             # 启用英文候选
 | `min_pinyin_length` | 拼音最小触发长度（0 回退 2，即 1 码不查拼音） | `2` |
 | `pinyin_only_overflow` | 超码长时仅查拼音 | `true` |
 | `enable_english` | 启用英文候选 | `false` |
+| `enable_pinyin_abbrev` | 拼音是否产出[简拼](/docs/input/pinyin#简拼)候选 | `true` |
 
 打开 `show_source_hint` 后，候选旁会标出它来自码表还是拼音，方便初学者辨认。
+
+关掉 `enable_pinyin_abbrev` 后混输里的拼音只认全拼，候选更干净——简拼会让几乎任何字母串都可能被解释成拼音。它只影响混输的拼音子引擎，纯拼音方案不受影响。
+
+`[schema.mix]` 还有若干控制「码表与拼音谁赢」的拦截开关（`auto_commit_block_on_pinyin`、`block_commit_on_pinyin_word` 等），完整清单见[方案与引擎配置 · 混输](/docs/advanced/config/schema#混输schemamix)。
 
 ## 五笔为何总排在前
 
