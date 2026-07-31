@@ -139,7 +139,7 @@ default_weight = 500            # 该库无权重列，整库定档 500
 | `id` | 词库 ID，全局唯一 |
 | `label` | UI 显示名，留空回退 `id` |
 | `description` | 设置工具开关下方的小字说明 |
-| `path` | 词库文件路径，相对 `data\` / 用户数据根目录 |
+| `path` | 词库文件路径，相对 `schemas\` 目录；用户数据目录下的同名文件优先于程序 `data\`，见[同结构覆盖机制](/docs/advanced/config#同结构覆盖机制) |
 | `type` | `rime_codetable` / `rime_pinyin` / `english`（空 = 回退 `rime_codetable`） |
 | `default` | 是否为主词库；每方案有且仅一个 |
 | `default_enabled` | 附加词库的方案默认启用状态；省略视为未启用 |
@@ -280,7 +280,11 @@ base_sort 选定比较器
 
 ## 差异化覆盖（schema_overrides）
 
-全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。方案设置对话框中的附加词库开关则写入用户数据目录下的 `schemas\<方案ID>.schema.toml`，两者都不会被安装包升级覆盖。
+全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。方案设置对话框中的附加词库开关、双拼布局等也写入这个文件（由设置工具维护，一般无需手改）。它不会被安装包升级覆盖。
+
+<Callout type="info" title="与「整份替换方案文件」的区别">
+`schema_overrides\` 是**逐项深合并**，只表达差异；而在用户数据目录 `schemas\` 下放一个与内置方案同名的 `.schema.toml` 是**整份替换**——内置那份完全不参与。两条路都不会被升级覆盖，但前者能让方案文件的后续更新继续透传。详见[同结构覆盖机制](/docs/advanced/config#同结构覆盖机制)。
+</Callout>
 
 覆盖采用深合并，但有两条例外：
 

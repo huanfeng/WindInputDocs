@@ -136,7 +136,7 @@ import { Since } from "@/components/since";
 
 ## 自定义主题
 
-将主题文件放入 `%APPDATA%\WindInput\themes\<主题名>\theme.toml`，即可在「外观」页的「主题选择」中出现。
+将主题文件放入 `%APPDATA%\WindInput\themes\<主题名>\theme.toml`，即可在「外观」页的「主题选择」中出现。若主题名与内置主题相同（如 `default`），你这份会**整份替换**内置的那个，见[同结构覆盖机制](/docs/advanced/config#同结构覆盖机制)。
 
 <Callout type="info" title="主题文件为 TOML 格式">
 主题文件为 **TOML 格式（v3）**（`theme.toml`）。最省事的做法是**继承一个内置主题，只覆盖需要改动的部分**；复杂的几何与配色建议直接用[主题编辑器](https://theme.windinput.com)可视化制作。
