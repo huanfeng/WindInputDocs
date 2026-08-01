@@ -156,6 +156,7 @@ style = "short"   # 模式标识样式
 enabled = true                # 是否启用状态气泡
 duration = 800                # 自动隐藏时长（毫秒）
 display_mode = "temp"         # 显示模式
+show_on_focus = false         # 切换输入框时也提示一次
 schema_name_style = "full"    # 方案名显示样式
 position_mode = "follow_caret" # 位置模式
 offset_x = 0                  # follow_caret 水平偏移
@@ -170,6 +171,7 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 | `enabled` | 布尔 | — | `true` | 是否启用状态提示气泡（`false` = 完全不显示） |
 | `duration` | 整数 | — | `800` | 自动隐藏时长（毫秒）；`display_mode = "always"` 时忽略 |
 | `display_mode` | 枚举 | `temp` / `always` | `"temp"` | 显示模式：`temp` = 临时（`duration` 后隐藏，默认）；`always` = 常驻（激活 / 获焦时显示，失焦隐藏） |
+| `show_on_focus` | 布尔 | — | `false` | 切换到别的输入框时也提示一次当前状态。仅 `display_mode = "temp"` 下有意义（`always` 本就在获焦时显示）。跟随光标定位下**取不到精确插入点的应用不显示**，详见下方说明 |
 | `schema_name_style` | 枚举 | `full` / `short` | `"full"` | 方案名显示样式：`full` = 全名（默认）；`short` = 图标短称（`icon_label`，无则回退全名） |
 | `position_mode` | 枚举 | `follow_caret` / `fixed` | `"follow_caret"` | 位置模式：`follow_caret` = 跟随光标（默认）；`fixed` = 固定屏幕坐标（`custom_x` / `custom_y`） |
 | `offset_x` | 整数 | — | `0` | `follow_caret` 下相对默认位置（光标下方居中）的水平偏移（像素，正 = 右） |
@@ -180,6 +182,14 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 
 <Callout type="warn" title="程序维护项：status.custom_x / custom_y">
 `ui.status.custom_x` / `custom_y` 仅 `position_mode = "fixed"` 时生效，由用户**拖动气泡时自动落盘**，设置工具刻意不暴露（与 `ui.candidate.custom_x/y` 同一决策）。日常调整位置请用 `offset_x` / `offset_y`。
+</Callout>
+
+<Callout title="show_on_focus 在部分应用里不显示，是刻意的">
+刚切换到一个输入框、还没开始打字时，输入法未必能从应用那里问到精确的插入点位置——某些应用要等第一次输入之后才提供。此时若退而求其次用系统光标，拿到的可能是**别的窗口**残留的位置，气泡就会飘到无关的地方（在 Word 的标题行上实测偏差可达 800 多像素）。
+
+因此跟随光标定位下只在拿到精确位置时才显示：**宁可不提示，也不提示在错的地方**。绝大多数应用能在毫秒级内给出位置，正常都会显示。
+
+如果你所用的应用始终不显示、又确实想要这个提示，把 `position_mode` 改成 `fixed`（或右键气泡勾选「固定位置」）——固定位置不依赖光标，任何应用下都会显示。
 </Callout>
 
 ## 悬停提示（ui.tooltip）
