@@ -121,6 +121,7 @@ Shift + 字母或触发键进入临时英文缓冲，输完自动上屏。
 [input.temp_english]
 enabled = true                # 临时英文总开关
 show_candidates = true        # 显示英文候选
+case_variants = true          # 生成大小写变形候选
 shift_behavior = "temp_english" # Shift 键行为
 trigger_keys = []             # 额外触发键（符号键进入临英）
 allow_symbols = false         # 临英缓冲内允许符号
@@ -132,6 +133,7 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `true` | 临时英文总开关 |
 | `show_candidates` | 布尔 | — | `true` | 显示英文候选 |
+| `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
 | `allow_symbols` | 布尔 | — | `false` | 临英缓冲内是否允许符号字符 |
@@ -192,6 +194,38 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 | 快捷加词 | `input.add_word.candidate_layout` | `vertical` | 仅配置文件 |
 
 快捷输入与特殊模式是**每实例**的——你配了多个融合模式或多个特殊模式时，每个各设各的，互不影响。
+
+## 模式级注释模板
+
+与上面的 `candidate_layout` 同一个思路：各模式可以覆盖[候选注释](/docs/customize/candidate-comment)的模板，
+进入该模式期间生效，退出自动恢复。**仅配置文件，无图形界面。**
+
+```toml
+[input.temp_english]
+comment_template_vertical   = "${dict}"   # 打英文时显示词典释义
+comment_template_horizontal = "${dict}"
+
+[input.temp_pinyin]
+comment_template_vertical   = ""          # 临拼期间不显示注释
+comment_template_horizontal = ""
+```
+
+键名与全局的 `ui.candidate.comment_template_vertical` / `_horizontal` 一致，横竖各配各的，各自三态：
+
+| 状态 | 含义 |
+| --- | --- |
+| **不写该键** | 跟随全局同方向的模板（默认） |
+| 非空字符串 | 本模式期间改用它 |
+| 空串 `""` | 本模式期间不显示注释 |
+
+「不写」与「写空串」是两回事——前者跟随全局，后者明确要求不显示。也因此这两个键
+**不会**出现在出厂 `data/config.toml` 里：写进去就等于给了它一个值，而任何值都不等于「跟随」。
+
+可用位置：`input.temp_english`、`input.temp_pinyin`、`input.url`、
+`schema.mix_modes[]`、`schema.special_modes[]`（后两者每实例独立）。
+快捷加词面板不支持——它走独立绘制路径，本就不渲染注释。
+
+典型用法见[候选注释 · 分模式设置](/docs/customize/candidate-comment#分模式设置)。
 
 ## 快捷加词（input.add_word）
 
