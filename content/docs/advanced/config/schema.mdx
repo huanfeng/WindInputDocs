@@ -66,21 +66,50 @@ z_key_repeat = true           # z 键重复输入
 ```toml
 [schema.codetable.frequency]
 enabled = false          # 码表调频总开关
-strategy = "top"         # top = 一次到顶 MRU / step = 逐次提升
+strategy = "top"         # top = 一次到顶 MRU / step = 逐次提升 / position = 位次渐进
+promote_prefix = "all"   # 补全词参与调频：none / single / all（仅 position 下生效）
 protect_top_n = 0        # 全码位（码长 ≥ 4）锁定原始前 N 位
 protect_top_n_len1 = 1   # 一简位（码长 1）
 protect_top_n_len2 = 1   # 二简位（码长 2）
 protect_top_n_len3 = 0   # 三简位（码长 3）
+# english_code_scope = "candidate"  # 内部项，见下方 Callout
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `false` | 码表调频总开关（取代旧 `user_frequency`） |
-| `strategy` | 枚举 | `top` / `step` | `"top"` | 词频应用策略：`top` = 一次到顶 MRU；`step` = 逐次提升 |
+| `strategy` | 枚举 | `top` / `step` / `position` | `"top"` | 词频应用策略：`top` = 一次到顶 MRU；`step` = 逐次提升；`position` = 位次渐进 <Since v="0.114" /> |
+| `promote_prefix` | 枚举 | `none` / `single` / `all` | `"all"` | 前缀补全候选参与位置提升的范围 <Since v="0.114" />。**仅 `strategy = "position"` 时生效** |
 | `protect_top_n` | 整数 | — | `0` | 码长 ≥ 4 的**全码位**锁定原始前 N 位不被调频挤动（`0` = 不保护） |
 | `protect_top_n_len1` | 整数 | — | `1` | 码长 1 的**一简位** |
 | `protect_top_n_len2` | 整数 | — | `1` | 码长 2 的**二简位** |
 | `protect_top_n_len3` | 整数 | — | `0` | 码长 3 的**三简位** |
+| `english_code_scope` | 枚举 | `candidate` / `input` | `"candidate"` | 英文候选的词频记账码口径。**内部项**，不在设置工具开放 |
+
+### 位次渐进策略 <Since v="0.114" /> [#strategy-position]
+
+`top` / `step` 的本质都是布尔的「用过优先」：用过一次即整体跳到未用过的那批之前，策略只决定已用过的内部怎么排。`position` 换成连续的位次表达：
+
+```text
+目标位次 = 原始位次 / 2^有效使用次数
+```
+
+每用一次前移一半，第 8 位 → 4 → 2 → 1 → 0；久未使用按半衰期回落，累计有效使用不足半次则不提升。**提升速度与候选权重无关**——位次天生归一化，不管两个候选差 486 倍还是 2 倍，第 2 位的都是用一次到首位。
+
+提升**只在来源档内发生**：前缀补全（深档）再怎么提升也跨不到精确全码（浅档）之前，「五笔优先」不受影响。
+
+英文引擎走的正是码表这条重排路径，而英文几乎所有候选都是前缀匹配，布尔闸门下选过一次就顶到最前过于粗暴——**英文方案建议选 `position`**。
+
+`promote_prefix` 的三档语义与拼音侧一致，判据同为**语义单元数**（汉字逐字计、连续西文段整体计 1），详见[拼音调频 · 补全词参与调频](/docs/input/pinyin#promote-prefix)。码表默认 `all` 而拼音默认 `single`，因为码表的前缀补全已由来源档位隔离，无需再按语义单元收窄，也与 `top` / `step` 的历史行为一致，升级后调频范围不会突然变窄。
+
+<Callout type="warn" title="内部项：english_code_scope">
+`schema.codetable.frequency.english_code_scope` 不在设置工具开放，仅可手改 `config.toml`，只影响**英文候选**的词频记账键：
+
+- `candidate`（默认）—— 打 `hel` 选 `hello` 记成 `(hello, hello)`，之后打 `he` 也受益（跨码位共享）
+- `input` —— 记成 `(hel, hello)`，各前缀独立学习（与码表同侧）
+
+英文几乎全是前缀匹配，两种口径各有道理，尚无定论，先留旋钮观察。**码表与拼音的记账口径不受本项影响**：码表恒用输入码，拼音恒用候选码。
+</Callout>
 
 ### 首选保护按码长分级 <Since v="0.113" /> [#protect-by-code-len]
 
@@ -187,22 +216,30 @@ uan_uang = false
 
 ## 拼音调频（schema.pinyin.frequency）
 
-衰减式调频。三个衰减参数为 `0` 时使用词频存储的内置默认值。
+0.114 起为**位置提升**模型：按候选位次前移，不打分。只有 `half_life` 参与（衰减），为 `0` 时用词频存储的内置默认（72 小时）。
 
 ```toml
 [schema.pinyin.frequency]
-enabled = true      # 拼音调频总开关
-# half_life = 0.0   # 半衰期（小时），0 = 用 store 默认
-# base_scale = 0.0  # base 系数，0 = 用 store 默认
-# recency_peak = 0.0 # 最近使用峰值，0 = 用 store 默认
+enabled = true             # 拼音调频总开关
+promote_prefix = "single"  # 补全词参与调频：none / single / all
+# half_life = 0.0          # 半衰期（小时），0 = 用 store 默认（72）
+# base_scale = 0.0         # 当前模型不使用，改动无效
+# recency_peak = 0.0       # 当前模型不使用，改动无效
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `true` | 拼音调频总开关 |
-| `half_life` | 浮点 | — | `0.0` | 半衰期（小时）；`0` = 用 store 默认 |
-| `base_scale` | 浮点 | — | `0.0` | base 系数；`0` = 用 store 默认 |
-| `recency_peak` | 浮点 | — | `0.0` | 最近使用峰值；`0` = 用 store 默认 |
+| `promote_prefix` | 枚举 | `none` / `single` / `all` | `"single"` | 前缀补全候选参与位置提升的范围 <Since v="0.114" />。判据为语义单元数 |
+| `half_life` | 浮点 | — | `0.0` | 半衰期（小时）；`0` = 用 store 默认（72） |
+| `base_scale` | 浮点 | — | `0.0` | ~~base 系数~~ **当前模型不使用**，改动无效果 |
+| `recency_peak` | 浮点 | — | `0.0` | ~~最近使用峰值~~ **当前模型不使用**，改动无效果 |
+
+<Callout type="warn" title="两项已成死链，但没有删除">
+拼音词频从「衰减打分」改为「位置提升」后，`base_scale` 与 `recency_peak` 不再有任何消费者。**保留而非删除**是为了将来若恢复打分模型可直接复用，也避免跨仓改动设置工具的守门测试。写在配置里不会报错，只是没有效果。
+
+模型细节见[词库与词频 · 拼音调频：位置提升模型](/docs/customize/dictionaries#pinyin-positional)。
+</Callout>
 
 ## 拼音自动造词（schema.pinyin.auto_learn）
 
