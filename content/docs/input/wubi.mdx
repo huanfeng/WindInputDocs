@@ -70,8 +70,9 @@ protect_top_n_len1 = 1       # 一简位（1 码）
 protect_top_n_len2 = 1       # 二简位（2 码）
 protect_top_n_len3 = 0       # 三简位（3 码）
 half_life = 0.0              # 位次渐进的热度衰减半衰期（小时），0 = 内置 72 小时
-english_code_scope = "candidate"  # 英文调频记账：candidate（按整词）/ input（按编码）
 ```
+
+英文候选的调频不在这里——它有[自己的配置段](/docs/advanced/config/schema#english)，与码表互不影响。
 
 #### 三种调频策略 <Since v="0.114" /> [#freq-strategy]
 
