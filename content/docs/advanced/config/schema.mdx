@@ -85,7 +85,7 @@ english_code_scope = "candidate"  # 英文调频记账方式：candidate（按�
 | `protect_top_n_len1` | 整数 | — | `1` | 码长 1 的**一简位** |
 | `protect_top_n_len2` | 整数 | — | `1` | 码长 2 的**二简位** |
 | `protect_top_n_len3` | 整数 | — | `0` | 码长 3 的**三简位** |
-| `half_life` | 小数 | — | `0.0` | 调频热度的衰减半衰期（小时）<Since v="0.114" />；`0` = 跟随拼音段。仅 `position` 策略生效 |
+| `half_life` | 小数 | — | `0.0` | 调频热度的衰减半衰期（小时）<Since v="0.114" />；`0` = 内置 72 小时。仅 `position` 策略生效 |
 | `english_code_scope` | 枚举 | `candidate` / `input` | `"candidate"` | 英文候选的词频记账码口径 <Since v="0.114" /> |
 
 ### 位次渐进策略 <Since v="0.114" /> [#strategy-position]
@@ -108,9 +108,9 @@ english_code_scope = "candidate"  # 英文调频记账方式：candidate（按�
 
 设置工具位置：**方案 → 上屏行为 → 词频调整 → 热度衰减半衰期**。**只在 `strategy = "position"` 下生效**（`top` / `step` 直接比使用次数与最近时间，不做衰减），设置页也据此置灰。
 
-它是「热度衰减到一半所需的小时数」：某个词最后一次使用过去越久，它累积的使用次数就越不算数。默认 `0` 表示跟随 `schema.pinyin.frequency.half_life`，那里也是 `0` 时用内置的 72 小时（3 天）。
+它是「热度衰减到一半所需的小时数」：某个词最后一次使用过去越久，它累积的使用次数就越不算数。默认 `0` 表示用内置的 72 小时（3 天）。
 
-与拼音分开配置，是因为两者的合理值本就不同 —— 码表用户的用词集中度通常高于拼音，旧记录该留得久一些。只想统一调一处就保持 `0`。
+**与 `schema.pinyin.frequency.half_life` 完全独立**，不存在互相跟随的关系 —— 两者的合理值本就不同，码表用户的用词集中度通常高于拼音，旧记录该留得久一些。
 
 ### 英文调频记账方式 <Since v="0.114" /> [#english-code-scope]
 
