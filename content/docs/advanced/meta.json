@@ -1,4 +1,4 @@
 {
   "title": "进阶",
-  "pages": ["command-bar", "cli", "config", "backup"]
+  "pages": ["command-bar", "cli", "config", "import-export", "backup"]
 }
