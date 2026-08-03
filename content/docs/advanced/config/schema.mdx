@@ -72,6 +72,7 @@ protect_top_n = 0        # 全码位（码长 ≥ 4）锁定原始前 N 位
 protect_top_n_len1 = 1   # 一简位（码长 1）
 protect_top_n_len2 = 1   # 二简位（码长 2）
 protect_top_n_len3 = 0   # 三简位（码长 3）
+# half_life = 0.0                   # 内部项，见下方 Callout
 # english_code_scope = "candidate"  # 内部项，见下方 Callout
 ```
 
@@ -84,6 +85,7 @@ protect_top_n_len3 = 0   # 三简位（码长 3）
 | `protect_top_n_len1` | 整数 | — | `1` | 码长 1 的**一简位** |
 | `protect_top_n_len2` | 整数 | — | `1` | 码长 2 的**二简位** |
 | `protect_top_n_len3` | 整数 | — | `0` | 码长 3 的**三简位** |
+| `half_life` | 小数 | — | `0.0` | 调频热度的衰减半衰期（小时）<Since v="0.114" />；`0` = 跟随拼音段。**内部项**，仅 `position` 策略生效 |
 | `english_code_scope` | 枚举 | `candidate` / `input` | `"candidate"` | 英文候选的词频记账码口径。**内部项**，不在设置工具开放 |
 
 ### 位次渐进策略 <Since v="0.114" /> [#strategy-position]
@@ -101,6 +103,14 @@ protect_top_n_len3 = 0   # 三简位（码长 3）
 英文引擎走的正是码表这条重排路径，而英文几乎所有候选都是前缀匹配，布尔闸门下选过一次就顶到最前过于粗暴——**英文方案建议选 `position`**。
 
 `promote_prefix` 的三档语义与拼音侧一致，判据同为**语义单元数**（汉字逐字计、连续西文段整体计 1），详见[拼音调频 · 补全词参与调频](/docs/input/pinyin#promote-prefix)。码表默认 `all` 而拼音默认 `single`，因为码表的前缀补全已由来源档位隔离，无需再按语义单元收窄，也与 `top` / `step` 的历史行为一致，升级后调频范围不会突然变窄。
+
+<Callout type="warn" title="内部项：half_life">
+`schema.codetable.frequency.half_life` 不在设置工具开放，仅可手改 `config.toml`，**只在 `strategy = "position"` 下生效**（`top` / `step` 直接比使用次数与最近时间，不做衰减）。
+
+它是「热度衰减到一半所需的小时数」：某个词最后一次使用过去越久，它累积的使用次数就越不算数。默认 `0` 表示跟随 `schema.pinyin.frequency.half_life`，那里也是 `0` 时用内置的 72 小时。
+
+与拼音分开配置，是因为两者的合理值本就不同 —— 码表用户的用词集中度通常高于拼音，旧记录该留得久一些。只想统一调一处就保持 `0`。
+</Callout>
 
 <Callout type="warn" title="内部项：english_code_scope">
 `schema.codetable.frequency.english_code_scope` 不在设置工具开放，仅可手改 `config.toml`，只影响**英文候选**的词频记账键：

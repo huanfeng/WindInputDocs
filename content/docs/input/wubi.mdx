@@ -63,12 +63,24 @@ z_key_repeat = true          # z 键重复上一次上屏
 ```toml
 [schema.codetable.frequency]
 enabled = false              # 启用词频调整
-strategy = "top"             # top（一次到顶 MRU）/ step（逐次提升）
+strategy = "top"             # top（一次到顶 MRU）/ step（逐次提升）/ position（位次渐进）
+promote_prefix = "all"       # 补全词参与调频：none / single / all（仅 position 下生效）
 protect_top_n = 0            # 全码位（4 码及以上）锁定前 N 位不参与调频
 protect_top_n_len1 = 1       # 一简位（1 码）
 protect_top_n_len2 = 1       # 二简位（2 码）
 protect_top_n_len3 = 0       # 三简位（3 码）
+# half_life = 0.0            # 位次渐进的热度衰减半衰期（小时），0 = 跟随拼音段
 ```
+
+#### 三种调频策略 <Since v="0.114" /> [#freq-strategy]
+
+`top` 与 `step` 的本质是同一个：**用过一次就整体跳到没用过的那批之前**，策略只决定已用过的内部按什么排（`top` 按最近、`step` 按次数）。好处是立竿见影，代价是一次误选就把词顶到很显眼的位置。
+
+`position` 换成连续的位次表达 —— 每用一次目标位次前移一半（第 8 位 → 4 → 2 → 1），久未使用按半衰期回落。没有「用过 / 没用过」这道台阶，误选一次只前移一档，用得多才爬得前。
+
+三者都不会破坏「五笔优先」：提升只在同一来源档内发生，补全词再怎么用也跨不到精确全码之前。
+
+配套的 `promote_prefix` 与 `half_life` 只在 `position` 下生效，取值语义见[配置参考 · 码表调频](/docs/advanced/config/schema#strategy-position)。
 
 #### 简码位的首选保护 <Since v="0.113" /> [#short-code-protect]
 
