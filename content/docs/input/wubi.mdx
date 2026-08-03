@@ -69,7 +69,8 @@ protect_top_n = 0            # 全码位（4 码及以上）锁定前 N 位不�
 protect_top_n_len1 = 1       # 一简位（1 码）
 protect_top_n_len2 = 1       # 二简位（2 码）
 protect_top_n_len3 = 0       # 三简位（3 码）
-# half_life = 0.0            # 位次渐进的热度衰减半衰期（小时），0 = 跟随拼音段
+half_life = 0.0              # 位次渐进的热度衰减半衰期（小时），0 = 跟随拼音段
+english_code_scope = "candidate"  # 英文调频记账：candidate（按整词）/ input（按编码）
 ```
 
 #### 三种调频策略 <Since v="0.114" /> [#freq-strategy]
@@ -80,7 +81,7 @@ protect_top_n_len3 = 0       # 三简位（3 码）
 
 三者都不会破坏「五笔优先」：提升只在同一来源档内发生，补全词再怎么用也跨不到精确全码之前。
 
-配套的 `promote_prefix` 与 `half_life` 只在 `position` 下生效，取值语义见[配置参考 · 码表调频](/docs/advanced/config/schema#strategy-position)。
+配套的 `promote_prefix` 与 `half_life` 只在 `position` 下生效，设置页也据此置灰；取值语义见[配置参考 · 码表调频](/docs/advanced/config/schema#strategy-position)与[热度衰减半衰期](/docs/advanced/config/schema#half-life)。
 
 #### 简码位的首选保护 <Since v="0.113" /> [#short-code-protect]
 
