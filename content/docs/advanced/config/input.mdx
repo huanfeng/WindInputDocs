@@ -32,6 +32,14 @@ numpad_behavior = "direct"          # 小键盘按键语义
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 
+<Callout type="info" title="智能档不再「打得越全反而越不出」 (0.114)">
+`smart` 档按「同一来源 + 同一编码」分组，组内有常用词就滤掉非常用词。0.113 及以前，同一个字在不同长度的输入下会落进不同的分组——五笔的「桜」（`sivg`）打 `siv` 能出、打全 `sivg` 反而消失，因为打 `siv` 时同码位的常用字「档」被上游的去重整条丢掉了，「桜」成了孤儿码而被放行。
+
+0.114 让候选记住自己被去重时占用过的**全部码位**，合并到幸存者身上，过滤时一并遮蔽。同一个字打得越全，出的候选只会更少或不变，不会反而多出来。
+
+跨来源的码位**不合并**：码表码与拼音码不同域，混输下 `wang` 两边都合法，合并会给码表凭空造出「该码位有常用字」的假事实、误滤同码的码表生僻字。
+</Callout>
+
 <Callout type="warn" title="内部项：top_commit_mode">
 `input.top_commit_mode` 不在系统预置 `config.toml` 中，也不在设置工具开放，属内部 / 实验字段，仅可手改。`direct_commit`（默认）在顶码时真提交、靠隔一拍消息泵躲开 diff 合并，无下划线歧义、WPS 不清空；`pre_confirm` 留在 TSF 组合态延迟提交，但部分宿主会整段画下划线、WPS 智能标点顶屏会清空。除非排查特定宿主兼容问题，否则无需改动。
 </Callout>
