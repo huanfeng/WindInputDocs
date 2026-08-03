@@ -66,6 +66,26 @@ toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
 | `toggle_full_width` | 热键字符串 | `shift+space` | 切换全角/半角字符输出 |
 | `toggle_punct` | 热键字符串 | `ctrl+.` | 切换中文/英文标点（仅中文模式下生效） |
 | `toggle_s2t` | 热键字符串 | `ctrl+shift+j` | 切换简体/繁体输出（仅中文模式下生效） |
+| `schema_hotkeys` | 表（方案 id → 热键字符串） | `{}` | **方案直达热键**，见下 |
+
+### 方案直达热键 [#schema-hotkeys]
+
+`switch_engine` 是循环切换，方案多了就要按好几次。`schema_hotkeys` 给单个方案绑一个键，按下直接切过去：
+
+```toml
+[keys]
+schema_hotkeys = { english = "ctrl+shift+n", wubi86 = "ctrl+shift+w" }
+```
+
+key 是方案 id（与 `[schema].available` 里的写法一致），value 是热键字符串。设置工具里的位置：**方案 → 输入方案 → 选中方案 → 设置 → 进入方式**。
+
+行为与 `switch_engine` 完全一致——同样遵循「切换时是否上屏」，同样把选择持久化到 `schema.active`。**两种模式下都生效**，这一点和其它中文态专属的快捷键不同：切到英文方案之后，还得能按键切回来。
+
+指向不存在或未启用方案的条目会被安静忽略，不影响其它绑定；目标方案正在后台预热时提示「准备中…」并保持当前方案不变。
+
+<Callout type="info" title="与特殊模式热键的区别">
+`[[schema.special_modes]]` 的 `hotkey` 进的是**临时模式**——打完一段自动退回原方案。`schema_hotkeys` 是**换方案**，不再按一次不会回来。要「临时打几个字符就回来」用前者，要「切过去待一会儿」用后者。
+</Callout>
 
 ## 功能快捷键
 
