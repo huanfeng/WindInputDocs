@@ -11,6 +11,12 @@ description: 用引导键临时进入自建小码表（快符、生僻字等）�
 启用需要你准备**两样东西**：`config.toml` 里的 `[[schema.special_modes]]` 配置块，以及它引用的方案文件与词库。唯一预置的引导键模式是 `;` 触发的「快捷」混输模式，见[快捷输入](/docs/input/quick-input)。
 </Callout>
 
+<Callout type="info" title="引导键可以在设置工具里配">
+方案文件准备好之后，**引导键**这一项不必手写：在方案页勾选「[显示特殊方案](/docs/customize/schemas#special-schemas)」让它出现在列表里，选中后 **设置 → 进入方式 → 引导键** 即可勾选。设置工具会按需新建 `[[schema.special_modes]]` 条目，并保留你手写的其它字段。
+
+条目的其余字段（`show_all_on_enter`、`candidate_layout`、注释模板等）仍需手写。
+</Callout>
+
 工作原理：
 
 1. 按下配置的**引导键**（如 `\`）进入对应特殊模式：编码为空时直接进入；已有候选时先上屏当前高亮候选，再进入模式
@@ -142,7 +148,7 @@ single_code_input = true
 `follow` 与 `vertical` 的区别只在全局本身是竖排时才显现——前者跟着全局变，后者恒定竖排。搭配 `show_all_on_enter = true` 时通常设 `vertical`：一进入就铺开的符号表，竖排一屏能看到更多条目。
 
 <Callout type="info" title="这是所有模式共用的机制">
-临时拼音、临时英文、快捷输入也各有同名的 `candidate_layout`，取值与语义完全一致，只是那三个在设置工具里有下拉可选。特殊模式因为是用户自建的列表，只能在配置文件里写。
+临时拼音、临时英文、快捷输入也各有同名的 `candidate_layout`，取值与语义完全一致，只是那三个在设置工具里有下拉可选。特殊模式因为是用户自建的列表，这一项只能在配置文件里写（引导键除外，见页首）。
 </Callout>
 
 ## 候选行为

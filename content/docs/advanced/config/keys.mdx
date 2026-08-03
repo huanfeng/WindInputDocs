@@ -152,6 +152,15 @@ select_key_groups = ["semicolon_quote"]  # 次选/三选键组
 | `lrshift` | 左 Shift | 右 Shift |
 | `lrctrl` | 左 Ctrl | 右 Ctrl |
 
+<Callout type="info">
+  修饰键组（`lrshift` / `lrctrl`）在**松开**时才选词，且只认「轻敲」——按住超过 500 毫秒、
+  或按下期间碰了别的键，都不算选词。这样 `Ctrl+A`、`Shift+字母` 这类组合才不会被误判成选候选。
+
+  如果同一个键同时配成了中英文切换键（`toggle_mode_keys`），裁决是：**有候选时选词，
+  无候选时切中英文**；候选数量不足以命中该位次时吞掉该键，既不上屏也不切换
+  （修饰键没有对应字符，故不套用 `[keys.overflow]` 的策略）。
+</Callout>
+
 ## 翻页与高亮导航
 
 ```toml
