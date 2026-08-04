@@ -79,3 +79,27 @@ html > body[data-scroll-locked] {
   /* biome-ignore lint/complexity/noImportantStyles: 同上 */
   --removed-body-scroll-bar-size: 0px !important;
 }
+
+/* 技巧轮播条（src/components/tip-ticker.tsx）切换时的淡入。
+   组件给文本块换 key 触发重挂载，动画随之重放——比手动管 opacity 状态少一层
+   定时器。位移只有 4px：轮播条常年停在首屏，幅度再大就成了干扰。 */
+@keyframes tip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tip-enter {
+  animation: tip-enter 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip-enter {
+    animation: none;
+  }
+}

@@ -11,6 +11,7 @@ import Link from "next/link";
 // 从 src/ 静态导入而非放 public/：产物会带内容 hash（/_next/static/media/…），
 // 换图即换 URL，不会被 CDN 的长缓存挡住旧版本。尺寸也由导入对象自带。
 import screenshotCandidates from "@/assets/screenshot-candidates.png";
+import { TipTicker } from "@/components/tip-ticker";
 
 const features = [
   {
@@ -98,6 +99,12 @@ export default function HomePage() {
             className="hero-screenshot relative h-auto rounded-xl shadow-2xl"
           />
         </div>
+      </section>
+
+      {/* 技巧轮播。紧跟截图：看完「长什么样」，接着就是「它还能做什么」。
+          上间距由 hero 的 pb-16 提供，这里只补下间距 */}
+      <section className="mx-auto w-full max-w-5xl px-6 pb-16">
+        <TipTicker />
       </section>
 
       {/* 内置方案 */}

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DownloadStats } from "@/components/download-stats";
 import { ReleaseNotes } from "@/components/release-notes";
+import { TipTicker } from "@/components/tip-ticker";
 import {
   currentVersion,
   releases,
@@ -87,6 +88,9 @@ export default function DownloadPage() {
         </p>
         <DownloadStats />
       </div>
+
+      {/* 技巧轮播。紧接下载按钮：装包的空档正好扫一眼「装完能玩什么」 */}
+      <TipTicker className="mt-10" />
 
       {latest.notes.length > 0 && (
         <section className="mt-8 rounded-lg border bg-fd-card/50 p-5">
