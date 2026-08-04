@@ -355,6 +355,7 @@ decimal_places = 6       # 计算器结果小数位数
 | 候选窗横排 / 竖排 | `candidate_layout` |
 | 触发键 / 禁用整个功能 | `trigger_keys` —— 清空即进不去，故没有单独的总开关 |
 | 自由字面输入 | `free_input` <Since v="0.114" /> —— `off` / `auto` / `always` |
+| 自由输入下 `;` `'` 是字面还是选词 | `free_input_takes_select_keys` <Since v="0.114" /> —— 默认 `true`（字面） |
 
 <Callout type="warn" title="三个已移除的键">
 旧版本这一段还有 `enabled`、`force_vertical`、`enable_english`，现已全部移除，写在配置里不会有任何效果：
@@ -393,6 +394,7 @@ decimal_places = 6       # 计算器结果小数位数
 | `candidate_layout` | 枚举 | `follow` | 进入本实例期间的候选窗布局，退出后恢复 |
 | `comment_template_vertical` / `_horizontal` | 结构体 | 跟随全局 | 本实例期间的候选注释模板覆盖 |
 | `free_input` | 枚举 | `auto` | 自由字面输入：`off` / `auto` / `always` <Since v="0.114" />。见[快捷输入 · 自由字面输入](/docs/input/quick-input#free-input) |
+| `free_input_takes_select_keys` | 布尔 | `true` | 自由输入时把第 2 / 3 候选键（默认 `;` `'`）当作字面字符 <Since v="0.114" />。关掉则它们恢复选词，代价是 `rock'n'roll` 这类内容打不出。数字键 `1`–`9` 始终选词，不受本项影响 |
 
 <Callout type="warn" title="这两项不要写进 data/config.toml">
 它们的默认值定义在程序内部。系统预置文件 `data/config.toml` 一旦写出这两个数组，就会**整体替换**内置默认、把当时的定义冻结成快照——日后版本给内置「快捷」加候选来源或改触发键，都会被这份陈旧快照静默遮蔽。
