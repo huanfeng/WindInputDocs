@@ -106,19 +106,35 @@ candidate_layout = "follow"      # 候选窗布局（可选，默认 follow，�
 - `single_code_input`：精确匹配模式，关闭前缀枚举，只显示编码完全匹配的候选
 - `single_code_complete`：精确匹配下当前编码无精确候选、但更长前缀有候选时，补一条「首位后续码」。**任意未满码长**都会补（不限某个具体码长），只有打满全码仍无候选时才不补
 
-<Callout type="warn" title="设置工具里的「精准匹配」不会流到特殊模式">
-在设置工具中对**当前码表方案**（如五笔）开启的「精准匹配」，只写入那个方案的覆盖层，**不会自动应用到特殊模式引用的方案**。特殊模式方案若自己没配，会回落到全局基线 `schema.codetable`（其中 `single_code_input` 默认为 `false`），因而表现为「主方案精确匹配、特殊模式却不精确」。
+<Callout type="warn" title="特殊方案不继承全局码表配置">
+特殊方案（方案文件标了 `hidden = true` 的那些）折叠 `[engine.codetable]` 时**以内置默认值为基线，不叠加全局 `schema.codetable`**。它们是几十条的小符号表，而全局基线是按五笔那种数万条全码表调的——共用一份的后果是「改五笔的精准匹配，快符跟着变」，而改的人根本意识不到自己动了另一个表。
 
-要让某个特殊模式也精确匹配，需在**它引用的方案**上单独开启：改方案文件 `<方案id>.schema.toml` 的 `[engine.codetable]` 段，或用户覆盖层 `schema_overrides/<方案id>.toml` 的 `[codetable]` 段（后者等同设置工具对该方案的写入）。
+所以设置工具里对五笔开启的「精准匹配」不会流到特殊模式，特殊模式也**不会**拿到全局的 `punct_commit`、`z_key_repeat` 等出厂值。要什么就在**它引用的方案**上显式写：方案文件 `<方案id>.schema.toml` 的 `[engine.codetable]` 段，或用户覆盖层 `schema_overrides/<方案id>.toml` 的 `[codetable]` 段。
 </Callout>
 
-例如在被引用方案的 `[engine.codetable]` 段开启精确匹配：
+特殊方案没写时用的内置默认，与全局出厂值有几处不同：
+
+| 字段 | 内置默认（特殊方案基线） | 全局出厂值 |
+| --- | --- | --- |
+| `top_code_commit` | `false` | `true` |
+| `punct_commit` | `false` | `true` |
+| `single_code_complete` | `false` | `true` |
+| `z_key_repeat` | `false` | `true` |
+| `single_code_input` | `false` | `false` |
+| `show_code_hint` | `true` | `true` |
+
+前四项的差异多半正是你要的——小符号表没有顶码语义，`z` 键重复对它也无意义。需要哪项就显式写：
 
 ```toml
 [engine.codetable]
 single_code_input = true
-# single_code_complete 全局默认为 true，会自动继承；也可显式写死
+# 特殊方案不继承全局，single_code_complete 需一起写出来
+single_code_complete = true
 ```
+
+<Callout type="info" title="single_code_complete 只在精确匹配下有意义">
+它管的是「精确匹配模式下当前编码无精确候选时补一条后续码」。`single_code_input` 关着时这一项不参与判断，故默认路径下 `false` 与 `true` 没有区别；一旦开了精确匹配，就要把它一起写出来。
+</Callout>
 
 ## 进入即展示候选
 
@@ -153,10 +169,30 @@ single_code_input = true
 
 ## 候选行为
 
-特殊模式的候选与主方案完全隔离，且有两点与常规输入不同：
+特殊模式的候选与主方案完全隔离：
 
-- **不做二次排序** —— 候选保持被引用方案的引擎输出顺序。想调整顺序请用该方案自己的 [`base_sort` / `base_order` / `default_weight`](/docs/customize/schemas#排序配置四件套)
+- **调频与候选调整归属特殊方案自身** —— 见下方[调频](#调频)
 - **不做简繁变体展开** —— 即使开启了简繁转换，特殊模式的候选也不会展开繁体变体（临时拼音与快捷输入模式则会）
+
+## 调频 [#调频]
+
+特殊模式的词频记账、候选调整（置顶/删除）都**记在被引用方案自己名下**，与主方案互不干扰——它与五笔是同一层级的东西，只是用特殊按键进入。
+
+**默认不开**。小符号表的顺序往往是作者精心排过的，调频会打乱它。要开就在被引用方案的 `[engine.codetable.frequency]` 段写：
+
+```toml
+[engine.codetable.frequency]
+enabled = true
+strategy = "position"    # 建议：每用一次前移一半，久不用回落
+```
+
+该段**逐字段稀疏**：写出来的覆盖基线，没写的跟随。取值语义与[码表调频](/docs/advanced/config/schema#码表调频schemacodetablefrequency)完全一致。
+
+<Callout type="info" title="这是所有码表方案都有的能力">
+`[engine.codetable.frequency]` 不是特殊方案专属——任何码表方案都能用它给自己单独设一套调频。普通方案的基线是全局 `schema.codetable.frequency`，特殊方案的基线是内置默认。
+</Callout>
+
+想调整的是**初始顺序**而非使用频率，用该方案自己的 [`base_sort` / `base_order` / `default_weight`](/docs/customize/schemas#排序配置四件套)。
 
 引导符只作显示，**不参与检索**：按 `\` 后输入 `bd`，查询的是 `bd` 而不是 `\bd`。
 

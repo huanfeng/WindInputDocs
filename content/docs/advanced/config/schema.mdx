@@ -110,6 +110,21 @@ half_life = 0.0          # 热度衰减半衰期（小时），0 = 内置 72 小
 
 **与 `schema.pinyin.frequency.half_life` 完全独立**，不存在互相跟随的关系 —— 两者的合理值本就不同，码表用户的用词集中度通常高于拼音，旧记录该留得久一些。
 
+### 每方案单独设调频 <Since v="0.114" /> [#per-schema-frequency]
+
+本节的值是**全局基线**。任一码表方案都可以在自己的方案文件里覆盖它：
+
+```toml
+# <方案id>.schema.toml
+[engine.codetable.frequency]
+enabled = true
+strategy = "position"
+```
+
+该段**逐字段稀疏**——写出来的覆盖基线，没写的跟随，字段名与取值和本节完全一致。
+
+同一台机器上不同码表的调频诉求本就不同：五笔要简码位保护，生僻字表要学习，[快符这类小符号表](/docs/advanced/config/special-modes#调频)要的是稳定顺序。基线取自哪里则按方案性质分——普通方案取本节的全局值，特殊方案（`hidden = true`）取内置默认，[不继承全局](/docs/advanced/config/special-modes#精确匹配与空码补全)。
+
 ### 英文 [schema.english] <Since v="0.114" /> [#english]
 
 英文是[可切换方案](/docs/customize/schemas#special-schemas)，有自己的配置段，**不再共用码表那套**——此前英文的调频策略挂在 `schema.codetable.frequency` 下，改它会连带改掉五笔的。设置工具位置：**方案 → 全局方案配置 → 英文方案配置**。
