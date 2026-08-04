@@ -112,29 +112,25 @@ candidate_layout = "follow"      # 候选窗布局（可选，默认 follow，�
 所以设置工具里对五笔开启的「精准匹配」不会流到特殊模式，特殊模式也**不会**拿到全局的 `punct_commit`、`z_key_repeat` 等出厂值。要什么就在**它引用的方案**上显式写：方案文件 `<方案id>.schema.toml` 的 `[engine.codetable]` 段，或用户覆盖层 `schema_overrides/<方案id>.toml` 的 `[codetable]` 段。
 </Callout>
 
-特殊方案没写时用的内置默认，与全局出厂值有几处不同：
+特殊方案没写时用的基线，与全局出厂值只有一处不同：
 
-| 字段 | 内置默认（特殊方案基线） | 全局出厂值 |
+| 字段 | 特殊方案基线 | 全局出厂值 |
 | --- | --- | --- |
-| `top_code_commit` | `false` | `true` |
-| `punct_commit` | `false` | `true` |
-| `single_code_complete` | `false` | `true` |
-| `z_key_repeat` | `false` | `true` |
+| `top_code_commit` | `true` | `true` |
+| `punct_commit` | `true` | `true` |
+| `single_code_complete` | `true` | `true` |
 | `single_code_input` | `false` | `false` |
 | `show_code_hint` | `true` | `true` |
+| **`z_key_repeat`** | **`false`** | `true` |
 
-前四项的差异多半正是你要的——小符号表没有顶码语义，`z` 键重复对它也无意义。需要哪项就显式写：
+`z_key_repeat`（z 键重复上一次上屏）对小符号表没有意义——`z` 在那里多半是个正经编码，故基线关掉它。
+
+其余项与出厂值一致：**「不继承全局」的意义是你改了全局之后特殊方案不跟着变，而不是让它的出厂表现与普通方案不同**。需要与基线不同的就显式写：
 
 ```toml
 [engine.codetable]
 single_code_input = true
-# 特殊方案不继承全局，single_code_complete 需一起写出来
-single_code_complete = true
 ```
-
-<Callout type="info" title="single_code_complete 只在精确匹配下有意义">
-它管的是「精确匹配模式下当前编码无精确候选时补一条后续码」。`single_code_input` 关着时这一项不参与判断，故默认路径下 `false` 与 `true` 没有区别；一旦开了精确匹配，就要把它一起写出来。
-</Callout>
 
 ## 进入即展示候选
 
