@@ -131,7 +131,7 @@ strategy = "position"
 
 ```toml
 [schema.english]
-commit_space = false     # 上屏英文候选后再补一个空格
+commit_space = false     # 上屏一个英文词后再补一个空格
 
 [schema.english.frequency]
 enabled = false          # 英文调频总开关
@@ -143,7 +143,7 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `commit_space` | 布尔 | — | `false` | 上屏英文候选后自动补一个空格，连续打词不必手动按 |
+| `commit_space` | 布尔 | — | `false` | 上屏一个英文词后自动补一个空格，连续打词不必手动按。生效范围见下 |
 | `frequency.enabled` | 布尔 | — | `false` | 英文调频总开关 |
 | `frequency.strategy` | 枚举 | `position` / `top` / `step` | `"position"` | 词频应用策略 |
 | `frequency.promote_prefix` | 枚举 | `none` / `single` / `all` | `"all"` | 前缀补全候选参与位置提升的范围。**仅 `position` 时生效** |
@@ -162,6 +162,13 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 <Callout type="info" title="两个字段的生效范围不同">
 `code_scope` 按**候选来源**生效——混输方案里混进来的英文候选同样按它记账。`commit_space` 则按**当前方案**：只在英文方案下补空格，中文输入中途插个英文词不会平白多出空格。
 </Callout>
+
+`commit_space` 的补空格范围：
+
+- **所有选中方式都补** —— 空格、数字键、次/三选键、鼠标点选，用哪个键选中都一样；
+- **空格上屏原码也补** —— 打了词库里没有的词（自造词、缩写），按空格上屏原文同样补，与选中候选保持一致；
+- **回车上屏原码不补** —— 回车是终结性动作，多伴随换行或提交意图，与「接着打下一个词」的语义相反；
+- **标点键顶屏不补** —— 打 `hello` 直接按 `,` 得到的是 `hello,`，不会被空格断开。
 
 **码表与拼音的记账口径不受 `code_scope` 影响**：码表恒用输入码，拼音恒用候选码。
 
