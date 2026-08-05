@@ -14,7 +14,7 @@ import { Since } from "@/components/since";
 | 输入 | 选中后 |
 | --- | --- |
 | `cobd` | 用默认浏览器打开 baidu.com |
-| `cojk` | 输出 `「」` 并把光标停在中间 |
+| `cojk` | 输出 `「」`，光标停在中间，可用跳出键越过 |
 | `coac` | 把剪贴板内容加入用户词库 |
 | `coen` | 切换中英文模式 |
 
@@ -71,7 +71,7 @@ zzgo = $SS("常用站点", $CC("百度", open("https://baidu.com")), $CC("GitHub
 - **字符串内插**：字符串中用 `{expr}` 内插子表达式，如 `$CC("百度搜 {clip()}", open("https://baidu.com/s?wd={url(clip())}"))`
 - **`$$` 转义**：要输出字面 `$` 就写 `$$`，否则 `$M` 之类会被当模板变量替换。例如 `text = "工资: $$M"` 显示 `工资: $M`
 - **`.` 仅作命名空间**：`.` 只用于函数名分隔（`clip.copy`、`key.tap`），不能取属性或索引。用 `last(1)` 而非 `last.1`，用 `len(code)` 而非 `code.length`
-- **具名参数**：部分函数接受 `名字=值` 形式的可选参数（目前是 `proc.run` 的 `cwd` / `verb` / `show` 和 `proc.shell` 的 `cwd`），如 `proc.run("dict.exe", cwd="D:\\Dict")`。规则三条：必须写在所有位置参数**之后**、同一个名字不能写两次、名字必须是该函数登记过的（写错会报错，不会被当没写过）。值和普通参数一样可以内插，如 `cwd="{clip()}"`。
+- **具名参数**：部分函数接受 `名字=值` 形式的可选参数（目前是 `proc.run` 的 `cwd` / `verb` / `show`、`proc.shell` 的 `cwd`，以及 `ime.pair` 的 `jump`），如 `proc.run("dict.exe", cwd="D:\\Dict")`。规则三条：必须写在所有位置参数**之后**、同一个名字不能写两次、名字必须是该函数登记过的（写错会报错，不会被当没写过）。值和普通参数一样可以内插，如 `cwd="{clip()}"`。
 
 <Callout type="info" title="`k=v` 与 `{k: v}` 不是一回事">
 `k=v` 是**函数**的参数，管这一次调用；`$CC(..., {prefix: false})` 那种花括号是**短语**的修饰符，管这条候选怎么显示。两者位置和作用对象都不同，写错地方会直接报错而不是悄悄生效。
@@ -135,8 +135,8 @@ cogh = $CC("打开 GitHub", open("https://github.com"))
 cobs = $CC("百度搜 · {clip()}", search("baidu", clip()))
 cozd = $CC("汉典 · {last()}", open("https://www.zdic.net/hans/{url(last())}"))
 
-# 配对符号 + 光标回中
-cojk = $CC("「」", type("「」"), key.tap("Left"))
+# 配对符号（光标落两段之间，可用跳出键越过右段）
+cojk = $CC("「」", ime.pair("「", "」"))
 
 # 删除当前行
 codl = $CC("[删行]", key.seq("Home", "Shift+End", "Backspace"))
@@ -230,6 +230,7 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
 | `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
+| `ime.pair(left, right, jump?)` | **上屏配对符号**：光标落两段之间，可用跳出键越过右段，见下文 |
 | `setting.open(page, args?)` / `setting.web(page, args?)` | 打开设置的指定页（`page` 见下；`args` 为附加命令行参数；`setting.web` 已废弃，等价于 `setting.open`） |
 | `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic` |
 | `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
@@ -338,6 +339,44 @@ copy = $CC("拼音词频", setting.open("dict", "--schema=pinyin --type=freq"))
 
 <Callout type="info" title="含空格的值要自己加引号">
 参数串会被重新切分成多个参数，`--text=你 好` 会断在空格处。含空格的值请写成 `--text="你 好"`。
+</Callout>
+
+### 配对符号：`ime.pair(left, right, jump?)`
+
+上屏 `left + right`、光标落在两段之间，并把这一层压入配对状态——之后按**跳出键**（在设置里配的 Tab / Enter）就能越过右段，和自动配对打出来的括号完全一样。
+
+```
+cojk = $CC("「」", ime.pair("「", "」"))
+cozs = $CC("注释", ime.pair("<!--", "-->"))
+```
+
+两段都可以是任意文本，不限于单个符号：
+
+```
+输入后：  <!--|-->
+按 Tab：  <!---->|
+```
+
+**`jump`：跳出时光标右移的格数。** 省略时按右段的字符数推导（`"-->"` → 3），一般不用写。它存在是因为跳出靠合成方向键，而"一次右键越过多少内容"是宿主行为——多数宿主一次跨整个 emoji，少数按编码单元走。若在某个程序里发现跳出后光标位置差了几格，用它手动校准：
+
+```
+cozs = $CC("注释", ime.pair("<!--", "-->", jump=3))
+```
+
+**分级跳出**：同一条词条里写多个 `ime.pair` 即可，无需额外语法。后写的是内层，跳出时也先出内层：
+
+```
+cokh = $CC("（【】）", ime.pair("（", "）"), ime.pair("【", "】"))
+
+输入后：  （【|】）
+按 Tab：  （【】|）     ← 出内层
+按 Tab：  （【】）|     ← 出外层
+```
+
+<Callout type="warn" title="受「标点配对」总开关约束">
+`ime.pair` 跟着**设置 → 标点配对**的开关走（中文模式看中文配对、英文模式看英文配对）。关掉时它退化为纯上屏：整串照常上屏，但光标落在末尾、也不能跳出。
+
+另外，「输入右符号跳出」对它不生效——那条路径只认单个标点按键。`ime.pair` 压入的配对只能用 Tab / Enter 跳出。
 </Callout>
 
 ### 撤销上屏：`ime.undo_commit()`
