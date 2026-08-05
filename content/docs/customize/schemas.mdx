@@ -20,10 +20,16 @@ import { Since } from "@/components/since";
 | 操作 | 说明 |
 | --- | --- |
 | ↑ / ↓ | 调整已启用方案的顺序，「切换输入方案」快捷键按此顺序循环 |
-| 设置 | 打开方案设置对话框（[切换热键](#schema-hotkey)、双拼布局、[附加词库](/docs/customize/dictionaries)开关） |
+| 设置 | 打开方案设置对话框（[切换热键](#schema-hotkey)、[引导键](#special-schemas)、[码表配置](#schema-codetable)、双拼布局、[附加词库](/docs/customize/dictionaries)开关） |
 | 删除 | 删除用户方案（内置方案不可删除），同时清理其词库数据与未被共享的资源文件 |
 | 刷新 | 重新加载方案列表 |
 | 导入 / 导出 | 见下文[导入与导出方案](#导入与导出方案) |
+
+<Callout type="info" title="方案设置对话框的「保存」按钮">
+对话框里的全部改动——切换热键、引导键、码表配置、双拼布局、附加词库——点左下角的「**保存**」一次落地，不必再回主界面点「应用设置」。
+
+它背后写两个地方：热键这类进 `config.toml`，码表配置与词库开关进 `schema_overrides\<方案id>.toml`。**顺带也会提交你在其它设置页面的未保存改动**——它调用的就是主界面那个「应用设置」。
+</Callout>
 
 也可以直接编辑 `%APPDATA%\WindInput\config.toml`：
 
