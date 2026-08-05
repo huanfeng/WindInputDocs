@@ -295,6 +295,39 @@ promote_prefix = "single"  # 补全词参与调频：none / single / all
 模型细节见[词库与词频 · 拼音调频：位置提升模型](/docs/customize/dictionaries#pinyin-positional)。
 </Callout>
 
+## 拼音词组补全（schema.pinyin.completion）
+
+```toml
+[schema.pinyin.completion]
+min_syllables = 2         # 至少输入几个音节才给词组候选
+max_extra_syllables = 3   # 词组最多比输入多几个音节
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `min_syllables` | 整数 | `1`–`4` | `2` <Since v="0.114" /> | 至少输入几个音节才给出词组候选；`1` = 不限制 |
+| `max_extra_syllables` | 整数 | `0`–`6` | `3` <Since v="0.114" /> | 词组最多比已输入内容多几个音节 |
+
+两项约束的都是**词组补全**——即码比输入长、引擎在预测你尚未输入的音节的那些候选。精确匹配、分段子词、整句、简拼一律不受影响，它们没有预测成分。
+
+判据的尺子是**输入自身的音节数**：完整音节数 + （有未成音节的尾部字母则算起头的一个）。所以 `dian` 算 1 个音节，`dianh`（`dian` + 残码 `h`）算 2 个。
+
+<Callout title="为什么默认打一个音节不出词组">
+打 `d` 或 `dian` 时若给出「但是」「电话」这类词组，它们会与同音字混排并占据前几页——主流拼音输入法在这一档同样只给单字。`min_syllables = 2` 即表示打到第二个音节才开始预测词组。
+
+注意「堤岸」在 `dian` 下**仍会出现**：它的编码恰好就是 `dian`（切分为 `di|an`），属于精确匹配而非预测。
+</Callout>
+
+<Callout type="warn" title="max_extra_syllables 是口味取舍，没有两全值">
+数值越大，引擎越敢预测你还没打的内容：
+
+- `1` —— `nih` 只给「你好」「你会」，不给 4 音节的「你会发现」
+- `3`（默认）—— `zhongguorenm` 仍能补出「中国人民解放军」
+- `4` 起 —— `zhonghuar` 才能补出「中华人民共和国」
+
+难点在于「你会怎么做」与「中国人民解放军」的超出音节数完全相同（都是 3），词频也无法区分（前者反而更高），因此不存在既滤掉噪音又保留长专名的数值。按自己的输入习惯选。
+</Callout>
+
 ## 拼音自动造词（schema.pinyin.auto_learn）
 
 ```toml
