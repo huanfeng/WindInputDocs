@@ -132,7 +132,8 @@ show_candidates = true        # 显示英文候选
 case_variants = true          # 生成大小写变形候选
 shift_behavior = "temp_english" # Shift 键行为
 trigger_keys = []             # 额外触发键（符号键进入临英）
-allow_symbols = false         # 临英缓冲内允许符号
+allow_symbols = false         # 临英缓冲内允许符号与数字（总开关）
+symbol_chars = "0123456789+-_.@#/"  # 放行哪些字符（白名单，逐字符）
 space_as_input = false        # 空格作为输入字符而非上屏
 candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布局」）
 ```
@@ -144,7 +145,8 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
-| `allow_symbols` | 布尔 | — | `false` | 临英缓冲内是否允许符号字符 |
+| `allow_symbols` | 布尔 | — | `false` | 总开关：符号与数字是否直接进入临英缓冲，而非上屏退出或选词。放行哪些字符由 `symbol_chars` 决定 |
+| `symbol_chars` | 字符串 | — | `"0123456789+-_.@#/"` | 允许进入缓冲的字符白名单<Since v="0.115" />，**逐字符字面匹配**，不支持 `a-z` 这类范围写法。未列入的字符保持原有职责（详见[临时英文的字符白名单](/docs/input/temp-modes#temp-english-symbol-chars)）。留空则一个都不放行 |
 | `space_as_input` | 布尔 | — | `false` | 空格是否作为输入字符（而非触发上屏） |
 | `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临英期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局)。英文候选一行放得下，全局竖排时常设 `horizontal` |
 
