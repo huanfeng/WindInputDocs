@@ -42,6 +42,8 @@ show_code_hint = true         # 显示编码提示
 single_code_input = false     # 精确匹配模式（关闭前缀匹配）
 single_code_complete = true   # 精确匹配空码补全（无候选时从更长编码取首选）
 z_key_repeat = true           # z 键重复输入
+input_chars = ""              # 码元字符集：哪些字符可进输入缓冲；空 = a-z
+leading_chars = ""            # 可作第一码的字符（码元字符集的子集）；空 = 与 input_chars 相同
 # auto_commit_min_len = 0     # 隐藏项，见下方 Callout
 ```
 
@@ -56,9 +58,48 @@ z_key_repeat = true           # z 键重复输入
 | `single_code_input` | 布尔 | — | `false` | 精确匹配模式，关闭前缀匹配 |
 | `single_code_complete` | 布尔 | — | `true` | 精确匹配空码补全：无候选时从更长编码取首选 |
 | `z_key_repeat` | 布尔 | — | `false`（预置为 `true`） | z 键重复输入 |
+| `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
+| `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
 
 <Callout type="warn" title="隐藏项：auto_commit_min_len">
 `schema.codetable.auto_commit_min_len` 不在设置工具中开放，仅可通过 `config.toml` 手改。`0` 表示等于全码长（默认行为）。
+</Callout>
+
+### 码元字符集（input_chars / leading_chars）
+
+默认情况下只有 26 个字母算「输入码」，按下别的键就走标点、选词或直接上屏。码表方案若需要
+别的字符参与编码——比如词库里有 `Win10` 这类词条、或有含 `/` 的编码——用这两项声明。
+
+写法是**范围 + 字面**的组合，大小写不敏感：
+
+| 写法 | 含义 |
+| --- | --- |
+| `a-x` | 只有 a 到 x 是码元（五笔严格集，`y`/`z` 不进缓冲） |
+| `a-x/` | 上述再加一个 `/` |
+| `a-z0-9` | 字母加数字 |
+| `-a-z` / `a-z-` | `-` 写在首位或末位时作字面字符 |
+
+`leading_chars` 单独声明**哪些字符能起头**。典型用法是让数字能作码元但不能作第一码：
+
+```toml
+[engine.codetable]
+input_chars = "a-z0-9"
+leading_chars = "a-z"
+```
+
+这样打 `win10` 时 `1`、`0` 会正常进入编码，但空编码时按数字键仍是选词或输出数字本身——
+两种用法都保住了。
+
+<Callout type="warn" title="这些字符会从原有功能手里抢走按键">
+编码输入期间，码元字符**优先于**选词键、翻页键、以词定字键和数字选词。例如把 `;` 配成码元后，
+编码输入时按 `;` 是打码而不是选第二个候选。
+
+若某字符还写进了 `leading_chars`，它连**空编码时**也归码表，那些以它作引导键的功能
+（快捷输入、临时拼音/英文、特殊模式）就再也进不去了。想两者共存，把该字符排除出
+`leading_chars` 即可——它便只在编码输入途中作码元。
+
+存在冲突时启动日志会逐条告警并提示改法。字符集写错（如 `z-a` 这种逆序）不会让输入法失灵，
+会回落到默认 `a-z` 并记录告警。
 </Callout>
 
 ## 码表调频（schema.codetable.frequency）

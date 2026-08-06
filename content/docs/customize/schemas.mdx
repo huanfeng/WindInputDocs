@@ -151,6 +151,8 @@ layout = "xiaohe"               # xiaohe / ziranma / mspy / sogou / abc / ziguan
 [engine.codetable]
 max_code_length = 4             # 最大码长（0 = 回退 4）
 base_sort = "weight"            # 基础排序维度，见下文「排序配置」
+input_chars = ""                # 码元字符集（空 = a-z），见下文「码元字符集」
+leading_chars = ""              # 可作第一码的字符（空 = 同 input_chars）
 
 # 混合引擎（五笔优先、拼音兜底）
 [engine.mixed]
@@ -158,6 +160,43 @@ primary_schema = "wubi86"       # 主方案（码表）
 secondary_schema = "pinyin"     # 辅助方案（拼音）
 codetable_weight_boost = 10000000  # 码表精确匹配提权基线（0 = 回退 10_000_000）
 ```
+
+### 码元字符集 <Since v="0.114" /> [#input-chars]
+
+默认只有 26 个字母算「输入码」，按别的键就走标点、选词或直接上屏。方案的编码里若含别的字符，
+用 `input_chars` 声明：
+
+```toml
+[engine.codetable]
+input_chars = "a-x"     # 五笔严格集：y、z 不进编码
+input_chars = "a-x/"    # 再加一个 /，供 /test 这类词条
+input_chars = "a-z0-9"  # 字母加数字，词库里有 Win10 这类词条时需要
+```
+
+写法是**范围 + 字面**的组合，大小写不敏感；`-` 写在首位或末位时作字面字符（`a-z-`）。
+不在集内的字符按下时会终结当前编码：先上屏当前候选，再输出该字符本身。
+
+**数字通常要配 `leading_chars`**。数字键在空编码时是选词键，直接让它作码元会把这个用法整个占掉：
+
+```toml
+[engine.codetable]
+input_chars = "a-z0-9"
+leading_chars = "a-z"   # 数字能作码元，但不能起头
+```
+
+这样 `win10` 里的 `1`、`0` 正常进编码，而空编码时按数字键仍是选词或输出数字。
+
+<Callout type="warn" title="码元会从原有功能手里抢走按键">
+编码输入期间，码元字符优先于选词键、翻页键、以词定字键和数字选词。把 `;` 配成码元后，
+编码输入时按 `;` 就是打码而非选第二个候选。
+
+写进 `leading_chars` 的字符连**空编码时**也归码表，以它作引导键的功能（快捷输入、临时拼音／英文、
+特殊模式）便进不去了。想两者共存，把它排除出 `leading_chars`——它就只在编码输入途中作码元。
+有冲突时启动日志会逐条告警并给出改法。
+</Callout>
+
+字符集写错（如 `z-a` 逆序、含空格）不会让方案失灵，会回落默认 `a-z` 并记录告警。
+完整字段说明见[配置参考](/docs/advanced/config/schema#码表引擎schemacodetable)。
 
 ### 词库配置
 
