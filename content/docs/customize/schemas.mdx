@@ -200,7 +200,7 @@ leading_chars = "a-z"   # 数字能作码元，但不能起头
 
 ### 词库配置
 
-每个方案的 `dictionaries` 数组列出所有词库，分两类：**主词库**仅 1 个（`default = true`，始终启用），**附加词库**任意多个（可被用户独立开关）。
+码表、拼音、英文方案用 `dictionaries` 数组列出自己的所有词库，分两类：**主词库**仅 1 个（`default = true`，始终启用），**附加词库**任意多个（可被用户独立开关）。
 
 ```toml
 [[dictionaries]]
@@ -235,13 +235,17 @@ default_weight = 500            # 该库无权重列，整库定档 500
 | `description` | 设置工具开关下方的小字说明 |
 | `path` | 词库文件路径，相对 `schemas\` 目录；用户数据目录下的同名文件优先于程序 `data\`，见[同结构覆盖机制](/docs/advanced/config#同结构覆盖机制) |
 | `type` | `rime_codetable` / `rime_pinyin` / `english`（空 = 回退 `rime_codetable`） |
-| `default` | 是否为主词库；每方案有且仅一个 |
+| `default` | 是否为主词库；每个带词库的方案有且仅一个 |
 | `default_enabled` | 附加词库的方案默认启用状态；省略视为未启用 |
 | `enabled` | 用户覆盖启用状态，由设置工具写入；未设时继承 `default_enabled` |
 | `base_order` | 该库的层级基序档位，见下文[排序配置](#排序配置四件套) |
 | `default_weight` | 整库权重硬覆盖，见下文[排序配置](#排序配置四件套) |
 
 启用判定优先级：**`enabled` > `default_enabled` > 主词库始终启用**。
+
+<Callout type="info" title="混输方案不写 dictionaries">
+混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库——要调整词库请改被引用的码表 / 拼音方案。详见[混合输入 · 混输方案自己没有词库](/docs/input/mixed#no-own-dict)。
+</Callout>
 
 <Callout type="warn" title="weight_spec 尚未接线">
 方案文件里可能出现 `[dictionaries.weight_spec]`（`median` / `max` / `mode` 等）。它**当前不被读取**，仅作为词库权重分布的事实记录供方案作者查阅。跨库权重归一化尚未实现，现阶段用 `default_weight` + `base_order` 手工校准。
