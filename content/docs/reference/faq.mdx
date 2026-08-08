@@ -50,7 +50,7 @@ description: 清风输入法安装、使用、双拼、词库备份、外观与�
 
 ### 如何切换中英文？
 
-按 `Shift` 即可在输入法内切换中英文模式（默认左右 Shift 均可）。也可用系统的 `Ctrl + Shift` 在不同输入法语言之间切换。切换键可在[快捷键设置](/docs/customize/hotkeys)中自定义。
+按 `Shift` 即可在输入法内切换中英文模式（默认左右 Shift 均可）。也可用系统的 `Ctrl + Shift` 在不同输入法语言之间切换。切换键可在[快捷键设置](/docs/settings/keys)中自定义。
 
 ### 候选词不显示？
 
@@ -60,11 +60,11 @@ description: 清风输入法安装、使用、双拼、词库备份、外观与�
 
 ### 如何切换输入方案？
 
-按 `Ctrl + Shift + E` 在已启用的方案之间循环切换，也可以通过[设置工具](/docs/customize/settings)选择。
+按 `Ctrl + Shift + E` 在已启用的方案之间循环切换，也可以通过[设置工具](/docs/settings)选择。
 
 ### 如何输入特殊符号？
 
-使用 `zz` 系列快捷编码，例如 `zzbd`（标点）、`zzsz`（圈数）、`zzpy`（拼音声调）。完整列表请参阅[快捷键总表](/docs/reference/hotkeys)。
+使用 `zz` 系列快捷编码，例如 `zzbd`（标点）、`zzsz`（圈数）、`zzpy`（拼音声调）。完整列表请参阅[快捷短语 · zz 系列符号](/docs/settings/dict/phrases#zz-系列符号)。
 
 ### 如何使用计算器？
 
@@ -79,13 +79,13 @@ description: 清风输入法安装、使用、双拼、词库备份、外观与�
 - `week` — 星期
 - `datm` — 日期时间
 
-也可在快捷输入模式中输入数字日期格式化，如 `;2026.4.24`。详见[快捷输入](/docs/input/quick-input)。
+也可在快捷输入模式中输入数字日期格式化，如 `;2026.4.24`。详见[快捷输入](/docs/settings/input/quick-input)。
 
 ## 双拼
 
 ### 如何切换双拼方案？
 
-在方案配置文件 `shuangpin.schema.toml` 中修改 `[engine.pinyin.shuangpin]` 的 `layout`，或通过设置工具修改。支持：xiaohe、ziranma、mspy、sogou、abc、ziguang、shoudao。
+在**方案页 → 选中双拼 → 设置 → 方案参数 → 双拼布局**里选，或直接改方案文件 `shuangpin.schema.toml` 的 `[engine.pinyin.shuangpin].layout`。内置 8 种：`xiaohe`（小鹤）、`ziranma`（自然码）、`mspy`（微软）、`sogou`（搜狗）、`abc`（智能ABC）、`ziguang`（紫光）、`jiajia`（拼音加加）、`shoudao`（首道）。详见[拼音方案配置](/docs/settings/schema/pinyin#双拼布局)。
 
 ### 双拼可以使用模糊音吗？
 
@@ -95,33 +95,33 @@ description: 清风输入法安装、使用、双拼、词库备份、外观与�
 
 ### 如何备份配置？
 
-推荐使用设置工具的[备份与还原](/docs/advanced/backup)：一键把配置、词库数据、用户方案与主题打包为 `.zip`，还原时可选择范围与合并/替换策略。
+推荐使用设置工具的[备份与还原](/docs/settings/advanced#备份与还原)：一键把配置、词库数据、用户方案与主题打包为 `.zip`，还原时可选择范围与合并/替换策略。
 
 也可直接备份 `%APPDATA%\WindInput\` 整个目录（含 `config.toml`、`userdata.redb` 用户数据库、自定义主题与方案）。`%LOCALAPPDATA%\WindInput\` 下只有可重建的缓存/日志/运行状态，无需备份。
 
 ### 配置文件只包含部分字段？
 
-这是正常的。清风输入法采用 diff 保存机制，只保存与系统默认值不同的字段，未修改的字段会自动跟随系统默认值的更新。详见[配置文件](/docs/advanced/config)。
+这是正常的。清风输入法采用 diff 保存机制，只保存与系统默认值不同的字段，未修改的字段会自动跟随系统默认值的更新。详见[配置文件](/docs/guides/config)。
 
 ## 外观
 
 ### 如何切换亮暗主题？
 
-在设置工具的[外观](/docs/customize/appearance)页面选择主题风格，设为「跟随系统」即可随系统亮暗自动切换。
+在设置工具的[外观](/docs/settings/appearance)页面选择主题风格，设为「跟随系统」即可随系统亮暗自动切换。
 
 ### 如何安装自定义主题？
 
-将主题文件放入 `%APPDATA%\WindInput\themes\<主题名>\theme.toml`，即可在设置工具中选择。详见[外观设置](/docs/customize/appearance)。
+将主题文件放入 `%APPDATA%\WindInput\themes\<主题名>\theme.toml`，即可在设置工具中选择。详见[外观设置](/docs/settings/appearance)。
 
 ### 状态提示气泡是什么？
 
-状态提示是切换输入状态时在光标处显示的小气泡，显示当前方案、中英文、标点等状态。可在[外观设置](/docs/customize/appearance)中配置显示模式与位置。
+状态提示是切换输入状态时在光标处显示的小气泡，显示当前方案、中英文、标点等状态。可在[外观设置](/docs/settings/appearance)中配置显示模式与位置。
 
 ## 兼容性与排查
 
 ### 微信中候选框位置不对？
 
-清风输入法内置了微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在 `compat.toml` 中添加规则。详见[配置文件](/docs/advanced/config)。
+清风输入法内置了微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在 `compat.toml` 中添加规则。详见[配置文件](/docs/guides/config)。
 
 ### 密码框里打不出中文？
 

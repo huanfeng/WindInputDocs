@@ -1,0 +1,355 @@
+---
+title: 方案配置
+description: 方案文件（.schema.toml）的完整结构、词库文件（.dict.yaml）格式、排序配置、差异化覆盖与从零创建方案
+---
+
+import { Since } from "@/components/since";
+
+本页面向**要自制或改造输入方案**的用户，讲清楚三件事：方案文件里能写什么、词库文件的格式规范、以及排序相关的几个字段各自作用在哪一层。
+
+日常使用不需要读本页——启用、排序、扩展词库开关、导入导出都在[方案设置](/docs/settings/schema)里点几下就行。
+
+<Callout type="info" title="行为开关不写在方案文件里">
+上屏策略、调频、造词、模糊音、临时拼音等**行为**都是全局配置，集中在 `config.toml` 的 `[schema.codetable]` / `[schema.pinyin]` / `[schema.mix]` / `[schema.english]`。方案文件只写引擎的**固定参数**。见[核心概念](/docs/start/concepts#配置的分工全局行为-方案固定参数)。
+</Callout>
+
+## 方案文件的位置与命名
+
+方案文件为 **TOML 格式**，位于 `%APPDATA%\WindInput\schemas\`，命名为 `<方案ID>.schema.toml`。**方案 ID 必须与文件名前缀一致。**
+
+内置方案对应文件（在安装目录的 `data\schemas\` 下）：
+
+| 文件 | 方案 |
+| --- | --- |
+| `pinyin.schema.toml` | 全拼 |
+| `shuangpin.schema.toml` | 双拼 |
+| `wubi86.schema.toml` | 五笔 86 |
+| `wubi86_pinyin.schema.toml` | 五笔拼音混输 |
+
+在用户目录放一个同名文件即**整份替换**内置那份，见[同结构覆盖机制](/docs/guides/config#同结构覆盖机制)。
+
+## 最小结构
+
+```toml
+[schema]
+id = "my_schema"        # 方案 ID，须与文件名前缀一致
+name = "我的方案"
+icon_label = "我"       # 模式指示 / 状态气泡的图标短称（可选）
+version = "1.0"
+author = "作者"
+description = "方案说明"
+
+[engine]
+type = "codetable"      # 引擎类型：pinyin / codetable / mixed
+```
+
+## 引擎类型
+
+三种引擎各有一段固定参数：
+
+```toml
+# 拼音引擎（全拼 / 双拼）
+[engine.pinyin]
+scheme = "full"                      # full（全拼）/ shuangpin（双拼）
+unigram_path = "pinyin/unigram.txt"  # 长句打分用语言模型（可选）
+[engine.pinyin.shuangpin]
+layout = "xiaohe"                    # xiaohe / ziranma / mspy / sogou / abc / ziguang
+
+# 码表引擎（五笔等）
+[engine.codetable]
+max_code_length = 4             # 最大码长（0 = 回退 4）
+base_sort = "weight"            # 基础排序维度，见下文「排序配置」
+input_chars = ""                # 码元字符集（空 = a-z），见下
+leading_chars = ""              # 可作第一码的字符（空 = 同 input_chars）
+
+# 混合引擎（码表优先、拼音兜底）
+[engine.mixed]
+primary_schema = "wubi86"       # 主方案（码表）
+secondary_schema = "pinyin"     # 辅助方案（拼音）
+codetable_weight_boost = 10000000  # 码表精确匹配提权基线（0 = 回退 10_000_000）
+```
+
+## 码元字符集 <Since v="0.114" /> [#input-chars]
+
+默认只有 26 个字母算「输入码」，按别的键就走标点、选词或直接上屏。方案的编码里若含别的字符，用 `input_chars` 声明：
+
+```toml
+[engine.codetable]
+input_chars = "a-y"     # 五笔码元集：z 不进编码
+input_chars = "a-y/"    # 再加一个 /，供 /test 这类词条
+input_chars = "a-z0-9"  # 字母加数字，词库里有 Win10 这类词条时需要
+```
+
+写法是**范围 + 字面**的组合，大小写不敏感；`-` 写在首位或末位时作字面字符（`a-z-`）。不在集内的字符按下时会终结当前编码：先上屏当前候选，再输出该字符本身。
+
+**数字通常要配 `leading_chars`**。数字键在空编码时是选词键，直接让它作码元会把这个用法整个占掉：
+
+```toml
+[engine.codetable]
+input_chars = "a-z0-9"
+leading_chars = "a-z"   # 数字能作码元，但不能起头
+```
+
+这样 `win10` 里的 `1`、`0` 正常进编码，而空编码时按数字键仍是选词或输出数字。
+
+<Callout type="warn" title="码元会从原有功能手里抢走按键">
+编码输入期间，码元字符优先于选词键、翻页键、以词定字键和数字选词。把 `;` 配成码元后，编码输入时按 `;` 就是打码而非选第二个候选。
+
+写进 `leading_chars` 的字符连**空编码时**也归码表，以它作引导键的功能（快捷输入、临时拼音／英文、特殊模式）便进不去了。想两者共存，把它排除出 `leading_chars`——它就只在编码输入途中作码元。有冲突时启动日志会逐条告警并给出改法。
+</Callout>
+
+字符集写错（如 `z-a` 逆序、含空格）不会让方案失灵，会回落默认 `a-z` 并记录告警。
+
+## 词库配置
+
+码表、拼音、英文方案用 `dictionaries` 数组列出自己的所有词库，分两类：**主词库**仅 1 个（`default = true`，始终启用），**扩展词库**任意多个（可被用户独立开关）。
+
+```toml
+[[dictionaries]]
+id = "wubi86_main"
+label = "极点五笔主词库"
+path = "wubi86/wubi86_jidian.dict.yaml"
+type = "rime_codetable"
+default = true
+
+[[dictionaries]]
+id = "wubi86_emoji"
+label = "Emoji 表情"
+path = "wubi86/wubi86_jidian_emoji.dict.yaml"
+type = "rime_codetable"
+default_enabled = true          # 方案默认启用
+
+[[dictionaries]]
+id = "wubi86_district"
+label = "行政区域"
+path = "wubi86/wubi86_jidian_district.dict.yaml"
+type = "rime_codetable"
+base_order = 1                  # 排在主库（0）之后
+default_weight = 500            # 该库无权重列，整库定档 500
+```
+
+| 字段 | 说明 |
+| --- | --- |
+| `id` | 词库 ID，全局唯一 |
+| `label` | UI 显示名，留空回退 `id` |
+| `description` | 设置工具开关下方的小字说明 |
+| `path` | 词库文件路径，相对 `schemas\` 目录；用户数据目录下的同名文件优先于程序 `data\` |
+| `type` | `rime_codetable` / `rime_pinyin` / `english`（空 = 回退 `rime_codetable`） |
+| `default` | 是否为主词库；每个带词库的方案有且仅一个 |
+| `default_enabled` | 扩展词库的方案默认启用状态；省略视为未启用 |
+| `enabled` | 用户覆盖启用状态，由设置工具写入；未设时继承 `default_enabled` |
+| `base_order` | 该库的层级基序档位，见[排序配置](#排序配置四件套) |
+| `default_weight` | 整库权重硬覆盖，见[排序配置](#排序配置四件套) |
+
+启用判定优先级：**`enabled` > `default_enabled` > 主词库始终启用**。
+
+<Callout type="info" title="混输方案不写 dictionaries">
+混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库。详见[混输方案配置](/docs/settings/schema/mixed#no-own-dict)。
+</Callout>
+
+<Callout type="warn" title="weight_spec 尚未接线">
+方案文件里可能出现 `[dictionaries.weight_spec]`（`median` / `max` / `mode` 等）。它**当前不被读取**，仅作为词库权重分布的事实记录供方案作者查阅。跨库权重归一化尚未实现，现阶段用 `default_weight` + `base_order` 手工校准。
+</Callout>
+
+## 词库文件（.dict.yaml）
+
+词库文件沿用 Rime 的 `.dict.yaml` 外形，但**解析器是本输入法自己的**，与 librime 并不等价。理解下面这几条能避免绝大多数「词库加载了却不生效」的问题。
+
+### YAML 头只有两个键被读取
+
+<Callout type="warn" title="除 columns / import_tables 外，头部所有键一律被忽略——包括 name">
+解析器逐行扫描头部，**只认 `columns:`**（全部词库类型）与 **`import_tables:`**（仅 `type = "rime_pinyin"` 的词库）。其余键既不报错也不告警，直接跳过。
+
+这意味着 `name:` 写什么都**不影响任何行为**——词库的显示名来自方案文件的 `[[dictionaries]].label`，不是 YAML 头里的 `name`。同理 `version`、`use_preset_vocabulary`、`vocabulary` 等 Rime 键在这里全是装饰。
+</Callout>
+
+`sort:` 是个特例：它**会被读取，但只用来打一条日志告警**，不影响排序。要控制排序请用下文的[排序配置四件套](#排序配置四件套)。
+
+```yaml
+---
+name: my_dict          # 被忽略（显示名取方案文件的 label）
+version: "1.0"         # 被忽略
+sort: by_weight        # 读取，但只触发一条 WARN 日志，不生效
+columns:               # ← 真正生效的键
+  - text
+  - code
+  - weight
+...
+你好	nihao	1000
+```
+
+### 分隔行：`...` 必需，`---` 可选
+
+正文的起点是**首个恰好等于 `...` 的行**。`---` 只是头部里的一行普通内容，写不写都行。
+
+<Callout type="error" title="缺少 `...` 会让整个词库静默变成零条目">
+找不到 `...` 时解析器按零条目处理，只在日志里留一条 WARN。词库看起来「加载成功」但一个候选都没有——这是最常见的自制词库失效原因。
+</Callout>
+
+### columns 支持的列名
+
+`columns` 只认三个名字，两种 YAML 写法（块序列 `- text` 与流式 `[text, code, weight]`）都支持：
+
+| 列名 | 必需性 | 缺失后果 |
+| --- | --- | --- |
+| `text` | **必需** | 整个词库被跳过并记 ERROR |
+| `code` | **必需** | 整个词库被跳过并记 ERROR |
+| `weight` | 可选 | 全库权重按 0 处理 |
+
+其他列名（如 Rime 的 `stem`）**语法合法但不取用，只作占位**——占位会顺延其后各列的下标，所以必须写全，不能省略中间列。
+
+### 不写 columns 会走启发式猜测
+
+省略 `columns:` 时，解析器会采样正文（最多 200 行 / 攒够 32 票）**投票判断列序**：逐列检查是否「像编码」（全部字符属于 `a-z`、`0-9` 及少数符号），恰有一列像码才计一票。
+
+- 平票或零票 → 回退 `text` `code` `weight`
+- 无论投票结果如何，**权重恒取第 3 列**
+- 每次走启发式都会记 WARN，日志里带票数与建议写法
+
+<Callout type="warn" title="始终显式写 columns">
+纯 ASCII 词条（符号库里的 `@`、命令直通车的 `$CC(...)`）会让投票判错，把词条当成编码列。列序是**文件级属性**、判定一次全文固定，一旦判反整个词库的编码与词条就是对调的。显式声明 `columns` 可以完全绕开这套启发式。
+</Callout>
+
+### 其他正文规则
+
+- **`# no comment` 指令** —— 整行恰好等于它时，其后所有 `#` 开头的行按数据而非注释解析
+- **只剥行尾空白，保留行首** —— 因为全角空格 U+3000 属于 Unicode 空白，用常规 trim 会把「全角空格」这个词条本身削掉
+- **空 text 或空 code 的行被跳过**
+- **权重解析失败记为 0** —— Rime 的 `50%` 相对权重语法未实现，会落到这里
+
+## 排序配置四件套
+
+`base_sort`、`base_order`、`default_weight`、`sort` 名字相近但**分属三个不同的文件层**，作用点完全不同。这是方案定制里最容易混淆的一组：
+
+| 名字 | 写在哪 | 作用 |
+| --- | --- | --- |
+| `base_sort` | 方案文件 `[engine.codetable]` | 选定全局排序**维度** |
+| `base_order` | 方案文件 `[[dictionaries]]` | 词库**层间**档位 |
+| `default_weight` | 方案文件 `[[dictionaries]]` | 整库权重**硬覆盖** |
+| `sort` | 词库 `.dict.yaml` 头部 | **死键**，只触发告警 |
+
+### base_sort —— 选定排序维度
+
+只对**码表引擎**生效，写在拼音方案里无效。
+
+| 取值 | 比较链 |
+| --- | --- |
+| `weight`（默认，留空同） | 权重降序 → `base_order` 升序 → 库内出现序 → … |
+| `natural` | `base_order` 升序 → 库内出现序 → …（**权重完全不参与**） |
+
+`natural` 即「字根序 / 文件原序」，适合按编码规则天然有序的码表。
+
+<Callout type="warn" title="不接受 Rime 的 by_weight / original 拼法">
+这两个 librime 写法被明确列为**非法值**而非别名。填入任何未知取值都会回退到 `weight` 并记一条告警——刻意不做兼容，是为了避免两套排序词汇被误当等价。
+</Callout>
+
+### base_order —— 词库之间的硬分档
+
+小整数档位，排序时作为**独立层级**参与，位置在**权重之后、库内出现序之前**。
+
+它存在的理由是：库内出现序是**每个词库各自从 0 起**的局部序号。没有 `base_order` 时跨库直接比较，会让小词库靠前的词条反超主词库深处的词条。给扩展库配 `base_order = 1` 就能让它整体排在主库（0）之后。
+
+<Callout type="info" title="系统词库建议取 >= 0">
+用户词、临时词等非系统层有默认的负档位（逻辑层 -4、用户层 -3 等）。系统词库若配负值会与这些层交错，产生难以预料的顺序。
+</Callout>
+
+### default_weight —— 整库权重硬覆盖
+
+设置后**无条件替换该词库每一条词条的权重**，词库自身的权重信息完全丢弃。
+
+用途是**没有权重列的扩展库**：不设时全库 weight = 0，在权重模式下会整体沉底。给行政区域库配 `default_weight = 500` 就能让它落在设计者选定的档位。
+
+<Callout type="warn" title="有真实权重的库绝不要配">
+Emoji 库靠 200/199/198… 递减权重表达展示顺序，抹平就毁了它的排列；扩展词库带真实词频，抹平会丢掉词频信息。
+
+另外注意两个相互作用：整库同权会让库内自动退化为文件原序；而 `base_sort = "natural"` 时权重根本不参与比较，此时配 `default_weight` 完全没有意义。
+</Callout>
+
+### 优先级串联
+
+```text
+base_sort 选定比较器
+  ├─ weight  → 权重降序 → base_order 升序 → 库内出现序 → …
+  └─ natural → base_order 升序 → 库内出现序 → …（权重不参与）
+
+其中权重的值 = default_weight（若配置）或词库原始权重
+                └─ 覆盖发生在更早的取数层，不是排序层
+```
+
+## 词组编码器
+
+码表方案通常需要**编码器**为自动造出来的词组生成编码。规则写在方案文件的 `[encoder]` 段：
+
+```toml
+[encoder]
+max_word_length = 10
+
+[[encoder.rules]]
+length_equal = 2             # 二字词
+formula = "AaAbBaBb"         # 第一字前两码 + 第二字前两码
+
+[[encoder.rules]]
+length_equal = 3             # 三字词
+formula = "AaBaCaCb"
+
+[[encoder.rules]]
+length_in_range = [4, 10]    # 四字及以上
+formula = "AaBaCaZa"
+```
+
+公式语法：`A` / `B` / `C` / `Z` = 第 1、2、3、末个字；`a` / `b` = 该字的第 1、2 个编码（如 `Aa` = 第 1 字第 1 码）。
+
+## 拆字配置 [#拆字配置]
+
+形码方案可挂**拆字库**，在候选悬停提示与[候选注释](/docs/settings/appearance/candidate-comment)里显示构字信息。整段配置写在 `[engine.chaizi]` 下，路径相对 `schemas\`：
+
+```toml
+[engine.chaizi]
+db_path = "wubi86/wubi86_chaizi.txt"   # 拆字库（字\t字根\t编码）
+font_path = "wubi86/HeiTiZiGen.ttf"    # 字根字体 TTF（可选，仅参与导入导出打包）
+font_family = "黑体字根"               # 字根字体的 DirectWrite 家族名（可选，实际渲染依据）
+```
+
+| 键 | 必填 | 说明 |
+| --- | --- | --- |
+| `db_path` | 是 | 拆字库文件，制表符分隔的三列：`字\t字根\t编码` |
+| `font_path` | 否 | 字根字体 TTF；**只用于导入导出打包**，不参与渲染 |
+| `font_family` | 否 | 字根字体的 DirectWrite 家族名；渲染时的实际依据 |
+
+两个字体项的分工与直觉不同：
+
+- **`font_path`** —— 在 Windows 上**不会被直接加载渲染**。它只在方案的导入 / 导出时起作用：导出时把这个 TTF 一并打包进方案包，导入时随方案落到用户数据目录。要让字体真正可用，必须把该字体文件**手动安装到系统**
+- **`font_family`** —— 决定渲染时实际使用哪套字体，必须填写字体**安装到 Windows 后的家族名**，而不是文件名或路径。家族名可在「设置 → 个性化 → 字体」或双击字体文件的预览窗口中查看
+
+<Callout type="warn" title="字体没装，字根就退回默认字体显示">
+若字体未安装到系统，或 `font_family` 与系统中的家族名不一致，DirectWrite 找不到对应字体，拆字提示会静默回退到默认字体渲染——不会报错，但字根形状是错的。排查时优先核对系统字体列表里的名称拼写（含全角/半角、空格差异）。
+</Callout>
+
+## 差异化覆盖（schema_overrides）
+
+全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。设置工具的[扩展词库开关](/docs/settings/schema#扩展词库)、双拼布局、[方案级码表配置](/docs/settings/schema#schema-codetable)都写入这个文件。它不会被安装包升级覆盖。
+
+<Callout type="info" title="与「整份替换方案文件」的区别">
+`schema_overrides\` 是**逐项深合并**，只表达差异；而在用户数据目录 `schemas\` 下放一个与内置方案同名的 `.schema.toml` 是**整份替换**——内置那份完全不参与。两条路都不会被升级覆盖，但前者能让方案文件的后续更新继续透传。
+</Callout>
+
+覆盖采用深合并，但有两条例外：
+
+- **数组整体替换** —— 如 `encoder.rules` 写了就是整份替换，不会逐条合并
+- **`[[dictionaries]]` 按 id 稀疏合并，且只接受 `enabled` 一个字段** —— `path`、`label`、`base_order`、`default_weight` 等永远以方案文件为准，覆盖层改不了
+
+第二条是刻意的：它保证用户层的词库开关不会把整份词库定义冻结成快照，否则方案升级后新增或改路径的词库都会失效。
+
+## 从零创建自定义方案
+
+1. **准备方案文件** —— 建议先在[方案页](/docs/settings/schema#导入与导出方案)导出一个内置方案作模板，在其基础上修改；方案 ID 必须与文件名前缀一致
+2. **放置文件** —— 方案文件存入 `%APPDATA%\WindInput\schemas\`；引用的词库文件（`.dict.yaml`）放在用户数据目录 `schemas\` 下，或复用 `data\` 下的内置词库路径
+3. **登记方案** —— 在 `config.toml` 的 `schema.available` 中加入方案 ID
+4. **生效** —— 重启输入法或切换方案；扩展词库开关等热重载项除外
+
+## 相关阅读
+
+- [方案设置](/docs/settings/schema) —— 图形界面下的方案管理
+- [配置文件与数据目录](/docs/guides/config) —— 覆盖机制与目录结构
+- [导入与导出](/docs/settings/dict/import-export#方案包zip) —— 方案包的打包格式与资源收集规则
+- [引导键特殊模式](/docs/guides/special-modes) —— 用引导键进入的小码表

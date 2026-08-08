@@ -1,0 +1,14 @@
+{
+  "title": "设置说明",
+  "pages": [
+    "index",
+    "menu",
+    "schema",
+    "input",
+    "keys",
+    "appearance",
+    "dict",
+    "stats",
+    "advanced"
+  ]
+}

@@ -1,0 +1,18 @@
+# 统一行尾：仓库内与工作区一律 LF。
+# biome 的 formatter 默认按 LF 校验，Windows 上若让 core.autocrlf 把工作区转成
+# CRLF，`pnpm lint` 会对每个文件报一条 format 错误。
+* text=auto eol=lf
+
+# 二进制：不做任何行尾转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary

@@ -1,0 +1,4 @@
+{
+  "title": "方案设置",
+  "pages": ["index", "codetable", "pinyin", "mixed", "english"]
+}

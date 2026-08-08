@@ -1,0 +1,198 @@
+---
+title: 应用兼容性规则
+description: compat.toml 的全部字段、候选窗首显的三档策略、应用独立初始状态、宿主代理渲染，以及合并语义的坑
+---
+
+import { Since } from "@/components/since";
+
+有些程序对输入法不太友好：候选框飘到错误的位置、候选窗被盖住看不见、或者你每次进去都要手动切一次英文。这些都靠 **`compat.toml`** 里的**逐应用规则**修正。
+
+<Callout type="info" title="多数人不用读这一页">
+最常见的两件事——给某个程序设初始英文、调候选窗首显——直接在那个程序里打开[功能主菜单 → 应用独立配置](/docs/settings/menu#应用独立配置)点两下就行，菜单会替你写规则。本页面向要手工写规则、或想知道每一档到底在做什么的用户。
+</Callout>
+
+## 文件位置与合并
+
+规则文件为 TOML 的 `[[apps]]` 数组表，两层：
+
+| 层 | 位置 | 谁维护 |
+| --- | --- | --- |
+| 系统预置 | `<安装目录>\data\compat.toml` | 随程序分发，升级时整体替换。**顶部有完整的字段注释**，值得一读 |
+| 用户覆盖 | `%APPDATA%\WindInput\compat.toml` | 你自己写，或由右键菜单自动管理 |
+
+<Callout type="error" title="合并是「整条覆盖」，不是逐字段合并">
+用户层里同名进程（不区分大小写）的规则会**整条替换**系统层那一条，系统层其余规则保留。
+
+这意味着：系统层给 `Weixin.exe` 配了 `caret_use_top = true`，你若在用户层再写一条 `Weixin.exe`（哪怕只写了 `initial_mode`），系统层那条**连同 `caret_use_top` 一起失效**。
+
+**通过右键菜单给一个有系统预置规则的程序设初始状态时，同样会踩到这个坑**——菜单只把你改的那个字段写进用户层，但合并时整条覆盖。要保留原有字段，请手工把系统层那条的字段一并抄进用户层。
+</Callout>
+
+<Callout type="warn" title="用户层文件由菜单托管，手写的注释不会保留">
+每次通过右键菜单切换开关，用户层 `compat.toml` 都会被**整份重写**（TOML 序列化不保留注释），你手写的注释与排版会丢失。需要长期留存的说明请写在系统层那份——那份程序不会改写。
+
+好消息是容错做得很足：用户层解析失败时按空规则集处理（宁可重建也不把菜单卡死），单个字段值写错也只让**那个字段**退化为「不干预」，不会让整份文件失效。
+</Callout>
+
+改完手工编辑的规则后，用[功能主菜单](/docs/settings/menu)的**重载配置**即可生效——`host_render` 除外，它需要**重启服务**。
+
+## 字段清单
+
+```toml
+[[apps]]
+process = "Weixin.exe"          # 进程名（不区分大小写）
+comment = "微信 - Qt WebView 输入框 caret height 不稳定，使用 rect.top 定位"
+caret_use_top = true
+```
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `process` | 字符串 | —— | 进程名，**不区分大小写**，如 `Notepad.exe` |
+| `comment` | 字符串 | `""` | 备注，仅供阅读，程序不使用 |
+| `caret_use_top` | 布尔 | `false` | 用 caret rect 的 `top` 而非 `bottom` 定位候选窗 |
+| `first_show_mode` | 枚举 | `fast` | 候选窗首显策略，见[下文](#候选窗首显策略) |
+| `initial_mode` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英状态：`english` / `chinese` |
+| `initial_punct` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英标点，取值同上 |
+| `host_render` | 布尔 | `false` | 加入宿主代理渲染白名单，见[下文](#host-render) |
+
+`initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
+
+`first_show_mode` 则相反：认不出的值**回落到默认档** `fast`，因为「写了个认不出的值」与「没写」在这里得到同样的行为最不意外。
+
+## 内置的四条规则
+
+| 进程 | 规则 | 为什么 |
+| --- | --- | --- |
+| `Weixin.exe` | `caret_use_top = true` | 微信的 Qt WebView 输入框，`GetTextExt` 返回的 height 在 1↔20px 间跳变，导致 bottom 漂移约 20px，但 top 始终稳定 |
+| `SearchHost.exe` | `host_render = true` | Win11 开始菜单 / 任务栏搜索 |
+| `searchapp.exe` | `host_render = true` | Win10 任务栏搜索 |
+| `startmenuexperiencehost.exe` | `host_render = true` | Win10 开始菜单输入框 |
+
+## caret_use_top
+
+候选窗默认贴着光标矩形的**底边**（bottom）显示。某些 WebView 类宿主报告的光标高度不稳定，bottom 就会跟着上下跳，候选窗随之抖动。改用**顶边**（top）定位可以绕开——top 通常是稳定的。
+
+如果你遇到某个程序里候选窗位置忽上忽下、或总是偏低约一行的高度，可以试试给它加这条规则。
+
+## 候选窗首显策略
+
+这是三者里最微妙的一项。
+
+**背景**：宿主插入组合内容后要 reflow 才能给出正确的光标坐标，而 reflow 需要时间——实测首帧 `GetTextExt` 到稳定值要 85～95 ms。这三档是「快」与「准」之间的取舍。
+
+| 档位 | 菜单里的叫法 | 行为 |
+| --- | --- | --- |
+| `fast` | 快速显示（默认） | 仍等坐标，但等到「可信」即放行 |
+| `wait` | 等待精确坐标（较慢） | 等宿主 reflow 后的权威坐标才显示 |
+| `instant` | 立即显示（最快，可能抖动） | 完全不等，首帧沿用上一次的坐标 |
+
+### fast（默认档）
+
+DLL 在首帧 reflow 期间连发几条试探坐标，取第一条**与上一轮权威坐标不同**的采用——宿主未 reflow 时返回的正是上一轮那个位置，一旦变化即说明新位置已就绪。
+
+连续快速输入时更进一步：**直接采信首条**（连打不重排，跟手比精确更重要）。
+
+焦点切换或用鼠标移动光标之后，手里那份坐标属于别处，此时自动退回去等真坐标（**首帧信任门**），不会先错位再跳。
+
+实测：常规连打首帧中位 **7 ms**，焦点后首帧中位 105 ms 且位置正确；EverEdit 约 3 ms、WPS 约 11 ms 出候选窗。
+
+### wait
+
+最准，代价是 85～95 ms 首显延迟——快速连打时候选窗只来得及显示几毫秒，观感「迟钝」。
+
+<Callout type="info" title="0.113 起 wait 不再是默认档">
+它的「准」有很大一部分是**碰巧**的：Excel 那类慢宿主上它靠一个 600 ms 的延长窗口兜住，宿主再慢 50 ms 一样会错位（实测 Excel 需要 808 ms 的那次它就没兜住）。真正解决错位的是**首帧信任门**，而那条判据 `fast` 同样享有。
+
+现在 `wait` 的定位是**兜底**：留给 `fast` 的试探判据失灵的宿主。
+</Callout>
+
+### instant
+
+最快，但只要光标位置变动过（手动移动、换行、文本重排）那个位置就是错的，会先错位显示再跳回。
+
+<Callout type="info" title="三档为什么是互斥枚举而不是几个开关">
+布尔开关可以同时打开。实测就因此出过一次「`fast` 配了却从未生效」——`instant` 优先、抢先放行，`fast` 的判据根本没机会跑，日志里 630 条试探坐标一条没被消费。互斥语义必须由类型保证。
+</Callout>
+
+### 三个相关的内部选项
+
+它们在 `config.toml` 的 `[ui.candidate]` 下，**不进设置页**，一般不需要动：
+
+| 键 | 默认 | 说明 |
+| --- | --- | --- |
+| `first_show_settle_ratio` | `0.8` | 首显用过非权威坐标时，权威坐标与它相差在「行高 × 本值」以内就不再校正——校正动作本身才是抖动的观感来源 |
+| `fast_typing_window_ms` | `100` | 两次按键间隔小于此值即视为连续输入，`fast` 档直接采信首条试探坐标。`0` = 关闭该快路径 |
+| `fast_first_show_fallback_ms` | `25` | `fast` 档等不到坐标时的兜底超时。不发 `OnLayoutChange` 的宿主（如 Word）靠它退化成 `instant` 而非干等 |
+
+## 应用独立的初始输入状态
+
+`initial_mode` 与 `initial_punct` 让特定应用在获得焦点时自动切到指定状态，适合文件搜索框、终端、代码编辑器这类主要输入英文的场景。
+
+```toml
+[[apps]]
+process = "Everything.exe"
+comment = "文件搜索框，默认英文"
+initial_mode = "english"
+```
+
+最快的设置方式是**不改文件**：在目标应用里打开[功能主菜单 → 应用独立配置](/docs/settings/menu#应用独立配置)，选「初始输入模式 → 英文」。选「跟随全局」即清除该维度的规则。
+
+<Callout type="warn" title="这是「初始值」而不是「锁定」">
+- 每次焦点**从别的应用**切进来时套用一次。停留在该应用期间可以随时手动切换中英文，同一应用内换输入框（例如搜索框与结果列表之间）**不会**重新套用
+- 焦点**离开**规则应用后，下一个应用会重新按全局规则决定自己的状态。在出厂默认下（`state_scope = "global"` 且 `remember_last_state = false`），这意味着它回到[默认状态](/docs/settings/input#默认状态)里配的初始值，而**不是**它自己上次的状态
+- 想让每个应用各自精确记住上次状态，把「[中英状态作用域](/docs/settings/input#中英状态作用域)」设成「按应用独立」。两者可叠加：规则决定初始值，记忆负责其余应用
+- 没有配置任何 `initial_*` 规则的两个应用之间切换，输入状态一律保持不变
+</Callout>
+
+<Callout type="info" title="initial_punct 压过 follow_mode">
+显式写的 `initial_punct` 优先于 `config.toml` 里 [`input.punct.follow_mode`](/docs/settings/input/punctuation#字符与标点) 的推导——否则你配了它却恰好开着「标点随中英文切换」时会完全无效且没有任何痕迹。
+</Callout>
+
+## 宿主代理渲染 host_render <Since v="0.113" /> [#host-render]
+
+少数宿主运行在受限容器中，或其窗口层级（Band）盖过一切普通窗口，输入法自绘的候选窗被压在下面看不见——Win11 开始菜单 / 任务栏搜索的 `SearchHost.exe` 就是这样。
+
+`host_render = true` 让候选窗改由服务进程渲染成位图，经共享内存交给宿主进程内的输入法 DLL 上屏，绕开普通窗口盖不过的 Band 层级。
+
+<Callout type="warn" title="普通应用不要开">
+它多绕一层渲染路径，出问题时本地窗口路径更好排查。三个系统搜索框已内置为预置条目，无需自行添加。
+
+`host_render` 手改后需**重启输入法服务**才生效——「重载配置」只刷新那些能即时套用的规则，不重建渲染通道。
+</Callout>
+
+<Callout type="info" title="0.113 起从 config.toml 迁到这里">
+这份白名单在 0.112 及以前是 `config.toml` 的 `compat.host_render_processes`（字符串数组）。0.113 起 `[compat]` 顶级域整体移除，改为本表的 `host_render` 布尔字段。
+
+```toml
+# 旧（0.112 及以前，config.toml）
+[compat]
+host_render_processes = ["SearchHost.exe"]
+
+# 新（0.113 起，compat.toml）
+[[apps]]
+process = "SearchHost.exe"
+host_render = true
+```
+
+改动原因：这份白名单本来就是**按进程名匹配**的规则，与 `caret_use_top`、`initial_mode` 同属一类，却单独躺在另一个文件里，形成了第二个真相源。旧键写在 `config.toml` 里不再有任何效果。
+</Callout>
+
+## 排查：某个程序里输入法没反应
+
+打开[功能主菜单 → 高级 → 输入诊断 HUD](/docs/settings/menu#输入诊断-hud)，屏幕上会出现一个置顶小浮窗，实时显示当前焦点应用的输入状态与**禁用原因**（密码框抑制、应用禁用输入等）。
+
+浮窗可拖动，双击可复制内容，便于反馈问题时附上诊断信息。排查完在同一菜单取消勾选即可关闭。
+
+常见原因：
+
+| 现象 | 原因 |
+| --- | --- |
+| 密码框里打不出中文 | [密码框强制英文](/docs/settings/menu#密码框强制英文)（默认开启，有意为之） |
+| 部分网络游戏里完全没反应 | 游戏不加载未签名的输入法 DLL |
+| 开始菜单里候选窗鼠标点不动 | 数字签名限制，见[常见问题](/docs/reference/faq) |
+
+## 相关阅读
+
+- [菜单功能 · 应用独立配置](/docs/settings/menu#应用独立配置) —— 不改文件的设置方式
+- [外观设置](/docs/settings/appearance#候选窗口) —— 候选窗的定位方式与布局
+- [配置文件与数据目录](/docs/guides/config) —— `compat.toml` 在目录结构里的位置

@@ -1,0 +1,4 @@
+{
+  "title": "词库管理",
+  "pages": ["index", "phrases", "import-export"]
+}

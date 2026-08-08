@@ -1,0 +1,50 @@
+---
+title: 统计与调试
+description: stats / debug 两个小域的配置项——输入统计、日志级别与滚动，以及已移除的 compat 顶级域
+---
+
+import { Since } from "@/components/since";
+
+两个体量很小的顶层域：输入统计 `[stats]`、日志调试 `[debug]`。
+
+## 输入统计
+
+```toml
+[stats]
+enabled = true
+track_english = true
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `true` | 是否统计输入字数、按键数等数据 |
+| `track_english` | 布尔 | — | `true` | 是否把英文输入计入统计 |
+
+## `[compat]` 顶级域已移除 <Since v="0.113" /> [#host-compat]
+
+自 0.113 起 `config.toml` 不再有 `[compat]` 段。候选框定位、光标获取、初始中英状态、宿主代理渲染等**逐应用**规则一律在 `compat.toml` 的 `[[apps]]` 数组表里，字段清单与用法见[应用兼容性规则](/docs/guides/compat)。
+
+原 `[compat].host_render_processes` 写在 `config.toml` 里**不会有任何效果**，请改用 `compat.toml` 条目的 `host_render` 布尔字段。
+
+## 日志调试
+
+```toml
+[debug]
+log_level = "info"
+log_max_size_mb = 10
+log_max_files = 10
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `log_level` | 枚举 | `trace` / `debug` / `info` / `warn` / `error` | `info` | 日志级别。留空等同 `info` |
+| `log_max_size_mb` | 整数 | — | `10` | 单个日志文件的大小上限（MB），超出后滚动 |
+| `log_max_files` | 整数 | — | `10` | 保留的旧日志文件数上限（不含主文件）。服务每次启动都会滚动一次，故该值约等于"能回溯最近几次运行" |
+
+<Callout type="warn" title="修改后需重启">
+`log_level` 改动后需重启输入法服务。排查问题时可临时调到 `debug` 或 `trace`，排查完调回 `info`——低级别日志量大且会拖慢输入。
+</Callout>
+
+<Callout type="info" title="日志位置">
+日志文件在 `%LOCALAPPDATA%\WindInput\logs\`，见[配置文件与数据目录](/docs/guides/config)。
+</Callout>

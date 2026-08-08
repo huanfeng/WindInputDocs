@@ -1,0 +1,12 @@
+{
+  "title": "进阶专题",
+  "pages": [
+    "command-bar",
+    "cli",
+    "frequency",
+    "schemas",
+    "special-modes",
+    "compat",
+    "config"
+  ]
+}
