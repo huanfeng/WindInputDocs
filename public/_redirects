@@ -1,0 +1,12 @@
+# Cloudflare Pages 重定向配置。public/ 下的文件会原样拷进 out/。
+# 文档：https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# 文档架构在 2026-08 按设置界面重构后，只有候选注释这一页的旧地址被程序内置过：
+#   - 设置程序 field_dialogs.rs 的 COMMENT_DOC_URL
+#   - data/config.toml 注释里的三处说明链接
+# 两处都已指向新路径，但存量安装与用户机器上的旧配置文件仍在用旧地址，故保留跳转。
+# 其余旧路径没有内置引用，不做处理。
+#
+# 写两行是因为 Cloudflare 不对精确规则做尾斜杠归一，只写一行时另一种写法会 404。
+/docs/customize/candidate-comment   /docs/settings/appearance/candidate-comment  301
+/docs/customize/candidate-comment/  /docs/settings/appearance/candidate-comment  301
