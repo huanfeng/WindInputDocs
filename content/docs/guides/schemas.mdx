@@ -351,7 +351,7 @@ comment_template_horizontal = "" # 同上（横排）
 `[overlay]` 里**没有** `trigger_keys` / `hotkey`。引导键与直达热键统一住在 `config.toml` 的 [`[keys.key_actions]`](/docs/guides/config/keys#key-actions)（写作 `special:<方案id>`）与方案文件的 `[key_actions]` 两张表里。在这里再开一个入口就成了第三个真相源。
 </Callout>
 
-`[overlay]` 与 `[schema].hidden` 是**正交**的两件事：`hidden` 管「列不列进方案切换列表」，`[overlay]` 管「能不能被引导键叠加进入」。内置的 `english` 方案就是 `hidden` 但没有 `[overlay]`。特殊模式通常两个都要写。
+`[overlay]` 与 `[schema].hidden` 是**正交**的两件事：`hidden` 管「列不列进方案切换列表」，`[overlay]` 管「能不能被引导键叠加进入」。特殊模式通常两个都写，但并非必须——只写 `[overlay]` 的方案照样能被引导键进入，只是它同时也留在方案列表里。
 
 本段也可以写进 `schema_overrides\<方案ID>.toml`，设置工具的「特殊模式」一节改的就是那里。
 
