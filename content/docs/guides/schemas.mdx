@@ -325,6 +325,36 @@ font_family = "黑体字根"               # 字根字体的 DirectWrite 家族�
 若字体未安装到系统，或 `font_family` 与系统中的家族名不一致，DirectWrite 找不到对应字体，拆字提示会静默回退到默认字体渲染——不会报错，但字根形状是错的。排查时优先核对系统字体列表里的名称拼写（含全角/半角、空格差异）。
 </Callout>
 
+## overlay 段 <Since v="0.115" /> [#overlay]
+
+`[overlay]` 声明「本方案可以被引导键**临时叠加**进入」——按引导键进去打一段，选完候选自动退回原方案。快符、生僻字表这类小码表就靠它，用法见[引导键特殊模式](/docs/guides/special-modes)。
+
+**段存在即声明**，没有总开关：方案有这一段就是特殊方案，没有就只能作常驻方案切换使用。
+
+```toml
+[overlay]
+show_all_on_enter = false        # 进入模式即展示候选
+candidate_layout = "follow"      # 本模式期间的候选窗布局
+comment_template_vertical   = "" # 本模式期间的候选注释模板（竖排）
+comment_template_horizontal = "" # 同上（横排）
+```
+
+| 键 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `show_all_on_enter` | 布尔 | `false` | 刚进入、尚未敲码时就铺开本方案码表的首页候选。面向小符号表；大码表要遍历整表取首页，有开销 |
+| `candidate_layout` | 枚举 | `follow` | `follow` / `vertical` / `horizontal`。进入本模式期间覆盖全局，退出自动恢复 |
+| `comment_template_vertical` / `_horizontal` | 字符串 | 不写=跟随全局 | 本模式期间的候选注释模板。三态：不写=跟随全局，写模板=改用它，写空串=不显示 |
+
+这一段装的**不是「这张码表是什么」**（那是 `[engine.codetable]`），而是「这张码表**被叠加使用时**怎么表现」——三个字段的语义都依赖「进入 / 退出」这条生命周期。
+
+<Callout type="warn" title="引导键不写在这里">
+`[overlay]` 里**没有** `trigger_keys` / `hotkey`。引导键与直达热键统一住在 `config.toml` 的 [`[keys.key_actions]`](/docs/guides/config/keys#key-actions)（写作 `special:<方案id>`）与方案文件的 `[key_actions]` 两张表里。在这里再开一个入口就成了第三个真相源。
+</Callout>
+
+`[overlay]` 与 `[schema].hidden` 是**正交**的两件事：`hidden` 管「列不列进方案切换列表」，`[overlay]` 管「能不能被引导键叠加进入」。内置的 `english` 方案就是 `hidden` 但没有 `[overlay]`。特殊模式通常两个都要写。
+
+本段也可以写进 `schema_overrides\<方案ID>.toml`，设置工具的「特殊模式」一节改的就是那里。
+
 ## 差异化覆盖（schema_overrides）
 
 全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。设置工具的[扩展词库开关](/docs/settings/schema#扩展词库)、双拼布局、[方案级码表配置](/docs/settings/schema#schema-codetable)都写入这个文件。它不会被安装包升级覆盖。

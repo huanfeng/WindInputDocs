@@ -370,19 +370,22 @@ decimal_places = 6       # 计算器结果小数位数
 
 更多用法见[快捷输入](/docs/settings/input/quick-input)。
 
-## 特殊模式与混输模式（special_modes / mix_modes）
+## 混输模式（mix_modes）
 
 ```toml
 
-# schema.special_modes / schema.mix_modes 均为数组（对象列表），此处不展开子字段
+# schema.mix_modes 是数组（对象列表），此处不展开子字段
 ```
 
 | 键 | 类型 | 说明 |
 | --- | --- | --- |
-| `special_modes` | 结构体数组 | 特殊模式列表（各自带码表 + 上屏策略，引导键触发）。子字段见[引导键特殊模式](/docs/guides/special-modes) |
 | `mix_modes` | 结构体数组 | 临时混输模式列表（引导键触发，合并多个成员方案的候选）。内置一项 `quick_mix` 即[快捷输入](/docs/settings/input/quick-input) |
 
-两者都是**每实例**配置：同一份列表里的不同条目各有自己的引导键、候选来源与 `candidate_layout`，互不影响。
+这是**每实例**配置：同一份列表里的不同条目各有自己的候选来源与 `candidate_layout`，互不影响。
+
+<Callout type="warn" title="special_modes 已在 0.115 移除">
+特殊模式曾经也是这里的一个数组 `schema.special_modes`。0.115 起改为：呈现配置进**方案文件**的 [`[overlay]` 段](/docs/guides/schemas#overlay)，引导键进 [`[keys.key_actions]`](/docs/guides/config/keys#key-actions)。残留的旧数组不再生效，只在启动日志里告警。改法见[引导键特殊模式](/docs/guides/special-modes)。
+</Callout>
 
 `mix_modes` 每一项的常用子字段：
 

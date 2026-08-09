@@ -200,7 +200,7 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 | 临时英文 | `input.temp_english.candidate_layout` | `follow` | ✅ 下拉 |
 | 快捷输入 | `schema.mix_modes` 中 `quick_mix` 的 `candidate_layout` | `vertical` | ✅ 下拉 |
 | 网址输入 | `input.url.candidate_layout` | `follow` | 暂不显示（该模式当前不产出候选） |
-| 特殊模式 | `schema.special_modes[].candidate_layout` | `follow` | 仅配置文件，见[引导键特殊模式](/docs/guides/special-modes#候选窗布局) |
+| 特殊模式 | 方案文件 `[overlay]` 的 `candidate_layout` | `follow` | ✅ 下拉（方案设置 → 特殊模式），见[引导键特殊模式](/docs/guides/special-modes#候选窗布局) |
 | 快捷加词 | `input.add_word.candidate_layout` | `vertical` | 仅配置文件 |
 
 快捷输入与特殊模式是**每实例**的——你配了多个融合模式或多个特殊模式时，每个各设各的，互不影响。
@@ -231,8 +231,9 @@ comment_template_horizontal = ""
 「不写」与「写空串」是两回事——前者跟随全局，后者明确要求不显示。也因此这两个键
 **不会**出现在出厂 `data/config.toml` 里：写进去就等于给了它一个值，而任何值都不等于「跟随」。
 
-可用位置：`input.temp_english`、`input.temp_pinyin`、`input.url`、
-`schema.mix_modes[]`、`schema.special_modes[]`（后两者每实例独立）。
+可用位置：`config.toml` 的 `input.temp_english`、`input.temp_pinyin`、`input.url`、
+`schema.mix_modes[]`（每实例独立），以及**方案文件**的 `[overlay]` 段（每方案独立，
+见[引导键特殊模式](/docs/guides/special-modes#注释模板)）。
 快捷加词面板不支持——它走独立绘制路径，本就不渲染注释。
 
 典型用法见[候选注释 · 分模式设置](/docs/settings/appearance/candidate-comment#分模式设置)。

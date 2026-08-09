@@ -1,7 +1,9 @@
 ---
 title: 按键配置
-description: keys 域全部配置项——中英切换、候选选择与翻页、以词定字、功能快捷键、全局热键
+description: keys 域全部配置项——中英切换、候选选择与翻页、以词定字、按键功能表、功能快捷键、全局热键
 ---
+
+import { Since } from "@/components/since";
 
 <Callout type="warn" title="高级主题">
 普通用户在[设置工具](/docs/settings)的"快捷键"页即可完成全部按键设置，修改即时生效。本页面向手动编辑 `config.toml` 的用户，逐项列出 `[keys]` 域的类型、可选值与默认值。
@@ -77,14 +79,81 @@ toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
 schema_hotkeys = { english = "ctrl+shift+n", wubi86 = "ctrl+shift+w" }
 ```
 
-key 是方案 id（与 `[schema].available` 里的写法一致），value 是热键字符串。设置工具里的位置：**方案 → 输入方案 → 选中方案 → 设置 → 进入方式**。
+key 是方案 id（与 `[schema].available` 里的写法一致），value 是热键字符串。设置工具里的位置：**方案 → 输入方案 → 选中方案 → 设置 → 按键设置 → 切换热键**。
 
 行为与 `switch_engine` 完全一致——同样遵循「切换时是否上屏」，同样把选择持久化到 `schema.active`。**两种模式下都生效**，这一点和其它中文态专属的快捷键不同：切到英文方案之后，还得能按键切回来。
 
 指向不存在或未启用方案的条目会被安静忽略，不影响其它绑定；目标方案正在后台预热时提示「准备中…」并保持当前方案不变。
 
-<Callout type="info" title="与特殊模式热键的区别">
-`[[schema.special_modes]]` 的 `hotkey` 进的是**临时模式**——打完一段自动退回原方案。`schema_hotkeys` 是**换方案**，不再按一次不会回来。要「临时打几个字符就回来」用前者，要「切过去待一会儿」用后者。
+<Callout type="info" title="与临时模式的区别">
+`key_actions` 里 `special:` / `mix:` / `temp_pinyin` 那批动词进的是**临时模式**——打完一段自动退回原方案。`schema_hotkeys` 与 `toggle_schema:` 是**换方案**，不再按一次不会回来。要「临时打几个字符就回来」用前者，要「切过去待一会儿」用后者。
+</Callout>
+
+### 按键功能表（key_actions）<Since v="0.115" /> [#key-actions]
+
+上面那批热键是「一个功能一个字段」。`key_actions` 是通用的「**键 → 干什么**」表：左边任意键名，右边一个动词。引导键、临时模式入口、方案往返键都统一住在这里。
+
+```toml
+[keys.key_actions]
+backslash = "special:quick_symbols"       # \ 进快符
+backtick = "temp_pinyin"                  # ` 进临时拼音
+semicolon = "mix:quick_mix"               # ; 进快捷输入
+"ctrl+shift+u" = "special:quick_symbols"  # 快符的直达热键
+rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，再敲回来
+```
+
+动词值域：
+
+| 动词 | 含义 |
+| --- | --- |
+| `temp_pinyin` / `temp_english` | 进临时拼音 / 临时英文 |
+| `mix:<实例id>` | 进指定融合模式（`mix:quick_mix` = 内置[快捷输入](/docs/settings/input/quick-input)） |
+| `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
+| `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
+| `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
+| `none` | 显式什么都不做，用于在方案级覆盖里**关掉**某个全局绑定 |
+
+写错的动词会被**整条丢弃**并在日志里告警，不会静默变成别的功能。
+
+#### 键的形态决定走哪条通路
+
+同一张表里的条目按**键的形态**自动分流，不由动词决定，也不需要你指定：
+
+| 键的形态 | 通路 | 为什么 |
+| --- | --- | --- |
+| 组合键（`ctrl+shift+u`） | 热键 | 不与输入争键，可全局拦截 |
+| 纯修饰键（`rshift`、`lctrl`） | 松开时的**轻敲**判定 | 按下时不能吃——宿主还要看到这个修饰键 |
+| 单个有字符的键（`backslash`、`;`） | 引导键链 | 排在中英文分水岭之后，英文模式下照常出字符 |
+
+<Callout type="warn" title="切方案 / 切中英文只能绑修饰键">
+`toggle_mode`、`switch_engine`、`toggle_schema:*` 这三类**只接受修饰键**，绑到有字符的键上会被拒绝。
+
+理由是单程票问题：有字符的键走引导键链，而那条链在英文模式分水岭之后、英文态根本到不了。用 `\` 切去英文方案之后，`\` 就只会打出反斜杠，再也切不回来。这三个动词恰恰是「从英文态出来」的手段，所以必须绑在英文态也能生效的修饰键上。
+</Callout>
+
+#### 方案级覆盖
+
+方案文件（或 `schema_overrides\<方案ID>.toml`）也能写一份 `[key_actions]`，只在该方案作当前方案时生效，**逐键覆盖**全局那份：
+
+```toml
+# wubi86.schema.toml
+[key_actions]
+z = "temp_pinyin"       # 五笔里借 z 打拼音
+backslash = "none"      # 本方案关掉全局配的 \ 引导键
+```
+
+**字母键只能按方案配**，不能写进全局表：字母天然是编码键，能不能借用取决于这张码表里它是不是死码。全局表里配字母就成了无条件抢键，那个字母在所有方案里都打不出编码了。
+
+要在某个方案里**关掉**一个全局绑定，写显式的 `"none"`。覆盖是深合并，只能新增或改写——从覆盖文件里删掉一行是删不掉全局那条的。
+
+<Callout type="warn" title="字母键让位给编码，所以别用 z 进特殊模式">
+绑了功能的字母键，若在当前码表里**是活码**（这个字母开头有真实编码或短语），按下时会**让位给正常输入**，不进模式。这是刻意的：编码优先。
+
+`z` 尤其要注意——出厂词库自带 37 条 `zz` 开头的标点短语（`zzbd`、`zzsz` 等），所以**在任何方案里 z 都是活码**，按下去总是先当编码。
+
+之后能被捞回来的只有三个动词：`temp_pinyin`、`temp_english`、`mix:<id>`。继续打出该码表里查不到的编码时（如 `znihao`），输入法会把 `z` 夺回来转交模式，而 `zzbd` 这类真实短语照常工作。
+
+`special:<方案id>` **没有**这条回捞通路——特殊模式的码表是作者设计的短码，去掉 `z` 之后的残余多半查不到，且它常开「进入即展示候选」，价值恰恰在按下那一刻。所以特殊模式请用 `\`、`` ` `` 这类在码表里不产出编码的符号键。
 </Callout>
 
 ## 功能快捷键

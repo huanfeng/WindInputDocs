@@ -248,11 +248,14 @@ comment_template_horizontal = ""
 可用位置：
 
 ```toml
+# config.toml
 [input.temp_english]      # 临时英文
 [input.temp_pinyin]       # 临时拼音
 [input.url]               # 网址输入
 [[schema.mix_modes]]      # 快捷输入等融合模式（每个实例独立）
-[[schema.special_modes]]  # 引导键特殊模式（每个实例独立）
+
+# <方案id>.schema.toml 或 schema_overrides/<方案id>.toml
+[overlay]                 # 引导键特殊模式（每个方案独立）
 ```
 
 ### 推荐用法：把词典释义只留给英文
