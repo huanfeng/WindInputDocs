@@ -9,6 +9,7 @@ import {
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Comments } from "@/components/comments";
 import { getMDXComponents } from "@/components/mdx";
 import { gitConfig } from "@/lib/shared";
 import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
@@ -42,6 +43,9 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
           })}
         />
       </DocsBody>
+      {/* 评论区。pageId 用 page.url（如 /docs/start/concepts）作页面标识——
+          改文档路径时记得一并迁移 comments.page_id，否则旧评论会成为孤儿。 */}
+      <Comments pageId={page.url} />
     </DocsPage>
   );
 }
