@@ -63,13 +63,13 @@ preedit_display = "app_inline"  # 编码（组合区）显示方式
 候选窗被顶到光标上方时的两个**正交**开关，可单独或叠加。
 
 ```toml
-flip_when_above = false          # 上翻时反转候选排列顺序
+flip_when_above = false          # 上翻时反转候选排列顺序（仅竖排）
 swap_preedit_when_above = false  # 上翻时交换编码栏与候选栏位置
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `flip_when_above` | 布尔 | — | `false` | 候选窗在光标上方时反转候选项排列顺序 |
+| `flip_when_above` | 布尔 | — | `false` | 候选窗在光标上方时反转候选项排列顺序。**仅 `layout = "vertical"`（竖排）生效**：横排候选左右并列，反转与窗口在上在下无关，故忽略 |
 | `swap_preedit_when_above` | 布尔 | — | `false` | 候选窗在光标上方时交换编码栏与候选栏位置（编码区沉底贴光标）；与 `flip_when_above` 正交，可叠加 |
 
 ## 候选窗——翻页栏（ui.candidate）
