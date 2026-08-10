@@ -1,0 +1,8 @@
+# 本地开发用的密钥。复制成 .dev.vars 后按需修改（.dev.vars 已被 .gitignore 忽略）。
+# 生产环境不用这个文件，走 `wrangler secret put <NAME>`，见 README。
+ADMIN_TOKEN=local-dev-token
+IP_SALT=local-dev-salt
+
+# Telegram 通知可选。留空则跳过推送，其余功能不受影响。
+TG_BOT_TOKEN=
+TG_CHAT_ID=

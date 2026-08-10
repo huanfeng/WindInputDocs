@@ -1,0 +1,8 @@
+# worker 独立安装/构建产物，不随文档站一起提交
+node_modules/
+.wrangler/
+worker-configuration.d.ts
+*.log
+
+# 本地开发密钥，绝不入库（模板见 .dev.vars.example）
+.dev.vars

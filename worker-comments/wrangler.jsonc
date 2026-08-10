@@ -1,0 +1,40 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "windinput-comments",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-01",
+	"observability": {
+		"enabled": true
+	},
+	// 同源部署：windinput.com 的「底座」是 Cloudflare Pages（windinput-docs 项目），
+	// 只在评论 API 这一条窄路径上叠加 Worker 路由。Worker 路由优先级高于 Pages，
+	// 匹配到的归 Worker，其余仍由 Pages 返回。
+	//
+	// 同源的价值：前端 fetch 无跨域、无预检；可达性与站点完全一致（同一个 DNS 名、
+	// 同一条链路），而不只是「差不多」。
+	//
+	// ⚠️ 路径必须精确到 /api/comments*，绝不能写成 /api/*。
+	// 文档站的搜索索引是 src/app/api/search/route.ts 用 fumadocs staticGET 静态导出的，
+	// 产物落在 out/api/search/ 下。写成 /api/* 会把搜索请求一并劫持，全站搜索直接失效。
+	"routes": [
+		{
+			"pattern": "windinput.com/api/comments*",
+			"zone_name": "windinput.com"
+		}
+	],
+	// database_id 由 `wrangler d1 create windinput-comments` 输出后填入。
+	// 刻意不设 "remote": true —— `pnpm dev` 用本地模拟库，测试评论不会写进生产数据。
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "windinput-comments",
+			"database_id": "0d8713ad-cc37-42da-9cb1-7e065b3a1bdc"
+		}
+	],
+	// 非敏感配置放 vars；ADMIN_TOKEN / IP_SALT / TG_* 走 `wrangler secret put`，见 README。
+	"vars": {
+		// 允许的前端来源，用于 CORS。同源部署时用不上，
+		// 但本地开发（localhost:3000 → localhost:8787）和万一回退到子域方案时必需。
+		"SITE_ORIGIN": "https://windinput.com"
+	}
+}

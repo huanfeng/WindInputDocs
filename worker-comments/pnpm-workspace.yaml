@@ -1,0 +1,8 @@
+# 本目录是独立于文档站的 pnpm 项目（自己的锁文件、自己的依赖）。
+# 有这个文件，pnpm 就以本目录为 workspace 根，不再向上并入文档站的依赖树。
+#
+# wrangler 的本地运行时需要 workerd 与 esbuild 的安装脚本真正执行，
+# 否则 `pnpm dev` 起不来。pnpm 默认拦截所有依赖的构建脚本，这里显式放行这两个。
+allowBuilds:
+  esbuild: true
+  workerd: true

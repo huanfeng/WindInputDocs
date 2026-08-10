@@ -1,0 +1,23 @@
+{
+  "name": "windinput-comments-worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "清风输入法文档站评论 Worker（D1 存储 + 服务端反垃圾 + Telegram 通知）",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typegen": "wrangler types",
+    "types:check": "tsc --noEmit",
+    "db:init:local": "wrangler d1 execute windinput-comments --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute windinput-comments --remote --file=./schema.sql",
+    "db:pending": "wrangler d1 execute windinput-comments --remote --command=\"SELECT id, page_id, nick, substr(content,1,60) AS preview, created_at FROM comments WHERE status = 0 ORDER BY id DESC LIMIT 50\"",
+    "db:recent": "wrangler d1 execute windinput-comments --remote --command=\"SELECT id, page_id, nick, status, substr(content,1,60) AS preview, created_at FROM comments ORDER BY id DESC LIMIT 50\"",
+    "db:mode": "wrangler d1 execute windinput-comments --remote --command=\"SELECT value FROM settings WHERE key = 'moderation'\""
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "typescript": "^6.0.3",
+    "wrangler": "^4"
+  }
+}
