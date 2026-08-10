@@ -383,8 +383,10 @@ decimal_places = 6       # 计算器结果小数位数
 
 这是**每实例**配置：同一份列表里的不同条目各有自己的候选来源与 `candidate_layout`，互不影响。
 
-<Callout type="warn" title="special_modes 已在 0.115 移除">
-特殊模式曾经也是这里的一个数组 `schema.special_modes`。0.115 起改为：呈现配置进**方案文件**的 [`[overlay]` 段](/docs/guides/schemas#overlay)，引导键进 [`[keys.key_actions]`](/docs/guides/config/keys#key-actions)。残留的旧数组不再生效，只在启动日志里告警。改法见[引导键特殊模式](/docs/guides/special-modes)。
+<Callout type="warn" title="special_modes 已在 0.115.0 移除">
+特殊模式曾经也是这里的一个数组 `schema.special_modes`。0.115.0 起改为：呈现配置进**方案文件**的 [`[overlay]` 段](/docs/guides/schemas#overlay)，引导键进 [`[keys.key_actions]`](/docs/guides/config/keys#key-actions)。残留的旧数组不再生效，只在启动日志里告警。
+
+**从 0.114 升级的用户需要手工改写一次**，完整前后对照见[0.115.0 配置格式变更](/docs/guides/special-modes#migration-0115)。
 </Callout>
 
 `mix_modes` 每一项的常用子字段：

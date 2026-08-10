@@ -1,6 +1,6 @@
 ---
 title: 引导键特殊模式
-description: 用引导键临时进入自建小码表（快符、生僻字等）的配置方法、退出条件与候选行为
+description: 用引导键临时进入自建小码表（快符、生僻字等）的配置方法、退出条件与候选行为，含 0.115.0 配置格式变更的迁移对照
 ---
 
 import { Since } from "@/components/since";
@@ -15,23 +15,8 @@ import { Since } from "@/components/since";
 启用需要你准备**两样东西**：一个带 `[overlay]` 段的方案文件（连同它的码表词库），以及 `config.toml` 里指向它的引导键。唯一预置的引导键模式是 `;` 触发的「快捷」混输模式，见[快捷输入](/docs/settings/input/quick-input)。
 </Callout>
 
-<Callout type="warn" title="0.115 起配置位置变更，旧写法不再生效">
-0.114 及更早版本用 `config.toml` 的 `[[schema.special_modes]]` 数组定义特殊模式。0.115 起该数组**已废弃，且不做自动迁移**：启动时会读出残留条目、在日志里打一条指明新写法的提示，然后忽略它们。
-
-原因是数组条目的身份靠下标：既写不进出厂配置（写出即冻结快照），设置工具也没法用稳定的键定位到某一条。新形式的身份就是**方案 id**，这些问题一并消失。
-
-改法（一个模式约 5 行）：
-
-| 旧字段 | 新位置 |
-| --- | --- |
-| `id` / `name` / `short_name` | 删除——改取该方案自己的 `[schema].id` / `name` / `icon_label` |
-| `schema` | 删除——模式就是那个方案本身，不再有引用关系 |
-| `trigger_keys` | `[keys.key_actions]` 的 `<键名> = "special:<方案id>"` |
-| `hotkey` | 同上，键名写成组合键即可 |
-| `show_all_on_enter` / `candidate_layout` | 方案文件的 `[overlay]` 段 |
-| `comment_template_vertical` / `_horizontal` | 同上 |
-
-残留的旧配置块可以直接删掉。留着不会报错，但也不会有任何效果。
+<Callout type="warn" title="0.114 及更早版本的配置需要手工改写">
+`[[schema.special_modes]]` 数组在 0.115.0 已废弃，**不做自动迁移**。升级后快符按下去只会打出引导符本身，必须按新格式重配一次——照着[「0.115.0 配置格式变更」](#migration-0115)抄即可，一个模式约 5 行。
 </Callout>
 
 <Callout type="info" title="除了 [overlay] 段本身，其余都能在设置工具里配">
@@ -56,6 +41,113 @@ import { Since } from "@/components/since";
 <Callout type="info" title="和快捷输入的区别">
 快捷输入（`;` 触发）内置了数字转换、计算器、日期等功能，使用内置逻辑处理；特殊模式则是完全自定义的码表，适合放置任意词条，更灵活。
 </Callout>
+
+## 0.115.0 配置格式变更 [#migration-0115]
+
+**只有从 0.114 及更早版本升级、且配过特殊模式的用户需要看这一节。** 全新安装的用户直接看下面的[配置](#配置)。
+
+0.114 及更早版本用 `config.toml` 里的 `[[schema.special_modes]]` 数组定义特殊模式。0.115.0 起该数组**已废弃，且不做自动迁移**——升级后原有的快符、生僻字表等会全部失效，需要手工改写一次。
+
+### 症状
+
+- 按引导键（如 `\`）不再进入模式，而是**直接打出这个符号本身**
+- 直达热键按下去没有任何反应
+- 启动日志里有一条告警，形如：
+
+  ```text
+  schema.special_modes 已废弃且不再生效（残留 1 条：quick_symbols）。
+  改法：在对应方案的 .schema.toml（或 schema_overrides/<id>.toml）加 [overlay] 段，
+  引导键与直达热键写进 keys.key_actions（如 backslash = "special:<方案id>"）。
+  ```
+
+<Callout type="info" title="为什么不自动迁移">
+新家有两个（方案文件 + `config.toml`），而其中方案文件那一半属于**用户数据目录里的另一批文件**，改写它需要引入本项目从未有过的「一次性副作用迁移 + 迁移状态标记」机制。权衡下来：手工重配一个模式约 5 行，而自动迁移一旦写错就是静默改坏用户的方案文件。
+
+旧字段不会被静默吞掉——它仍会被读出来、告警、然后忽略，所以你不会遇到「配置还在、看着像生效」的情况。
+</Callout>
+
+### 改法：完整前后对照
+
+假设你原来配了一个快符模式。**旧写法**（`config.toml`，0.114）：
+
+```toml
+# config.toml —— 这一整段现在要删掉
+[[schema.special_modes]]
+id = "quick_symbols"
+name = "快符"
+short_name = "符"
+trigger_keys = ["backslash"]
+schema = "quick_symbols"
+hotkey = "ctrl+shift+u"
+show_all_on_enter = true
+candidate_layout = "vertical"
+```
+
+**新写法**拆成两个文件。① 方案文件 `%APPDATA%\WindInput\schemas\quick_symbols.schema.toml`——加一段 `[overlay]`，并确认 `[schema]` 段里有模式名：
+
+```toml
+# quick_symbols.schema.toml
+[schema]
+id = "quick_symbols"
+name = "快符"                 # ← 原 special_modes 的 name
+icon_label = "符"             # ← 原 special_modes 的 short_name
+hidden = true                 # 不出现在方案切换列表里（原本多半已经有）
+
+[overlay]                     # ← 新增这一段，段存在即声明「我是特殊模式」
+show_all_on_enter = true      # ← 原样搬过来
+candidate_layout = "vertical" # ← 原样搬过来
+
+# 以下是你原有的 [engine] / [[dictionaries]] 等，不用动
+```
+
+② `config.toml`——删掉整个 `[[schema.special_modes]]` 块，改在 `[keys.key_actions]` 里绑键：
+
+```toml
+# config.toml
+[keys.key_actions]
+backslash = "special:quick_symbols"       # ← 原 trigger_keys
+"ctrl+shift+u" = "special:quick_symbols"  # ← 原 hotkey（没配过就不写这行）
+```
+
+`special:` 后面跟的就是**方案 id**，与方案文件里的 `[schema].id` 一致。
+
+### 逐字段对照
+
+| 旧字段（`[[schema.special_modes]]`） | 新位置 |
+| --- | --- |
+| `id` | **删除**——身份改用方案 id |
+| `schema` | **删除**——模式就是那个方案本身，不再有引用关系 |
+| `name` | 方案文件 `[schema].name` |
+| `short_name` | 方案文件 `[schema].icon_label` |
+| `trigger_keys = ["backslash"]` | `[keys.key_actions]` 的 `backslash = "special:<方案id>"` |
+| `hotkey = "ctrl+shift+u"` | 同上，键名写成组合键：`"ctrl+shift+u" = "special:<方案id>"` |
+| `show_all_on_enter` | 方案文件 `[overlay]` 段，原名不变 |
+| `candidate_layout` | 方案文件 `[overlay]` 段，原名不变 |
+| `comment_template_vertical` / `_horizontal` | 方案文件 `[overlay]` 段，原名不变 |
+
+### 三个容易踩的地方
+
+<Callout type="warn" title="① 一个方案只能是一个模式了">
+旧格式允许两个 `[[schema.special_modes]]` 条目引用**同一个** `schema`，各自带不同的引导键与 `show_all_on_enter`。新格式下**实例就是方案**，做不到这一点。
+
+如果你原来这样配过，需要把方案文件复制一份、改成不同的 `id`（文件名前缀必须与 `id` 一致），两份各写各的 `[overlay]`。两份可以指向同一个词库文件，不必复制词库；但**用户词、词频与候选调整是按方案 id 分开记的**，两份之间不共享。
+</Callout>
+
+<Callout type="warn" title="② 模式名以方案文件为准了">
+候选窗上的模式徽标现在取方案文件的 `[schema].name`，不再取 `special_modes` 里的 `name`。这两处原本可以不一致——如果你的方案文件里写的是别的名字（比如 `name = "符号表"`），迁移后徽标会跟着变。要保持原样就把 `[schema].name` 改成你习惯的那个。
+</Callout>
+
+<Callout type="warn" title="③ 字母引导键要另写一处">
+旧的 `trigger_keys` 里如果配过字母（如 `z`），**不能**直接搬进全局 `[keys.key_actions]`——字母是编码键，全局配了会让它在所有方案里都打不出编码。字母要写进**方案级**的 `[key_actions]` 段，且特殊模式不适合用 `z`，详见[字母键的让位规则](/docs/guides/config/keys#key-actions)。
+</Callout>
+
+### 改完怎么验证
+
+1. 重启输入法（或重新登录），让配置重新加载
+2. 在中文输入状态下按引导键——应当出现模式徽标（如「快符」）
+3. 若仍打出符号本身，说明没接上。按这个顺序查：方案文件有没有 `[overlay]` 段 → `special:` 后面的 id 与 `[schema].id` 是否逐字相同 → 启动日志里还有没有那条 `special_modes 已废弃` 告警（还有就说明旧块没删干净）
+
+改完之后，`show_all_on_enter` 与 `candidate_layout` 两项就能在设置工具里直接调了：**方案页 → 选中该方案 → 设置 → 特殊模式**。
 
 ## 配置
 
