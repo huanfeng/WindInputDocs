@@ -193,6 +193,25 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 | `use_smart_compose` | 布尔 | — | `true` | 智能组词 |
 | `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = `'` 未被占作选择键时用 `'`、否则用反引号；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼方案下不生效 |
 
+## 双拼（schema.pinyin.shuangpin）
+
+双拼相关的**全局**行为，一次配置对所有双拼方案生效。与**方案级** `engine.pinyin.shuangpin`（那里放 `layout`，即某个方案的编码规则）分工不同：这里放的是「这台机器怎么用双拼」的偏好，无方案级 override。
+
+```toml
+[schema.pinyin.shuangpin]
+allow_full_pinyin = false   # 双拼方案下额外把击键当全拼再解释一遍
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `allow_full_pinyin` | 布尔 | — | `false` <Since v="0.115" /> | 双拼方案下额外把击键串当全拼再解释一遍（`zaijian` → 「再见」）。非双拼方案下无效；混输的拼音次引擎强制关闭 |
+
+面向「多人共用一台机器」：主力用户打双拼，偶尔来的人只会全拼。开启后，双拼方案在自己的候选之外，额外把击键串当全拼解释一遍，覆盖精确整词、子短语、前缀补全与整句。
+
+只有**低置信**的全拼候选（前缀补全、子短语）会沉到候选列表末尾；精确整词与整句和双拼候选同层竞争，由消费长度决定先后。同一个词双拼也打得出时，保留的是双拼那条。模糊音跟随 `[schema.pinyin.fuzzy]`，与双拼流共用同一套设置。
+
+关闭时（默认）对候选无任何影响，纯全拼方案与码表、混输三条路径也都不受此项影响。用法与候选顺序示例见[拼音方案配置 · 全拼降级输入](/docs/settings/schema/pinyin#full-pinyin-fallback)。
+
 ## 模糊音（schema.pinyin.fuzzy）
 
 各模糊音配对开关默认全关，需先开 `enabled` 总开关再逐项启用。
