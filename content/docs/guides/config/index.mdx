@@ -47,6 +47,7 @@ description: 数据的两层结构、目录职责、覆盖机制、三层合并�
 | `schemas\` 下的拆字库与字根字体 | 由方案 `[engine.chaizi]` 的 `db_path` / `font_path` 指定，见[拆字配置](/docs/guides/schemas#拆字配置) |
 | `themes\<主题名>\theme.toml` | [主题](/docs/settings/appearance)。同名目录覆盖内置主题 |
 | `system.phrases.toml` | 系统短语的**初始内容**，见下方说明 |
+| `system.quick.toml` | [快捷输入的候选格式表](/docs/settings/input/quick-input#format-table)，改日期 / 数字 / 金额的写法与顺序 |
 | `pinyin_map.txt` | 汉字读音表，用于逐字拼音反查与编码提示 |
 
 `data\opencc\`（简繁转换表）**不支持覆盖**，它随程序版本整体更新。
@@ -70,7 +71,7 @@ description: 数据的两层结构、目录职责、覆盖机制、三层合并�
 
 ### 生效时机与撤销
 
-放置或修改覆盖文件后**需要重启输入法**（`system.phrases.toml`、`pinyin_map.txt`、`common_chars.txt` 必须重启服务；方案、词库、主题也可在设置工具里刷新 / 重建缓存）。程序不监视这些文件的变化。
+放置或修改覆盖文件后**需要重启输入法**（`system.phrases.toml`、`system.quick.toml`、`pinyin_map.txt`、`common_chars.txt` 必须重启服务；方案、词库、主题也可在设置工具里刷新 / 重建缓存）。程序不监视这些文件的变化。
 
 撤销覆盖只需**删除用户目录里的那一份**，内置版本自动重新生效。
 
@@ -88,6 +89,7 @@ description: 数据的两层结构、目录职责、覆盖机制、三层合并�
 ├── userdata.redb                  # 用户数据库（自定义词、词频、置顶/删词、短语等）
 ├── compat.toml                    # 用户自定义的应用兼容性规则
 ├── system.phrases.toml            # 覆盖内置系统短语的初始内容（可选）
+├── system.quick.toml              # 覆盖快捷输入的候选格式表（可选）
 ├── schemas\                       # 输入方案与方案级词库
 │   ├── pinyin.schema.toml         # 方案配置（同名即整份替换内置方案）
 │   ├── wubi86.schema.toml
@@ -106,6 +108,7 @@ description: 数据的两层结构、目录职责、覆盖机制、三层合并�
 | `userdata.redb` | 用户词库、词频、候选调整、短语等用户数据（程序维护，勿手改） |
 | `compat.toml` | 应用兼容性规则（应用级候选定位规则也在此，不在 `config.toml`） |
 | `system.phrases.toml` | 覆盖内置系统短语的初始内容；日常增删短语走设置工具，存数据库 |
+| `system.quick.toml` | 覆盖[快捷输入的候选格式表](/docs/settings/input/quick-input#format-table)（可选，整份生效） |
 | `schemas\*.schema.toml` | 用户方案。与程序 `data\schemas\` 同名时**整份替换**内置方案，也可放全新方案 |
 | `schemas\*.dict.yaml` | 方案引用的 RIME 词库，第三方词库文件也放同目录 |
 | `schema_overrides\<方案ID>.toml` | 设置工具写入的方案差异项（附加词库开关、双拼布局等），深合并到方案文件之上（程序维护，一般无需手改） |
