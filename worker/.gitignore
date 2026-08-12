@@ -3,3 +3,6 @@ node_modules/
 .wrangler/
 worker-configuration.d.ts
 *.log
+
+# 迁移前自动导出的表快照，含线上下载计数，不入库
+.backups/

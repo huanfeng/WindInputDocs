@@ -1,33 +1,28 @@
 /**
  * 清风输入法下载网关 Worker
  *
- * 绑定 dl.windinput.com（原为 R2 自定义域，现改为本 Worker 的自定义域）。
- * 下载 URL 与文件名完全不变，只是这个域名背后从「R2 直连」换成「Worker 绑定 R2」。
+ * 绑定 dl.windinput.com 上的两条窄路由（安装包 + /api/*），其余路径由 R2 自定义域
+ * 直接响应、不唤起 Worker。下载 URL 与文件名对外始终不变。
  *
  * 职责：
- *   1. GET /<文件名>   —— 从 R2 取对象返回（支持 Range 续传 / 条件请求），
- *                        并在「下载起始请求」时给对应版本计数 +1。
- *   2. GET /api/stats  —— 返回 JSON：{ total, versions[] }，供下载页展示。
+ *   1. GET /<安装包>  —— 计数，然后 302 到实际出口：
+ *                        已登记镜像 → 国内网盘直链；否则 → R2 公共域（带边缘缓存）。
+ *   2. GET /api/stats —— 返回 { total, versions[], sources }，供下载页展示。
+ *   3. Cron           —— 定时探活镜像，连续失败自动下线回落 R2。
  *
- * 计数口径：只统计「下载起始请求」（无 Range 头，或 Range 从 0 开始且非 1 字节探测），
- * 避免下载器分段 / 续传把一次下载计成多次。这是尽力而为的近似值——不依赖 Cookie /
- * 指纹，无法做到按人精确去重，用于「大致了解各版本下载量」足够。
+ * 这里**不再代理字节流**。早先用 R2 binding 直读对象再写回响应，看似只是多一跳，
+ * 实际代价是绕过了 Cloudflare 边缘缓存（in-Worker 的 R2 API 直连存储），每个用户、
+ * 每个分片都在跨洋回源同一个 20MB 文件。改成 302 之后 Worker 只发「票」不扛货，
+ * 字节流交给配了 Cache Rule 的 R2 公共域或国内镜像。
+ *
+ * 计数口径：只统计「下载起始请求」（无 Range，或恰好 bytes=0-0 的分片探测），
+ * 避免下载器分段 / 续传把一次下载计成多次。尽力而为的近似值——不依赖 Cookie /
+ * 指纹，无法按人精确去重，用于「大致了解各版本下载量」足够。
  */
-
-interface Env {
-  BUCKET: R2Bucket;
-  DB: D1Database;
-}
-
-// 只有安装包文件名才参与计数与强制下载；版本号 = 捕获组 1。
-// 与主仓打包脚本一致：WindInput-Setup-<版本>.exe
-const SETUP_RE = /^WindInput-Setup-(.+)\.exe$/;
-
-const CORS: Record<string, string> = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, OPTIONS",
-  "access-control-max-age": "86400",
-};
+import { handleDownload } from "./download";
+import type { Env } from "./env";
+import { checkAllMirrors } from "./mirrors";
+import { handleStats } from "./stats";
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
@@ -42,10 +37,8 @@ export default {
       return new Response("Not Found", { status: 404 });
     }
 
-    if (request.method === "HEAD") {
-      return handleHead(env, key);
-    }
-    if (request.method === "GET") {
+    // HEAD 与 GET 同样 302（客户端自会跟随），差别只在 HEAD 不计数
+    if (request.method === "GET" || request.method === "HEAD") {
       return handleDownload(request, env, ctx, key);
     }
     return new Response("Method Not Allowed", {
@@ -53,149 +46,16 @@ export default {
       headers: { Allow: "GET, HEAD" },
     });
   },
+
+  async scheduled(_event, env, ctx): Promise<void> {
+    ctx.waitUntil(
+      checkAllMirrors(env).then((outcomes) => {
+        // 输出到 Workers 日志（observability 已开），下线事件在这里留痕
+        for (const o of outcomes) {
+          if (!o.ok) console.warn(`镜像探活失败 ${o.key}：${o.status}`);
+          if (o.disabled) console.error(`镜像已自动下线 ${o.key}`);
+        }
+      }),
+    );
+  },
 } satisfies ExportedHandler<Env>;
-
-async function handleHead(env: Env, key: string): Promise<Response> {
-  const object = await env.BUCKET.head(key);
-  if (object === null) {
-    return new Response(null, { status: 404 });
-  }
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set("etag", object.httpEtag);
-  headers.set("accept-ranges", "bytes");
-  headers.set("content-length", String(object.size));
-  return new Response(null, { status: 200, headers });
-}
-
-async function handleDownload(
-  request: Request,
-  env: Env,
-  ctx: ExecutionContext,
-  key: string,
-): Promise<Response> {
-  const object = await env.BUCKET.get(key, {
-    onlyIf: request.headers,
-    range: request.headers,
-  });
-
-  if (object === null) {
-    return new Response("Object Not Found", { status: 404 });
-  }
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set("etag", object.httpEtag);
-  headers.set("accept-ranges", "bytes");
-
-  const setup = SETUP_RE.exec(key);
-  if (setup) {
-    // 强制以附件下载，避免个别浏览器尝试内联打开 .exe
-    headers.set("content-disposition", `attachment; filename="${key}"`);
-  }
-
-  // 条件请求（If-None-Match 等）未命中：R2 返回无 body 的对象，回 412
-  if (!("body" in object)) {
-    return new Response(undefined, { status: 412, headers });
-  }
-
-  const hasRange = request.headers.get("range") !== null;
-  let status = 200;
-
-  if (hasRange && object.range) {
-    const { start, end } = resolveRange(object.range, object.size);
-    headers.set("content-range", `bytes ${start}-${end}/${object.size}`);
-    headers.set("content-length", String(end - start + 1));
-    status = 206;
-  } else {
-    headers.set("content-length", String(object.size));
-  }
-
-  // 计数与响应解耦：用 waitUntil 后台写入，写失败也不影响下载。
-  if (setup && status !== 412 && isDownloadStart(request)) {
-    ctx.waitUntil(bumpCount(env, setup[1]));
-  }
-
-  return new Response(object.body, { status, headers });
-}
-
-/** 把 R2 返回的 range 归一成 [start, end] 闭区间（字节，含端点）。 */
-function resolveRange(
-  range: R2Range,
-  size: number,
-): { start: number; end: number } {
-  if ("suffix" in range) {
-    return { start: Math.max(0, size - range.suffix), end: size - 1 };
-  }
-  const start = range.offset ?? 0;
-  const length = range.length ?? size - start;
-  return { start, end: start + length - 1 };
-}
-
-/**
- * 是否算作「一次下载的起点」，用于计数。目标是让「浏览器点击下载」与「客户端在线更新」
- * 各恰好计 1 次。计以下两种请求：
- *
- * - **无 Range**：浏览器点击下载的首个请求；小安装包（<8MB）的在线更新走单连接下载也无
- *   Range。浏览器紧随的 `bytes=0-` 可续传请求不算，避免一次点击记 2 次。
- * - **恰好 `bytes=0-0`**：wind-setting 在线更新对 ≥8MB 的安装包，下载前必定发且只发一次
- *   `Range: bytes=0-0` 探测服务端是否支持分片；随后的分片 `bytes=X-Y` 不计。以此让
- *   「分片式在线更新」也计为 1 次下载（在线更新也是用户下载了一次）。
- */
-function isDownloadStart(request: Request): boolean {
-  const range = request.headers.get("range");
-  if (range === null) return true;
-  return range.trim() === "bytes=0-0";
-}
-
-async function bumpCount(env: Env, version: string): Promise<void> {
-  const now = new Date().toISOString();
-  await env.DB.prepare(
-    `INSERT INTO downloads (version, count, updated_at)
-     VALUES (?1, 1, ?2)
-     ON CONFLICT(version) DO UPDATE SET count = count + 1, updated_at = ?2`,
-  )
-    .bind(version, now)
-    .run();
-}
-
-async function handleStats(
-  request: Request,
-  env: Env,
-  ctx: ExecutionContext,
-): Promise<Response> {
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS });
-  }
-  if (request.method !== "GET") {
-    return new Response("Method Not Allowed", {
-      status: 405,
-      headers: { ...CORS, Allow: "GET, OPTIONS" },
-    });
-  }
-
-  // 边缘缓存：命中则直接返回，不再查 D1。下载页每次访问都会拉一次 stats，
-  // 没有这层缓存，页面流量会 1:1 打到 D1 读上。计数略有延迟（≤5 分钟）无妨。
-  const cache = caches.default;
-  const cacheKey = new Request(request.url, { method: "GET" });
-  const hit = await cache.match(cacheKey);
-  if (hit) return hit;
-
-  const { results } = await env.DB.prepare(
-    "SELECT version, count FROM downloads ORDER BY count DESC",
-  ).all<{ version: string; count: number }>();
-
-  const versions = results ?? [];
-  const total = versions.reduce((sum, r) => sum + r.count, 0);
-
-  const response = new Response(JSON.stringify({ total, versions }), {
-    headers: {
-      ...CORS,
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, max-age=300",
-    },
-  });
-
-  ctx.waitUntil(cache.put(cacheKey, response.clone()));
-  return response;
-}

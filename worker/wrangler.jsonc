@@ -7,19 +7,22 @@
 		"enabled": true
 	},
 	// 路径分流：dl.windinput.com 的「底座」是 R2 自定义域（直连、不经 Worker），
-	// 只在安装包与 stats 两个路径上叠加窄 Worker 路由。匹配到的走 Worker（计数），
-	// 其余请求（升级检查 / latest.json 等）由 R2 直接返回，不唤起 Worker、不耗额度。
-	//
-	// 前置（控制台，务必先做，见 README.md）：
-	//   1) 删除本 Worker 在 dl.windinput.com 上的旧「自定义域」；
-	//   2) 在 R2 → windinput 桶 → Custom Domains 重新绑定 dl.windinput.com。
-	// 之后再 wrangler deploy，wrangler 会创建下面两条路由。
+	// 只在产物与 stats 两个路径上叠加窄 Worker 路由。匹配到的走 Worker（计数 +
+	// 302 分流），其余请求（latest.json 等升级检查）由 R2 直接返回，不唤起
+	// Worker、不耗额度。
 	//
 	// Worker 路由优先级高于 R2 自定义域：匹配路径归 Worker，未匹配落到 R2。
 	// /api/* 必须纳入，否则 stats 会落到 R2 变 404。
+	//
+	// 为什么是 `WindInput-*` 而不是逐个产物列举：macOS 包名为
+	// WindInput-<版本>-macOS.pkg，前缀与 WindInput-<版本>-Release.md 无法区分，
+	// 而路由模式的尾部扩展名匹配（`*.pkg`）不在官方文档保证内，不值得赌。用一条
+	// 前缀路由通吃，新增任何产物都不用再改这里；代价是发布说明与 .sha256 也会
+	// 进 Worker——它们不匹配 ARTIFACTS 规则，不计数、不查镜像，直接 302 回 R2，
+	// 只多一跳和一次调用，相对额度可忽略。
 	"routes": [
 		{
-			"pattern": "dl.windinput.com/WindInput-Setup-*",
+			"pattern": "dl.windinput.com/WindInput-*",
 			"zone_name": "windinput.com"
 		},
 		{
@@ -27,13 +30,20 @@
 			"zone_name": "windinput.com"
 		}
 	],
-	// bucket_name 必须与主仓 release-published.yml 推送的 R2 桶一致，否则取不到文件。
-	"r2_buckets": [
-		{
-			"binding": "BUCKET",
-			"bucket_name": "windinput"
-		}
-	],
+	// 安装包字节流的实际出口。必须是**另一个**纯 R2 自定义域：dl.windinput.com 上
+	// 安装包路径已被上面的 Worker 路由占用，302 回自己会打转。
+	//
+	// 这个域名上必须配 Cache Rule（Eligible for cache + Edge TTL），否则 .exe 不在
+	// Cloudflare 默认缓存的扩展名列表里，边缘缓存不会生效——那正是这次改造的主要
+	// 收益来源。验证要用 GET 而非 HEAD：HEAD 请求恒返回 cf-cache-status: DYNAMIC。
+	"vars": {
+		"R2_PUBLIC_BASE": "https://r2.windinput.com"
+	},
+	// 镜像探活：连续 2 次失败自动下线回落 R2。10 分钟一次，一天 144 次调用，
+	// 相对免费额度可忽略。
+	"triggers": {
+		"crons": ["*/10 * * * *"]
+	},
 	// database_id 由 `wrangler d1 create windinput-downloads` 输出后填入。
 	"d1_databases": [
 		{
@@ -43,4 +53,6 @@
 			"remote": true
 		}
 	]
+	// 注意：这里**不再需要 r2_buckets 绑定**。Worker 已不碰字节流，只发 302；
+	// 而 in-Worker 的 R2 API 恰恰是绕过边缘缓存的那条路径，删掉它才是重点。
 }
