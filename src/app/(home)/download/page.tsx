@@ -1,4 +1,4 @@
-import { Apple, HardDrive, Package } from "lucide-react";
+import { Apple, HardDrive, type LucideIcon, Package } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DownloadStats } from "@/components/download-stats";
@@ -6,6 +6,8 @@ import { ReleaseNotes } from "@/components/release-notes";
 import { TipTicker } from "@/components/tip-ticker";
 import {
   currentVersion,
+  macDownloadUrl,
+  macFileName,
   releases,
   setupDownloadUrl,
   setupFileName,
@@ -18,10 +20,21 @@ const latest = releases[0];
 
 export const metadata: Metadata = {
   title: "下载",
-  description: "下载清风输入法 Windows 安装包（Cloudflare R2 国内直连）",
+  description:
+    "下载清风输入法 Windows / macOS 安装包（Cloudflare R2 国内直连）",
 };
 
-const editions = [
+// download 可选：Windows 安装版的直链已在页首的主按钮给出，卡片里不重复；
+// macOS 包在页首没有位置，故由卡片自带下载入口。
+interface Edition {
+  icon: LucideIcon;
+  title: string;
+  badge?: string;
+  points: string[];
+  download?: { url: string; label: string };
+}
+
+const editions: Edition[] = [
   {
     icon: Package,
     title: "Windows 安装版",
@@ -45,11 +58,14 @@ const editions = [
   {
     icon: Apple,
     title: "macOS 版",
-    badge: "开发中",
+    badge: "macOS 12+",
     points: [
-      "尚未正式发布，功能与 Windows 版存在差异",
-      "面向尝鲜用户的安装与试用说明见文档「macOS 版」页",
+      "universal 安装包，Apple Silicon / Intel 通用",
+      "未做苹果签名：首次运行需到「系统设置 → 隐私与安全性」放行",
+      "标点配对、命令直通车按键合成需授权「辅助功能」",
+      "没有工具栏（改用菜单栏指示器），菜单由系统渲染、不受主题控制",
     ],
+    download: { url: macDownloadUrl, label: macFileName },
   },
 ];
 
@@ -63,7 +79,7 @@ export default function DownloadPage() {
           <code className="rounded bg-fd-muted px-1.5 py-0.5 font-mono text-sm">
             v{currentVersion}
           </code>
-          {" · "}Windows 10 / 11（64 位）
+          {" · "}Windows 10 / 11（64 位） · macOS 12+
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a
@@ -136,6 +152,14 @@ export default function DownloadPage() {
                 <li key={p}>{p}</li>
               ))}
             </ul>
+            {e.download && (
+              <a
+                href={e.download.url}
+                className="mt-4 inline-block break-all rounded-full border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-fd-accent"
+              >
+                下载 {e.download.label}
+              </a>
+            )}
           </div>
         ))}
       </div>
@@ -148,6 +172,18 @@ export default function DownloadPage() {
             可能拦截：点「更多信息」→「仍要运行」即可继续。
           </li>
           <li>
+            macOS 版同样未签名，且需要额外授权：先到「系统设置 → 隐私与安全性」
+            放行被拦截的程序，再到「辅助功能」里打开清风输入法，否则标点配对、
+            命令直通车按键合成等功能会静默失效。步骤见
+            <Link
+              href="/docs/reference/macos"
+              className="text-fd-primary hover:underline"
+            >
+              macOS 版
+            </Link>
+            页。
+          </li>
+          <li>
             第三方码表方案（五笔 98、新世纪、虎码等）见社区仓库{" "}
             <a
               href="https://github.com/huanfeng/WindInputCodeTable"
@@ -156,16 +192,6 @@ export default function DownloadPage() {
               WindInputCodeTable
             </a>
             。
-          </li>
-          <li>
-            macOS 版开发中，说明见
-            <Link
-              href="/docs/reference/macos"
-              className="text-fd-primary hover:underline"
-            >
-              macOS 版
-            </Link>
-            页。
           </li>
           <li>
             版本变更详情见

@@ -29,6 +29,12 @@ export const r2Base = "https://dl.windinput.com";
 export const setupFileName = `WindInput-Setup-${currentVersion}.exe`;
 export const setupDownloadUrl = `${r2Base}/${setupFileName}`;
 
+// macOS 安装包（universal，内含输入法 / 后台服务 / 设置程序）。文件名口径与下载网关
+// worker/src/env.ts 的 ARTIFACTS 正则一致（^WindInput-(.+)-macOS\.pkg$ → platform=macos），
+// 命名与 Windows 侧不同源，故单独拼装而非套用 setupFileName 的模式。
+export const macFileName = `WindInput-${currentVersion}-macOS.pkg`;
+export const macDownloadUrl = `${r2Base}/${macFileName}`;
+
 // 下载计数接口，由 worker/（绑定 dl.windinput.com 的下载网关 Worker）提供。
 // 返回 { total: number, versions: { version, count }[] }。Worker 未部署时前端静默降级。
 export const statsUrl = `${r2Base}/api/stats`;

@@ -83,7 +83,7 @@ export default function HomePage() {
           </Link>
         </div>
         <p className="mt-4 text-sm text-fd-muted-foreground">
-          Windows 10 / 11 · macOS 版开发中
+          Windows 10 / 11 · macOS 12+
         </p>
         {/* 实际候选窗截图。原图 1140×188，显示宽度按屏幕密度分档（见 global.css
             的 .hero-screenshot），各档都是超采样，任何缩放下都不发糊 */}
