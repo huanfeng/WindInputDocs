@@ -172,7 +172,7 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `last()` / `last(n)` | 最近 / 倒数第 n 次上屏文本 |
 | `clip()` | 当前剪贴板文本 |
 | `clip(n)` | 剪贴板历史第 n 条——**尚未实现**，参数被忽略，等同 `clip()` |
-| `app()` / `title()` / `sel()` | 前台进程名 / 窗口标题 / 选中文本——**Windows 上均返回空串**（仅 macOS 上报） |
+| `app()` / `title()` / `sel()` | 前台进程名 / 窗口标题 / 选中文本——**Windows 上均返回空串**（仅 macOS 上报；其中 `title()` 还需 macOS 的[辅助功能授权](/docs/reference/macos#accessibility)，未授权返回空串） |
 | `date(fmt)` / `date(fmt, offset)` | 日期，offset 形如 `"+1d"`、`"-2w"`、`"+3M"`、`"-1y"` |
 | `time()` / `time(fmt)` | 时间，默认 `"HH:mm:ss"` |
 | `now()` | 等价 `date("YYYY-MM-DD HH:mm:ss")` |
@@ -453,6 +453,12 @@ key.tap("Shift+vk:0x5D")
 
 <Callout type="warn" title="标点键 VK 码基于美式布局">
 标点符号键的 VK 码按美式 US 键盘布局定义，非 US 布局下物理键位可能不同，此时改用 `vk:` 数值码指定精确虚拟键值。
+</Callout>
+
+<Callout type="warn" title="macOS 上 key.* 需要「辅助功能」授权">
+`key.tap` / `key.seq` / `key.hold` / `key.release` 靠向前台应用注入键盘事件实现，macOS 把这类能力归在**辅助功能**权限下。未授权时系统会静默吞掉事件——命令看起来执行了，按键却没发出去。到 **系统设置 → 隐私与安全性 → 辅助功能** 打开「清风输入法」即可，见 [macOS 版 · 授权辅助功能](/docs/reference/macos#accessibility)。
+
+`key.type`（文本直输）与 `clip.paste` 走的是输入法自己的文本插入接口，**不需要**这项授权。
 </Callout>
 
 ## 行为细节

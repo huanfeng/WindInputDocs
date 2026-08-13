@@ -33,6 +33,10 @@ import { Since } from "@/components/since";
 
 主题也可以从[功能主菜单](/docs/start/first-input#context-menu)的「主题」子菜单直接切换。
 
+<Callout type="info" title="macOS 上主题不覆盖菜单">
+macOS 的功能主菜单是**原生系统菜单**，由系统绘制、跟随 macOS 自身的浅色 / 深色，主题对它不生效；主题只作用于候选窗、状态气泡与悬停提示。「主题风格」仍然有效。见 [macOS 版 · 菜单不支持主题](/docs/reference/macos#menu-not-themed)。
+</Callout>
+
 ### 翻页栏
 
 翻页栏包含翻页箭头与页码，可独立于主题配置进行覆盖：
@@ -174,6 +178,10 @@ import { Since } from "@/components/since";
 | 自动隐藏延时 | 显示多久（秒）后开始淡出；仅「自动隐藏」开启时可用 |
 
 工具栏会**记住每个显示器上的位置**——切到另一块屏幕时落到你在那块屏上摆过的地方，没摆过则落到该屏右下角。
+
+<Callout type="warn" title="macOS 没有工具栏">
+这张卡片是 **Windows 专属**，在 macOS 的设置工具里会整体隐藏。mac 上的状态显示改用**菜单栏的输入模式指示器**（右上角状态栏图标），显示中英 / 全半角 / 标点 / 当前方案，点它也能唤出功能主菜单。见 [macOS 版 · 没有工具栏](/docs/reference/macos#no-toolbar)。
+</Callout>
 
 ## 获取更多主题
 
