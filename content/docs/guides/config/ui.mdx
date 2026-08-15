@@ -256,6 +256,59 @@ auto_hide_delay = 5         # 自动隐藏超时（秒）
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
 
+## 任务栏图标（ui.langbar）
+
+Windows 任务栏上那个显示「中 / 英 / 拼 / 五」的输入指示器。这一段配置的是叠在主字上的
+两个**状态标记**：右下角显示标点中英，右上角显示是否全角。
+
+<Callout type="info" title="两个标记默认都关">
+它们叠加在系统的输入指示器上，默认开启会改变每个人的任务栏，所以出厂是关的。
+「标点状态角标」与「全角标记」两个开关在[外观设置 → 任务栏图标](/docs/settings/appearance#任务栏图标)里，
+本段其余各项是外观微调，只能改配置文件。macOS 无此功能。
+</Callout>
+
+```toml
+[ui.langbar]
+punct_badge = "none"          # 标点角标形状；none = 不显示
+punct_badge_scale = 1.0       # 角标大小倍率
+full_width_mark = false       # 全角时在右上角显示三角
+full_width_mark_scale = 1.0
+badge_alpha = 0.88            # 两个标记共用的不透明度（同时是档位开关，见下）
+colored = true                # 关掉则一律与主字同色、跟随明暗主题
+punct_color_cn = "#2288E0"
+punct_color_en = "#EE9922"
+full_width_color = "#E0447A"
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `punct_badge` | 枚举 | `none` / `corner_triangle` / `outer_ring` / `bottom_bar` / `circle_square` / `ring_dot` | `none` | 标点角标形状。设置页只列前两项，其余需手改本文件 |
+| `punct_badge_scale` | 小数 | — | `1.0` | 角标大小倍率（`1.0` = 形状自带的基准尺寸） |
+| `full_width_mark` | 布尔 | — | `false` | 全角时在右上角画一个三角；半角不画 |
+| `full_width_mark_scale` | 小数 | — | `1.0` | 全角标记大小倍率 |
+| `badge_alpha` | 小数 | `0`~`1` | `0.88` | 两个标记**共用**的不透明度，同时是档位开关（见下） |
+| `colored` | 布尔 | — | `true` | 标记是否用配色；`false` = 两个标记都与主字同色并跟随明暗主题 |
+| `punct_color_cn` | 字符串 | `#RRGGBB` | `#2288E0` | 中文标点角标色 |
+| `punct_color_en` | 字符串 | `#RRGGBB` | `#EE9922` | 英文标点角标色 |
+| `full_width_color` | 字符串 | `#RRGGBB` | `#E0447A` | 全角标记色 |
+
+### badge_alpha 是档位开关，不只是深浅
+
+它跨过 `1.0` 时会**换一种画法**，不是简单的透明度渐变：
+
+- **`= 1.0`** — 标记实心，并在它周围切掉一圈主字（靠留白与主字分离）。代价是右下有笔画的
+  字（「五」「双」「拼」）会被切掉一角，看起来像缺笔。
+- **`< 1.0`** — 标记半透明，主字保留完整，笔画从标记里透出来（靠色差分离）。默认走这一档。
+
+两者是互斥的两种手段，**不要指望"挖空 + 调淡"叠加**：那样主字先被切掉一圈、没有笔画可透，
+调这个值会看起来毫无效果。
+
+<Callout type="warn" title="形状那三种没进设置页的原因">
+`circle_square` 与 `ring_dot` 在真机上被否决——16px 的任务栏上圆点悬在角落像个污点，
+与主字既不贴边也不成整体。`outer_ring`（最外圈边框）与 `bottom_bar`（底部横条）仍在评估：
+前者是唯一不占主字像素的编码，后者不与「五」「双」右下的笔画打架。想试可以改本文件。
+</Callout>
+
 ## 相关阅读
 
 - [外观与主题](/docs/settings/appearance) — 主题包与视觉样式（配色 / 圆角 / 字号基线）
