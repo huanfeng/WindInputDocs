@@ -50,8 +50,8 @@ numpad_behavior = "direct"          # 小键盘按键语义
 
 ```toml
 [input.association]
-kind = "auto"           # 联想类型（兼任总开关）
-mode = "auto"           # 一次性 / 持续联想
+kind = "off"            # 联想类型（兼任总开关）
+mode = "one_shot"       # 一次性 / 持续联想
 max_count = 9           # 候选条数上限
 space_commits = true    # 空格上屏当前高亮的联想候选
 hide_after_ms = 5000    # 显示多久后自动收起；0 = 不自动收起
@@ -64,8 +64,8 @@ punct = true            # 来源：标点与符号
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `kind` | 枚举 | `auto` / `off` / `word` / `smart` | `"auto"` | 联想类型，**兼任总开关**（`off` 即关）。`auto` = 按平台定：桌面端关、移动端智能联想 |
-| `mode` | 枚举 | `auto` / `one_shot` / `continuous` | `"auto"` | `one_shot` = 只出一次，任何非选词动作即退出；`continuous` = 选中后拿它当新上文接着给（「中」→「中国」→ 以「中国」开头的词）。`auto` = 桌面端一次性、移动端持续 |
+| `kind` | 枚举 | `off` / `word` / `smart` | `"off"` | 联想类型，**兼任总开关**（`off` 即关） |
+| `mode` | 枚举 | `one_shot` / `continuous` | `"one_shot"` | `one_shot` = 只出一次，任何非选词动作即退出；`continuous` = 选中后拿它当新上文接着给（「中」→「中国」→ 以「中国」开头的词） |
 | `max_count` | 整数 | — | `9` | 候选条数上限。各来源按下方书写顺序依次取配额，取不满的名额顺延给后一个来源 |
 | `space_commits` | 布尔 | — | `true` | 空格是否上屏当前高亮的联想候选。关掉则空格照常出空格，联想窗同时收起 |
 | `hide_after_ms` | 整数 | — | `5000` | 联想窗显示多少毫秒后自动收起；`0` = 不自动收起 |
@@ -85,6 +85,22 @@ punct = true            # 来源：标点与符号
 
 <Callout type="info" title="桌面端默认关闭">
 候选窗是浮层，联想常驻会挡住正文；而且它会占用数字键——上屏后再按数字，开着时是选联想词、关着时是打数字，对既有用户是突发的行为变化。移动端没有这两个顾虑，故默认智能联想。
+</Callout>
+
+### 移动端取值（mobile.association） [#mobile-association]
+
+`[input.association]` 是**桌面基线**。移动端只有 `kind` 与 `mode` 两项取值不同，写在文件末尾的独立段里；其余七项两端一致，不重复声明。
+
+```toml
+[mobile.association]
+kind = "smart"        # 移动端：智能联想
+mode = "continuous"   # 移动端：持续联想
+```
+
+桌面端**完全不读 `[mobile]` 域**，改它对桌面没有任何影响；反之移动端读到这两个键就用它们的值，其余键仍取 `[input.association]`。
+
+<Callout type="info" title="为什么不用一个「自动」值">
+早先 `kind` 有过一个 `auto` 值，由程序按运行平台解释。那样平台知识就藏进了值域里：设置界面被迫列一个「自动」选项，而用户看不出选了它会得到什么。改成独立的 `[mobile]` 域后，两个平台各取什么值在配置文件里一眼可见，值域也只剩真正的档位。
 </Callout>
 
 ## 启动默认状态（input.default）
