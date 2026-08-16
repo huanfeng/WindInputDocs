@@ -24,6 +24,14 @@ import { Since } from "@/components/since";
 
 选中联想候选后，只有多出来的部分会上屏——打「中」再选「中国」，得到的是「中国」而不是「中中国」。
 
+<Callout type="warn" title="桌面上两档目前给的东西相同">
+智能联想设计上有四个来源（个人搭配、词→后继表、词库前缀、标点），但**已实现的只有后两个**，而标点在桌面默认关闭。所以桌面上选「智能联想」，实际拿到的与「词语联想」一样。
+
+想在桌面试标点联想，把配置文件的 `input.association.punct` 改成 `true`（这一项不在设置界面，见[输入行为配置](/docs/guides/config/input#association)）。移动端出厂就是开的。
+
+另外两个来源各自需要独立的数据来源，尚在计划中。它们**都不依赖**语言模型文件——`bigram` 将来是离线蒸馏好的词→后继表随包分发，不需要你另外下载任何东西。
+</Callout>
+
 <Callout type="warn" title="词语联想在完整词之后经常没有候选">
 它是纯粹的前缀延伸：打完「我们」，词库里得有「我们班」这类以「我们」开头的更长的词才给得出来。实测五笔词库下单字几乎都有联想，双字词则大半没有。这是这一档的固有性质，不是出了问题——要在完整词之后继续给，得靠专门的联想词库或语料搭配表。
 </Callout>
@@ -68,7 +76,7 @@ import { Since } from "@/components/since";
 </Callout>
 
 <Callout type="warn" title="标点的来源开关不在界面里">
-智能联想给不给标点，由配置文件的 `input.association.punct` 决定（出厂开）。它和另外三个来源开关都不在设置界面开放，需要时手改 `config.toml`，见[输入行为配置](/docs/guides/config/input#association)。
+智能联想给不给标点，由配置文件的 `input.association.punct` 决定——**桌面出厂是关的**，移动端是开的。它和另外三个来源开关都不在设置界面开放，需要时手改 `config.toml`，见[输入行为配置](/docs/guides/config/input#association)。
 </Callout>
 
 ## 相关阅读
