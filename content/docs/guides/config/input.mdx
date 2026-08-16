@@ -1,6 +1,6 @@
 ---
 title: 输入行为配置
-description: input 域全部配置项——标点、智能符号、自动配对、临时英文/拼音、网址、简繁、命令栏
+description: input 域全部配置项——标点、智能符号、自动配对、联想、临时英文/拼音、网址、简繁、命令栏
 ---
 
 import { Since } from "@/components/since";
@@ -42,6 +42,49 @@ numpad_behavior = "direct"          # 小键盘按键语义
 
 <Callout type="warn" title="内部项：top_commit_mode">
 `input.top_commit_mode` 不在系统预置 `config.toml` 中，也不在设置工具开放，属内部 / 实验字段，仅可手改。`direct_commit`（默认）在顶码时真提交、靠隔一拍消息泵躲开 diff 合并，无下划线歧义、WPS 不清空；`pre_confirm` 留在 TSF 组合态延迟提交，但部分宿主会整段画下划线、WPS 智能标点顶屏会清空。除非排查特定宿主兼容问题，否则无需改动。
+</Callout>
+
+## 联想（input.association） <Since v="0.117" /> [#association]
+
+上屏之后，按刚上屏的内容再给一批候选。分两档：**词语联想**把上文当前缀，从词库里找以它开头的更长的词（打「中」提示「中国」「中间」）；**智能联想**把上文当上下文，预测接下来该出什么词或标点。
+
+```toml
+[input.association]
+kind = "auto"           # 联想类型（兼任总开关）
+mode = "auto"           # 一次性 / 持续联想
+max_count = 9           # 候选条数上限
+space_commits = true    # 空格上屏当前高亮的联想候选
+hide_after_ms = 5000    # 显示多久后自动收起；0 = 不自动收起
+hint = "联想输入"        # 联想时编码栏显示的标识；空串 = 不显示
+history = true          # 来源：个人上屏历史学到的搭配（待实现）
+bigram = true           # 来源：词→后继表（待实现）
+prefix = true           # 来源：词库里以上文为前缀的更长的词
+punct = true            # 来源：标点与符号
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `kind` | 枚举 | `auto` / `off` / `word` / `smart` | `"auto"` | 联想类型，**兼任总开关**（`off` 即关）。`auto` = 按平台定：桌面端关、移动端智能联想 |
+| `mode` | 枚举 | `auto` / `one_shot` / `continuous` | `"auto"` | `one_shot` = 只出一次，任何非选词动作即退出；`continuous` = 选中后拿它当新上文接着给（「中」→「中国」→ 以「中国」开头的词）。`auto` = 桌面端一次性、移动端持续 |
+| `max_count` | 整数 | — | `9` | 候选条数上限。各来源按下方书写顺序依次取配额，取不满的名额顺延给后一个来源 |
+| `space_commits` | 布尔 | — | `true` | 空格是否上屏当前高亮的联想候选。关掉则空格照常出空格，联想窗同时收起 |
+| `hide_after_ms` | 整数 | — | `5000` | 联想窗显示多少毫秒后自动收起；`0` = 不自动收起 |
+| `hint` | 字符串 | — | `"联想输入"` | 联想时在编码栏显示的标识；空串 = 不显示 |
+| `history` | 布尔 | — | `true` | 来源：个人上屏历史学到的搭配。**尚无实现**，开着也不出候选 |
+| `bigram` | 布尔 | — | `true` | 来源：词→后继表，离线从 n-gram 模型蒸馏。**尚无实现** |
+| `prefix` | 布尔 | — | `true` | 来源：词库里以上文为前缀的更长的词——词语联想就是它 |
+| `punct` | 布尔 | — | `true` | 来源：标点与符号（静态规则表） |
+
+<Callout type="info" title="为什么没有单独的「启用」开关">
+`kind` 同时表示开与关：拆成「启用 + 类型」两个字段，会立刻产生「开着但类型没配」这个没有正确答案的状态。要关闭就写 `kind = "off"`。
+</Callout>
+
+<Callout type="warn" title="四个来源开关只在智能联想档生效">
+词语联想按定义只用 `prefix` 一个来源，在那一档下开着 `punct` 也不会出标点。另外 `history` 与 `bigram` 各自需要独立的数据来源，目前尚未实现。这四项都不在设置界面开放，需要时手改配置文件。
+</Callout>
+
+<Callout type="info" title="桌面端默认关闭">
+候选窗是浮层，联想常驻会挡住正文；而且它会占用数字键——上屏后再按数字，开着时是选联想词、关着时是打数字，对既有用户是突发的行为变化。移动端没有这两个顾虑，故默认智能联想。
 </Callout>
 
 ## 启动默认状态（input.default）
@@ -335,5 +378,6 @@ min_prefix = 2  # 触发前缀导航列举的最小输入长度
 ## 相关阅读
 
 - [命令栏](/docs/guides/command-bar) — 命令候选与短语命令的完整语法
+- [联想](/docs/settings/input/association) — 两档联想的区别与实际使用
 - [临时模式](/docs/settings/input/temp-modes) — 临时拼音 / 临时英文的实际使用
 - [配置文件与数据目录](/docs/guides/config) — `config.toml` 的分层合并与手工编辑

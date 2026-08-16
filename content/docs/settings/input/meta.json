@@ -1,4 +1,4 @@
 {
   "title": "输入设置",
-  "pages": ["index", "punctuation", "quick-input", "temp-modes"]
+  "pages": ["index", "punctuation", "quick-input", "temp-modes", "association"]
 }
