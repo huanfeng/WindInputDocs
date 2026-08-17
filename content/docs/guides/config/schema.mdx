@@ -281,20 +281,30 @@ promote_prefix = "single"  # 补全词参与调频：none / single / all
 
 ```toml
 [schema.pinyin.completion]
-min_syllables = 2         # 至少输入几个音节才给词组候选
-max_extra_syllables = 3   # 词组最多比输入多几个音节
+min_syllables = 4         # 至少输入几个音节才给词组候选
+max_extra_syllables = 5   # 词组最多比输入多几个音节
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `min_syllables` | 整数 | `1`–`4` | `2` <Since v="0.114" /> | 至少输入几个音节才给出词组候选；`1` = 不限制 |
-| `max_extra_syllables` | 整数 | `0`–`6` | `3` <Since v="0.114" /> | 词组最多比已输入内容多几个音节 |
+| `min_syllables` | 整数 | `1`–`6` | `4` <Since v="0.117" /> | 至少输入几个音节才给出词组候选；`1` = 不限制 |
+| `max_extra_syllables` | 整数 | `0`–`10` | `5` <Since v="0.117" /> | 词组最多比已输入内容多几个音节 |
+
+<Callout type="info">
+默认值在 0.117 从 `2` / `3` 调整为 `4` / `5`。`4` 对齐 librime 与 fcitx5 各自选定的
+预测门槛——输入不足 4 个音节时不预测你没打的内容，`zaim` 因此不再出现「在美国」这类
+比输入长的候选。
+
+两项**必须配合调整**：召回上限 = `started < min_syllables ? started : started + max_extra_syllables`。
+把 `min_syllables` 调到 4 却不动 `max_extra_syllables`，上限只到 7 个音节，
+9 音节的「冰冻三尺非一日之寒」在任何输入长度下都召回不到。
+</Callout>
 
 两项约束的都是**词组补全**——即码比输入长、引擎在预测你尚未输入的音节的那些候选。精确匹配、分段子词、整句、简拼一律不受影响，它们没有预测成分。
 
 判据的尺子是**输入自身的音节数**：完整音节数 +（有未成音节的尾部字母则算起头的一个）。所以 `dian` 算 1 个音节，`dianh` 算 2 个。
 
-逐档的候选对照表、「堤岸」为何仍在、以及 `max_extra_syllables` 为何不存在两全值，见[拼音方案配置 · 词组补全](/docs/settings/schema/pinyin#completion)。
+逐档的候选对照表、「堤岸」为何仍在、以及两项如何配合，见[拼音方案配置 · 词组补全](/docs/settings/schema/pinyin#completion)。
 
 ## 拼音自动造词（schema.pinyin.auto_learn）
 
