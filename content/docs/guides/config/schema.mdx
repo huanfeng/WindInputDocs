@@ -42,6 +42,7 @@ show_code_hint = true         # 显示编码提示
 single_code_input = false     # 精确匹配模式（关闭前缀匹配）
 single_code_complete = true   # 精确匹配空码补全（无候选时从更长编码取首选）
 z_key_repeat = true           # z 键重复输入
+short_code_yield_level = 3    # 出简让全：0 关 / 2 一二级简码 / 3 全部简码
 input_chars = ""              # 码元字符集：哪些字符可进输入缓冲；空 = a-z
 leading_chars = ""            # 可作第一码的字符（码元字符集的子集）；空 = 与 input_chars 相同
 
@@ -59,6 +60,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `single_code_input` | 布尔 | — | `false` | 精确匹配模式，关闭前缀匹配 |
 | `single_code_complete` | 布尔 | — | `true` | 精确匹配空码补全：无候选时从更长编码取首选 |
 | `z_key_repeat` | 布尔 | — | `false`（预置为 `true`） | z 键重复输入 |
+| `short_code_yield_level` | 整数 | `0` / `2` / `3` | `3` <Since v="0.117" /> | [出简让全](/docs/settings/schema/codetable#short-code-yield)：有简码的字在更长编码上把首选让给词组。值 = 对哪几级简码生效 |
 | `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
 | `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
 
