@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import {
+  COMMENTS_ANCHOR,
   CONTENT_MAX,
   type CommentItem,
   commentsApi,
@@ -182,7 +183,11 @@ export function Comments({ pageId }: { pageId: string }) {
     }
     return null;
   }
-  if (items === null) return null;
+  // 加载中也要把锚点占住。从留言总览页带 #comments 跳进来时，浏览器在页面就绪的
+  // 那一刻就要找这个 id —— 那会儿评论还没 fetch 回来，返回 null 会让锚点落空、
+  // 停在页顶，用户以为链接坏了。
+  if (items === null)
+    return <section id={COMMENTS_ANCHOR} className="mt-12 scroll-mt-20" />;
 
   const contentLen = [...content.trim()].length;
   const canSubmit =
@@ -197,7 +202,9 @@ export function Comments({ pageId }: { pageId: string }) {
 
   return (
     <section
-      className={`mt-12 border-t pt-8 transition-opacity duration-300 ${
+      id={COMMENTS_ANCHOR}
+      // scroll-mt 让锚点跳转停在标题下方而不是被 sticky 顶栏（h-14）盖住。
+      className={`mt-12 scroll-mt-20 border-t pt-8 transition-opacity duration-300 ${
         shown ? "opacity-100" : "opacity-0"
       }`}
     >
@@ -378,7 +385,11 @@ const AVATAR_COLORS = [
   "bg-purple-500",
 ];
 
-function Avatar({ nick }: { nick: string }) {
+/**
+ * 导出供留言总览页复用。共用同一个哈希函数是必要的，不是省事：
+ * 同一个昵称在文档页和总览页必须是同一个颜色，否则读者认不出是同一个人。
+ */
+export function Avatar({ nick }: { nick: string }) {
   let hash = 0;
   for (let i = 0; i < nick.length; i++)
     hash = (hash * 31 + nick.charCodeAt(i)) >>> 0;

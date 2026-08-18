@@ -7,6 +7,15 @@ export const commentsApi =
     ? "http://127.0.0.1:8787/api/comments"
     : "/api/comments";
 
+/**
+ * 全站概览接口。Worker 路由是通配的 `windinput.com/api/comments*`，
+ * 所以这个子路径无需改动任何路由配置就能生效。
+ */
+export const overviewApi = `${commentsApi}/overview`;
+
+/** 文档页在评论区上的锚点 id。管理页与概览页的链接都指向它。 */
+export const COMMENTS_ANCHOR = "comments";
+
 export interface CommentItem {
   id: number;
   /** 回复目标；顶层为 null。只允许一层嵌套 */
@@ -24,6 +33,29 @@ export interface SubmitResult {
   status: SubmitStatus;
   item?: CommentItem | null;
   message?: string;
+}
+
+/** 概览里的一篇文档：有几条评论、最后一条是什么时候。 */
+export interface PageSummary {
+  /** 页面标识，即 fumadocs 的 page.url */
+  page: string;
+  count: number;
+  lastAt: string;
+}
+
+/** 概览里的一条评论。比 CommentItem 多了来源页，少了 parent（概览不展示嵌套）。 */
+export interface OverviewItem {
+  id: number;
+  page: string;
+  nick: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface OverviewData {
+  pages: PageSummary[];
+  items: OverviewItem[];
+  total: number;
 }
 
 /** 昵称记在本地，回访免填。键名带前缀避免与其他站点数据冲突。 */

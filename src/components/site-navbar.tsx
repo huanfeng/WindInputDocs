@@ -20,7 +20,7 @@ import {
   SearchTrigger,
 } from "fumadocs-ui/layouts/shared/slots/search-trigger";
 import { ThemeSwitch } from "fumadocs-ui/layouts/shared/slots/theme-switch";
-import { ArrowUpRight, Menu, PanelLeft } from "lucide-react";
+import { ArrowUpRight, Menu, MessageSquare, PanelLeft } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { type ComponentProps, useState } from "react";
@@ -122,6 +122,7 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
             </nav>
 
             <div className="ms-auto flex min-w-0 items-center gap-2">
+              <CommentsLink pathname={pathname} />
               <FullSearchTrigger
                 hideIfDisabled
                 className="w-full max-w-[240px] min-w-0 rounded-full ps-2.5 max-md:hidden"
@@ -201,6 +202,38 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
         </header>
       }
     />
+  );
+}
+
+/**
+ * 留言入口。刻意**不**放进 `navLinks` —— 那个数组被左侧主导航、主页移动端折叠菜单
+ * 和文档侧栏抽屉三处共用，加进去会让「留言」同时出现在左边，正好违背把它单独放在
+ * 右侧的意图。所以它硬编码在这里。
+ *
+ * 代价是移动端失去了菜单入口（不在 navLinks 里，菜单自然没有它），因此这个按钮
+ * **不跟随** ThemeSwitch / GitHub 图标的 `max-md:hidden` —— 它在小屏上退化成纯图标
+ * 继续留在顶栏，与同样退化为图标的 SearchTrigger 并排。留言是本次要建的主入口，
+ * 藏进菜单就失去了意义。
+ */
+function CommentsLink({ pathname }: { pathname: string }) {
+  const active = pathname === "/comments";
+
+  return (
+    <Link
+      href="/comments"
+      data-active={active}
+      title="留言"
+      className={cn(
+        buttonVariants({ color: "ghost", size: "icon-sm" }),
+        "shrink-0 gap-1.5 text-fd-muted-foreground transition-colors",
+        "hover:text-fd-accent-foreground data-[active=true]:text-fd-primary",
+        // 桌面端带文字，图标按钮的方形尺寸要放开；移动端只留图标。
+        "md:w-auto md:px-2.5",
+      )}
+    >
+      <MessageSquare className="size-4 shrink-0" aria-hidden />
+      <span className="text-sm max-md:hidden">留言</span>
+    </Link>
   );
 }
 

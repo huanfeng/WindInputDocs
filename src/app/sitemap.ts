@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/docs": 0.9,
     "/download": 0.8,
     "/changelog": 0.5,
+    "/comments": 0.5,
     "/sponsor": 0.4,
   };
 
@@ -20,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     "/download",
     "/changelog",
+    "/comments",
     "/sponsor",
     ...source.getPages().map((page) => page.url),
   ];
