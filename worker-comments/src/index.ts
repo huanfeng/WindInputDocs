@@ -7,8 +7,9 @@
  * 职责：
  *   1. GET  /api/comments?page=<pageId>  —— 取该页公开评论，带 60 秒边缘缓存。
  *   2. POST /api/comments                —— 发表评论，服务端反垃圾后入库。
- *   3. GET  /api/comments/admin?token=   —— 极简管理页（HTML），手机浏览器可直接操作。
- *   4. POST /api/comments/admin          —— 放行 / 删除 / 封禁 / 切换审核策略。
+ *   3. GET  /api/comments/overview       —— 全站概览：哪些页有评论 + 最近 N 条，同样带缓存。
+ *   4. GET  /api/comments/admin?token=   —— 极简管理页（HTML），手机浏览器可直接操作。
+ *   5. POST /api/comments/admin          —— 放行 / 删除 / 封禁 / 切换审核策略。
  *
  * 设计取舍：
  *   - **不接验证码**。Turnstile 的 challenges.cloudflare.com 在大陆访问很慢，接它等于
@@ -53,6 +54,8 @@ const LIMITS = {
   linkThreshold: 2,
   /** 单页返回上限。文档页评论不会多到需要翻页，超出部分截断即可 */
   listMax: 200,
+  /** 全站概览返回的最近评论条数。概览回答的是「有什么新的」而不是「全部历史」，无需翻页 */
+  overviewMax: 50,
   /** 管理页每类列表条数 */
   adminMax: 50,
 } as const;
@@ -77,6 +80,11 @@ export default {
         if (request.method === "GET") return await handleList(request, env, ctx, cors);
         if (request.method === "POST") return await handlePost(request, env, ctx, cors);
         return methodNotAllowed(cors, "GET, POST, OPTIONS");
+      }
+
+      if (url.pathname === "/api/comments/overview") {
+        if (request.method === "GET") return await handleOverview(request, env, ctx, cors);
+        return methodNotAllowed(cors, "GET, OPTIONS");
       }
 
       if (url.pathname === "/api/comments/admin") {
@@ -124,6 +132,85 @@ async function handleList(
   const items = (results ?? []).map(toItem);
   const cached = new Response(
     JSON.stringify({ items, total: items.length }),
+    {
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "public, max-age=60",
+      },
+    },
+  );
+
+  ctx.waitUntil(cache.put(cacheKey, cached.clone()));
+  return withHeaders(cached, cors);
+}
+
+/**
+ * 全站概览。文档页有四十多篇，评论散在各页里，不逐页翻就不知道哪儿有讨论 ——
+ * 这个接口是站点「留言」入口与管理页共同的数据来源。
+ *
+ * 一次返回两份数据而不是拆成两个接口：前端两个视图都要，拆开就是两次往返、
+ * 两份缓存要各自失效。pages 的行数等于「有评论的页面数」，最多几十行，不重。
+ *
+ * 正文刻意不截断。50 条约 5 KB，截断省不下多少，却会让「在概览页直接读完一条
+ * 短评论」变得不可能 —— 折行交给前端 CSS 处理。
+ */
+async function handleOverview(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  cors: Record<string, string>,
+): Promise<Response> {
+  const cache = caches.default;
+  const cacheKey = overviewCacheKey(request.url);
+  const hit = await cache.match(cacheKey);
+  if (hit) return withHeaders(hit, cors);
+
+  // 两条独立只读查询，用 Promise.all 而非 DB.batch：batch 的泛型只有一个，
+  // 而这两条返回的行形状不同，套 batch 就得靠 as 强转把类型信息丢掉。
+  // 且 batch 的价值是事务性，只读聚合并不需要。
+  const [pages, items] = await Promise.all([
+    // GROUP BY page_id 走 idx_comments_page(page_id, status, id)。
+    // 按最后评论时间倒序：概览关心的是「哪页最近有人说话」，不是哪页评论最多。
+    env.DB.prepare(
+      `SELECT page_id, COUNT(*) AS count, MAX(created_at) AS last_at
+         FROM comments
+        WHERE status = ?1
+        GROUP BY page_id
+        ORDER BY last_at DESC`,
+    )
+      .bind(STATUS.published)
+      .all<OverviewPageRow>(),
+    // 跨页时间流。走 idx_comments_status(status, id)，id 倒序即时间倒序。
+    env.DB.prepare(
+      `SELECT id, page_id, nick, content, created_at
+         FROM comments
+        WHERE status = ?1
+        ORDER BY id DESC
+        LIMIT ?2`,
+    )
+      .bind(STATUS.published, LIMITS.overviewMax)
+      .all<OverviewItemRow>(),
+  ]);
+
+  const pageRows = pages.results ?? [];
+  const itemRows = items.results ?? [];
+
+  const cached = new Response(
+    JSON.stringify({
+      pages: pageRows.map((r) => ({
+        page: r.page_id,
+        count: r.count,
+        lastAt: r.last_at,
+      })),
+      items: itemRows.map((r) => ({
+        id: r.id,
+        page: r.page_id,
+        nick: r.nick,
+        content: r.content,
+        createdAt: r.created_at,
+      })),
+      total: pageRows.reduce((sum, r) => sum + r.count, 0),
+    }),
     {
       headers: {
         "content-type": "application/json; charset=utf-8",
@@ -263,7 +350,7 @@ async function handlePost(
   ctx.waitUntil(
     (async () => {
       if (status === STATUS.published) {
-        await caches.default.delete(listCacheKey(request.url, pageId));
+        await purgeCaches(request.url, [pageId]);
       }
       await notifyTelegram(env, {
         pageId,
@@ -334,7 +421,7 @@ async function handleAdmin(
     if (url.searchParams.get("format") === "json") {
       return json(data, 200, cors);
     }
-    return new Response(renderAdminPage(data, token), {
+    return new Response(renderAdminPage(data, token, env.SITE_ORIGIN), {
       headers: { "content-type": "text/html; charset=utf-8" },
     });
   }
@@ -356,9 +443,16 @@ async function handleAdmin(
       if (!Number.isInteger(id) || ![0, 1, 2].includes(next)) {
         return json({ error: "invalid args" }, 400, cors);
       }
+      // 先取 page_id 才能定点清缓存。多一次读，换「点了放行，刷新页面就看得见」。
+      const row = await env.DB.prepare(
+        "SELECT page_id FROM comments WHERE id = ?1",
+      )
+        .bind(id)
+        .first<{ page_id: string }>();
       await env.DB.prepare("UPDATE comments SET status = ?1 WHERE id = ?2")
         .bind(next, id)
         .run();
+      if (row) await purgeCaches(request.url, [row.page_id]);
       return json({ ok: true }, 200, cors);
     }
     case "set-moderation": {
@@ -383,6 +477,13 @@ async function handleAdmin(
         .bind(id)
         .first<{ ip_hash: string | null }>();
       if (!row?.ip_hash) return json({ error: "not found" }, 404, cors);
+      // 封禁会连坐下架该来源的全部评论，可能横跨多页 —— 下架前先把涉及的页记下来，
+      // 否则 UPDATE 之后就查不到「这些评论原本在哪些页」了。
+      const affected = await env.DB.prepare(
+        "SELECT DISTINCT page_id FROM comments WHERE ip_hash = ?1",
+      )
+        .bind(row.ip_hash)
+        .all<{ page_id: string }>();
       await env.DB.batch([
         env.DB.prepare(
           "INSERT OR IGNORE INTO bans (ip_hash, reason, created_at) VALUES (?1, ?2, ?3)",
@@ -392,6 +493,10 @@ async function handleAdmin(
           "UPDATE comments SET status = ?1 WHERE ip_hash = ?2",
         ).bind(STATUS.removed, row.ip_hash),
       ]);
+      await purgeCaches(
+        request.url,
+        (affected.results ?? []).map((r) => r.page_id),
+      );
       return json({ ok: true }, 200, cors);
     }
     default:
@@ -403,6 +508,15 @@ interface AdminData {
   moderation: Moderation;
   pending: AdminRow[];
   recent: AdminRow[];
+  /** 按文档聚合。回答「哪些页有评论、各几条」—— 扁平的时间流答不了这个问题。 */
+  pages: AdminPageRow[];
+}
+
+interface AdminPageRow {
+  page_id: string;
+  published: number;
+  pending: number;
+  last_at: string;
 }
 
 interface AdminRow {
@@ -415,7 +529,7 @@ interface AdminRow {
 }
 
 async function loadAdminData(env: Env): Promise<AdminData> {
-  const [moderation, pending, recent] = await Promise.all([
+  const [moderation, pending, recent, pages] = await Promise.all([
     getModeration(env),
     env.DB.prepare(
       `SELECT id, page_id, nick, content, status, created_at
@@ -429,11 +543,26 @@ async function loadAdminData(env: Env): Promise<AdminData> {
     )
       .bind(STATUS.published, LIMITS.adminMax)
       .all<AdminRow>(),
+    // 一趟出公开数与待审数：SUM(CASE …) 比查两次再在内存里合并简单得多。
+    // 已删除（status=2）不计入，管理页概览要反映的是「现在页面上有什么」。
+    env.DB.prepare(
+      `SELECT page_id,
+              SUM(CASE WHEN status = ?1 THEN 1 ELSE 0 END) AS published,
+              SUM(CASE WHEN status = ?2 THEN 1 ELSE 0 END) AS pending,
+              MAX(created_at) AS last_at
+         FROM comments
+        WHERE status IN (?1, ?2)
+        GROUP BY page_id
+        ORDER BY last_at DESC`,
+    )
+      .bind(STATUS.published, STATUS.pending)
+      .all<AdminPageRow>(),
   ]);
   return {
     moderation,
     pending: pending.results ?? [],
     recent: recent.results ?? [],
+    pages: pages.results ?? [],
   };
 }
 
@@ -441,15 +570,23 @@ async function loadAdminData(env: Env): Promise<AdminData> {
  * 极简管理页。刻意做成单文件内联 HTML —— Telegram 推来的链接要能在手机上直接点开操作，
  * 光返回 JSON 就只能看不能动。评论内容一律转义后再插入，管理页自己不能变成 XSS 入口。
  */
-function renderAdminPage(data: AdminData, token: string): string {
+function renderAdminPage(
+  data: AdminData,
+  token: string,
+  siteOrigin: string,
+): string {
   const modeLabel: Record<Moderation, string> = {
     open: "直接公开",
     review: "全部先审",
     first: "首评先审",
   };
+  // 页面直链。原先 page_id 只是一段纯文本，看到有人在某页提问，还得手动拼 URL
+  // 才能过去看上下文 —— 这是管理页此前最直接的摩擦。#comments 锚点直接落到评论区。
+  const pageLink = (pageId: string) =>
+    `<a href="${escapeHtml(siteOrigin + pageId)}#comments" target="_blank" rel="noopener">${escapeHtml(pageId)}</a>`;
   const card = (row: AdminRow) => `
     <div class="c">
-      <div class="m">#${row.id} · ${escapeHtml(row.nick)} · ${escapeHtml(row.page_id)} · ${escapeHtml(row.created_at)}</div>
+      <div class="m">#${row.id} · ${escapeHtml(row.nick)} · ${pageLink(row.page_id)} · ${escapeHtml(row.created_at)}</div>
       <div class="t">${escapeHtml(row.content)}</div>
       <div class="b">
         ${row.status !== STATUS.published ? `<button onclick="act('moderate',${row.id},1)">放行</button>` : ""}
@@ -472,12 +609,30 @@ button.d{color:#c00;border-color:#f0bbbb}
 .mode{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:12px}
 .mode b{color:#0a0}
 .empty{color:#999;font-size:14px}
+a{color:#06c}
+.p{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #f0f0f0}
+.p:last-child{border-bottom:0}
+.p a{flex:1;min-width:0;word-break:break-all}
+.p .n{font-size:13px;color:#888;white-space:nowrap}
+.p .w{color:#c60;font-weight:600}
 </style></head><body>
 <div class="mode">当前审核策略：<b>${modeLabel[data.moderation]}</b><div style="margin-top:8px">
 <button onclick="mode('open')">直接公开</button>
 <button onclick="mode('review')">全部先审</button>
 <button onclick="mode('first')">首评先审</button>
 </div></div>
+<h2>按文档 (${data.pages.length})</h2>
+${
+  data.pages.length
+    ? `<div class="c">${data.pages
+        .map(
+          (p) => `<div class="p">${pageLink(p.page_id)}<span class="n">${
+            p.pending > 0 ? `<span class="w">待审 ${p.pending}</span> · ` : ""
+          }${p.published} 条 · ${escapeHtml(p.last_at.slice(0, 10))}</span></div>`,
+        )
+        .join("")}</div>`
+    : '<div class="empty">还没有任何文档收到评论</div>'
+}
 <h2>待审 (${data.pending.length})</h2>
 ${data.pending.length ? data.pending.map(card).join("") : '<div class="empty">没有待审评论</div>'}
 <h2>最近公开 (${data.recent.length})</h2>
@@ -553,6 +708,22 @@ interface CommentRow {
   created_at: string;
 }
 
+/** 概览的按页聚合行。count / last_at 是 SQL 里的别名，不是表字段。 */
+interface OverviewPageRow {
+  page_id: string;
+  count: number;
+  last_at: string;
+}
+
+/** 概览的跨页时间流行。比 CommentRow 多了 page_id（要标出来自哪篇文档），少了 parent_id（概览不展示嵌套）。 */
+interface OverviewItemRow {
+  id: number;
+  page_id: string;
+  nick: string;
+  content: string;
+  created_at: string;
+}
+
 function toItem(row: CommentRow) {
   return {
     id: row.id,
@@ -574,8 +745,36 @@ async function getModeration(env: Env): Promise<Moderation> {
 /** 列表缓存键。只保留 page 参数，避免无关查询串制造缓存碎片。 */
 function listCacheKey(requestUrl: string, pageId: string): Request {
   const u = new URL(requestUrl);
+  u.pathname = "/api/comments";
   u.search = `?page=${encodeURIComponent(pageId)}`;
   return new Request(u.toString(), { method: "GET" });
+}
+
+/**
+ * 概览缓存键。概览无参数，键就是固定路径 —— 显式覆写 pathname 与清空 search，
+ * 是为了让发表接口（其 request.url 是 /api/comments）也能算出同一个键来删缓存。
+ */
+function overviewCacheKey(requestUrl: string): Request {
+  const u = new URL(requestUrl);
+  u.pathname = "/api/comments/overview";
+  u.search = "";
+  return new Request(u.toString(), { method: "GET" });
+}
+
+/**
+ * 内容变更后清缓存。任何改动评论可见性的操作都必须调它，否则改动要等最多 60 秒才生效。
+ *
+ * 概览缓存**每次都清**：它是全站聚合，任意一页的变动都会改变它的内容。
+ * 两处缓存必须一起清，否则文档页与概览页会给出互相矛盾的画面。
+ */
+async function purgeCaches(
+  requestUrl: string,
+  pageIds: string[],
+): Promise<void> {
+  await Promise.all([
+    ...pageIds.map((p) => caches.default.delete(listCacheKey(requestUrl, p))),
+    caches.default.delete(overviewCacheKey(requestUrl)),
+  ]);
 }
 
 /**

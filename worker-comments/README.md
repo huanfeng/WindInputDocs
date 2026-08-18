@@ -4,8 +4,39 @@
 
 - `GET /api/comments?page=<pageId>` —— 取该页公开评论，带 60 秒边缘缓存。
 - `POST /api/comments` —— 发表评论。
+- `GET /api/comments/overview` —— 全站概览：哪些页有评论 + 最近 50 条，同样带 60 秒缓存。
 - `GET /api/comments/admin?token=…` —— 极简管理页（HTML），**手机浏览器直接可操作**。
 - `POST /api/comments/admin` —— 放行 / 删除 / 封禁 / 切换审核策略。
+
+## 全站概览（`/api/comments/overview`）
+
+文档站有四十多篇文档，评论散在各页里，不逐页翻就不知道哪儿有讨论。这个接口是站点「留言」页（`/comments`）与管理页「按文档」区共同的数据源：
+
+```jsonc
+{
+  "pages": [ { "page": "/docs/start/concepts", "count": 7, "lastAt": "…" } ], // 按最后评论时间倒序
+  "items": [ { "id": 128, "page": "/docs/…", "nick": "…", "content": "…", "createdAt": "…" } ],
+  "total": 128
+}
+```
+
+一次返回两份数据而不是拆成两个接口：前端两个视图都要，拆开就是两次往返、两份缓存各自失效。`pages` 的行数等于「有评论的页面数」，最多几十行。
+
+**Worker 不存文档标题**，`page_id` 就是 URL。标题由前端在构建期用 fumadocs 的 `source.getPages()` 解析（见 `src/app/(home)/comments/page.tsx`）—— 改文档标题时留言页自动跟上，Worker 侧不必冗余存一份会过期的副本。映射里查不到的 `page_id` 就是**孤儿留言**（文档被删或改了路径），留言页会单独标出来，这是发现漏迁的唯一途径。
+
+新增子路径**无需改动 `wrangler.jsonc` 的路由** —— `windinput.com/api/comments*` 是通配的，天然覆盖 `/overview`，也不会靠近 `/api/search`。
+
+### 缓存失效
+
+任何改变评论可见性的操作都必须调 `purgeCaches()`，它同时清「该页列表」与「全站概览」两份缓存：
+
+| 操作 | 清哪些页 |
+|---|---|
+| 发表（直接公开时） | 该页 |
+| 管理页放行 / 删除 | 该条所属页（先查 `page_id` 再更新） |
+| 封禁来源 | 该来源评论涉及的全部页（**下架前**先查 `DISTINCT page_id`，更新后就查不到了） |
+
+概览缓存每次都清 —— 它是全站聚合，任意一页的变动都会改变它。两份缓存必须一起清，否则文档页与留言页会给出互相矛盾的画面。
 
 ## 为什么是独立的 Worker
 
@@ -104,6 +135,10 @@ pnpm deploy
 # 评论接口通
 curl -s "https://windinput.com/api/comments?page=/docs/start/concepts"
 # 期望：{"items":[],"total":0}
+
+# 全站概览通
+curl -s "https://windinput.com/api/comments/overview"
+# 期望：{"pages":[…],"items":[…],"total":N}
 
 # ⚠️ 回归：搜索索引没被路由劫持
 curl -sI "https://windinput.com/api/search"
