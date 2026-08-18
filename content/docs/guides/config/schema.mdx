@@ -348,7 +348,7 @@ min_pinyin_length = 2                # 拼音最小触发长度
 min_english_length = 3               # 英文最小触发长度
 block_commit_on_pinyin_word = true   # 拼音歧义拦截（词强度启发式）
 pinyin_word_min_weight = 0           # 拼音歧义拦截的权重阈值
-enable_pinyin_abbrev = true          # 拼音产出简拼候选（声母缩写，nh→你好）
+enable_pinyin_abbrev = false         # 拼音产出简拼候选（声母缩写，nh→你好）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -363,7 +363,7 @@ enable_pinyin_abbrev = true          # 拼音产出简拼候选（声母缩写�
 | `min_english_length` | 整数 | — | `3` | 英文最小触发长度；`0` = 回退 3 |
 | `block_commit_on_pinyin_word` | 布尔 | — | `true` | 拼音歧义拦截：整串是强拼音词时否决码表自动 / 顶码上屏（如 wangba→网吧） |
 | `pinyin_word_min_weight` | 整数 | — | `0` | 拼音歧义拦截的词强度权重阈值；`0` = 仅结构判据（≥2 汉字且消费整串） |
-| `enable_pinyin_abbrev` | 布尔 | — | `true` | 混输时拼音是否产出简拼候选（声母缩写）；关闭后混输里拼音只认全拼，候选更干净。仅影响混输的拼音子引擎，纯拼音方案不受影响 |
+| `enable_pinyin_abbrev` | 布尔 | — | `false` | 混输时拼音是否产出简拼候选（声母缩写）。**出厂关**：开着它会让超码长顶码上屏基本不发生，见下。仅影响混输的拼音子引擎，纯拼音方案不受影响 |
 
 <Callout type="info" title="顶码上屏时，「归属已判给码表」不受本项否决">
 超码长（编码长度超过码表满码）顶码上屏时，若**前 N 码是码表精确全码**且**拼音与英文都解释不了整串**，`auto_commit_block_on_pinyin` 不再否决——让路给拼音的前提是拼音接得住这一串。
@@ -373,10 +373,12 @@ enable_pinyin_abbrev = true          # 拼音产出简拼候选（声母缩写�
 `block_commit_on_pinyin_word`（整串是拼音词时否决）**不享受**这个例外——它判的是词强度，与归属是两回事。
 </Callout>
 
-<Callout type="warn" title="开着 enable_pinyin_abbrev 时，超码长顶码基本不会发生">
+<Callout type="warn" title="打开 enable_pinyin_abbrev 会让超码长顶码基本不发生">
 简拼候选会「消费整串」（`cety` → 从而同样），于是超码长归属恒判给拼音，由 `pinyin_only_overflow` 独立拦下顶码——**上面两个否决开关都关掉也没用**。
 
-这是有意取舍：若让简拼不算「主张整串」，长简拼词（如 `zgrmghg`）会被前 4 码的五笔全码顶码截胡。**习惯混输顶码上屏的用户请关掉 `enable_pinyin_abbrev`。**
+这正是 `enable_pinyin_abbrev` **出厂为 `false`** 的原因：混输用户以码表为主，默认让顶码可用。
+
+不把简拼改成「不算主张整串」是有意取舍：那样长简拼词（如 `zgrmghg`）会被前 4 码的五笔全码顶码截胡。需要简拼打长词的用户显式打开本项，代价是失去超码长顶码上屏。
 </Callout>
 
 <Callout type="info" title="auto_commit_block_on_pinyin 也是「满码空码清空」的总闸">
