@@ -357,13 +357,27 @@ enable_pinyin_abbrev = true          # 拼音产出简拼候选（声母缩写�
 | `enable_english` | 布尔 | — | `false` | 启用英文候选 |
 | `pinyin_only_overflow` | 布尔 | — | `true` | 超码长时仅查拼音 |
 | `top_code_override_pinyin` | 布尔 | — | `false` | 顶码偏好：顶码覆盖拼音 |
-| `auto_commit_block_on_pinyin` | 布尔 | — | `true` | 满码上屏遇拼音候选则否决（粗粒度：只要有拼音候选就拦，不看拼音成不成词）。与细粒度的 `block_commit_on_pinyin_word` 叠加，任一命中即否决。它同时管顶码上屏，也是**满码空码清空**的总闸，见下 |
+| `auto_commit_block_on_pinyin` | 布尔 | — | `true` | 满码上屏遇拼音候选则否决（粗粒度：只要有拼音候选就拦，不看拼音成不成词）。与细粒度的 `block_commit_on_pinyin_word` 叠加，任一命中即否决。它同时管顶码上屏（有一个例外，见下），也是**满码空码清空**的总闸，见下 |
 | `auto_commit_block_on_english` | 布尔 | — | `false` | 满码上屏遇英文候选则否决（仅 `enable_english` 开时有意义） |
 | `min_pinyin_length` | 整数 | — | `2` | 拼音最小触发长度；`0` = 回退 2 |
 | `min_english_length` | 整数 | — | `3` | 英文最小触发长度；`0` = 回退 3 |
 | `block_commit_on_pinyin_word` | 布尔 | — | `true` | 拼音歧义拦截：整串是强拼音词时否决码表自动 / 顶码上屏（如 wangba→网吧） |
 | `pinyin_word_min_weight` | 整数 | — | `0` | 拼音歧义拦截的词强度权重阈值；`0` = 仅结构判据（≥2 汉字且消费整串） |
 | `enable_pinyin_abbrev` | 布尔 | — | `true` | 混输时拼音是否产出简拼候选（声母缩写）；关闭后混输里拼音只认全拼，候选更干净。仅影响混输的拼音子引擎，纯拼音方案不受影响 |
+
+<Callout type="info" title="顶码上屏时，「归属已判给码表」不受本项否决">
+超码长（编码长度超过码表满码）顶码上屏时，若**前 N 码是码表精确全码**且**拼音与英文都解释不了整串**，`auto_commit_block_on_pinyin` 不再否决——让路给拼音的前提是拼音接得住这一串。
+
+例：五笔拼音混输打 `cety`（唯一全码「通往」）再按第 5 键，`ce` 是完整音节但 `ty` 连音节前缀都不是，拼音只解释了 5 键里的 2 键，于是照常顶码上屏「通往」+ 余码。
+
+`block_commit_on_pinyin_word`（整串是拼音词时否决）**不享受**这个例外——它判的是词强度，与归属是两回事。
+</Callout>
+
+<Callout type="warn" title="开着 enable_pinyin_abbrev 时，超码长顶码基本不会发生">
+简拼候选会「消费整串」（`cety` → 从而同样），于是超码长归属恒判给拼音，由 `pinyin_only_overflow` 独立拦下顶码——**上面两个否决开关都关掉也没用**。
+
+这是有意取舍：若让简拼不算「主张整串」，长简拼词（如 `zgrmghg`）会被前 4 码的五笔全码顶码截胡。**习惯混输顶码上屏的用户请关掉 `enable_pinyin_abbrev`。**
+</Callout>
 
 <Callout type="info" title="auto_commit_block_on_pinyin 也是「满码空码清空」的总闸">
 它开着时，[`schema.codetable.clear_on_empty_max`](#码表引擎schemacodetable) 会被拼音侧拦下：「已有拼音候选」或「拼音还没打完」都不清空。关掉它则拼音不再干预，满码只剩「部分匹配」的拼音候选时即清空（如 `nunl`，候选「嫩」只解释了前 3 码 `nun`）。
