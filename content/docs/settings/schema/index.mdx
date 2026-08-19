@@ -137,10 +137,12 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 
 ### 导入与导出方案 [#import-export]
 
-方案以**方案包**（`.zip`）形式分发，便于备份或分享社区码表方案（如 [WindInputCodeTable](https://github.com/huanfeng/WindInputCodeTable) 收集的第三方码表）：
+方案以**方案包**（`.zip` / `.wpkg`）形式分发，便于备份或分享社区码表方案（如 [WindInputCodeTable](https://github.com/huanfeng/WindInputCodeTable) 收集的第三方码表）：
 
-- **导入** —— 选择 `.zip` 后先预览包内方案信息，确认后选择**合并**或**替换**导入
+- **导入** —— 选择包文件后先预览包内方案信息，确认后选择**合并**或**替换**导入；包带[随包配置](/docs/settings/dict/import-export#config-patch)时确认框会逐项列出将修改的配置项
 - **导出** —— 将选中方案连同其引用的资源文件（词库、双拼布局、拆字库、字根字体）打包导出
+
+导入不止这一个入口：[高级页统一导入](/docs/settings/advanced#import-export)、双击 `.wpkg`、网页[一键安装链接](/docs/guides/import-export#protocol)走的都是同一个确认流程，小方案还能以[纯文本](/docs/guides/import-export#schema-text)分发。
 
 <Callout type="info" title="方案包不含个人数据">
 方案包只有方案配置与引用资源，**不含**你的用户词、词频、候选调整。把方案分享给别人不会连带泄露个人输入记录；换机时要带走个人数据请用[整机备份](/docs/settings/advanced#备份与还原)。

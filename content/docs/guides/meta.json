@@ -6,6 +6,7 @@
     "frequency",
     "schemas",
     "special-modes",
+    "import-export",
     "compat",
     "config"
   ]
