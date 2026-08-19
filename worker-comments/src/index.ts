@@ -9,7 +9,7 @@
  *   2. POST /api/comments                —— 发表评论，服务端反垃圾后入库。
  *   3. GET  /api/comments/overview       —— 全站概览：哪些页有评论 + 最近 N 条，同样带缓存。
  *   4. GET  /api/comments/admin?token=   —— 极简管理页（HTML），手机浏览器可直接操作。
- *   5. POST /api/comments/admin          —— 放行 / 删除 / 封禁 / 切换审核策略 / 开关留言。
+ *   5. POST /api/comments/admin          —— 放行 / 删除 / 封禁 / 解封 / 切换审核策略 / 开关留言。
  *
  * 设计取舍：
  *   - **不接验证码**。Turnstile 的 challenges.cloudflare.com 在大陆访问很慢，接它等于
@@ -563,6 +563,24 @@ async function handleAdmin(
       );
       return json({ ok: true }, 200, cors);
     }
+    case "unban": {
+      // 只认 32 位十六进制，与 hashIp 的输出形状一致。这不是安全边界（参数早已过了
+      // token 鉴权），而是防手滑：别的字符串灌进 WHERE 只会一行都删不掉，
+      // 表现成「点了没反应」，比明确报错难排查得多。
+      const hash = typeof body.hash === "string" ? body.hash : "";
+      if (!/^[0-9a-f]{32}$/.test(hash)) {
+        return json({ error: "invalid hash" }, 400, cors);
+      }
+      const res = await env.DB.prepare("DELETE FROM bans WHERE ip_hash = ?1")
+        .bind(hash)
+        .run();
+      // 解封**不恢复**被连坐下架的评论。comments 表没有记录 status 的变更时间，
+      // 无从区分「封禁前就被手动删掉的垃圾」与「因封禁连坐下架的」，一并恢复等于
+      // 把真垃圾也放回站上。误封的那几条走「已删除」区按来源短码逐条恢复，精确得多。
+      //
+      // 也正因为没有任何评论的可见性发生变化，这里不需要清缓存。
+      return json({ ok: true, deleted: res.meta.changes ?? 0 }, 200, cors);
+    }
     default:
       return json({ error: "unknown action" }, 400, cors);
   }
@@ -582,6 +600,17 @@ interface AdminData {
   removed: AdminRow[];
   /** 按文档聚合。回答「哪些页有评论、各几条」—— 扁平的时间流答不了这个问题。 */
   pages: AdminPageRow[];
+  /**
+   * 封禁名单。此前封禁是单向的：bans 表只进不出，管理页也不列出来 —— 误封之后
+   * 既看不见封了谁，也没有撤销的路径，只能翻出装了 wrangler 的电脑手工删行。
+   */
+  bans: BanRow[];
+}
+
+interface BanRow {
+  ip_hash: string;
+  reason: string | null;
+  created_at: string;
 }
 
 interface AdminPageRow {
@@ -598,28 +627,41 @@ interface AdminRow {
   content: string;
   status: number;
   created_at: string;
+  /**
+   * 来源哈希。管理页只显示前 8 位短码，作用是把封禁名单和被它连坐下架的评论对上 ——
+   * 解封后要找回哪几条，除了这个短码没有别的线索（昵称可以随便填，不足为凭）。
+   */
+  ip_hash: string | null;
 }
 
 async function loadAdminData(env: Env): Promise<AdminData> {
-  const [enabled, moderation, boardModeration, pending, recent, removed, pages] =
-    await Promise.all([
+  const [
+    enabled,
+    moderation,
+    boardModeration,
+    pending,
+    recent,
+    removed,
+    pages,
+    bans,
+  ] = await Promise.all([
     getEnabled(env),
     readModeration(env, "moderation"),
     readModeration(env, "board_moderation"),
     env.DB.prepare(
-      `SELECT id, page_id, nick, content, status, created_at
+      `SELECT id, page_id, nick, content, status, created_at, ip_hash
          FROM comments WHERE status = ?1 ORDER BY id DESC LIMIT ?2`,
     )
       .bind(STATUS.pending, LIMITS.adminMax)
       .all<AdminRow>(),
     env.DB.prepare(
-      `SELECT id, page_id, nick, content, status, created_at
+      `SELECT id, page_id, nick, content, status, created_at, ip_hash
          FROM comments WHERE status = ?1 ORDER BY id DESC LIMIT ?2`,
     )
       .bind(STATUS.published, LIMITS.adminMax)
       .all<AdminRow>(),
     env.DB.prepare(
-      `SELECT id, page_id, nick, content, status, created_at
+      `SELECT id, page_id, nick, content, status, created_at, ip_hash
          FROM comments WHERE status = ?1 ORDER BY id DESC LIMIT ?2`,
     )
       .bind(STATUS.removed, LIMITS.adminMax)
@@ -638,6 +680,14 @@ async function loadAdminData(env: Env): Promise<AdminData> {
     )
       .bind(STATUS.published, STATUS.pending)
       .all<AdminPageRow>(),
+    // 封禁名单通常只有个位数，不设上限也不会失控；仍套 adminMax 是为了万一被
+    // 脚本刷出成千上万条时，管理页不至于自己先撑爆。
+    env.DB.prepare(
+      `SELECT ip_hash, reason, created_at
+         FROM bans ORDER BY created_at DESC LIMIT ?1`,
+    )
+      .bind(LIMITS.adminMax)
+      .all<BanRow>(),
   ]);
   return {
     enabled,
@@ -647,6 +697,7 @@ async function loadAdminData(env: Env): Promise<AdminData> {
     recent: recent.results ?? [],
     removed: removed.results ?? [],
     pages: pages.results ?? [],
+    bans: bans.results ?? [],
   };
 }
 
@@ -668,9 +719,13 @@ function renderAdminPage(
   // 才能过去看上下文 —— 这是管理页此前最直接的摩擦。#comments 锚点直接落到评论区。
   const pageLink = (pageId: string) =>
     `<a href="${escapeHtml(siteOrigin + pageId)}#comments" target="_blank" rel="noopener">${escapeHtml(pageId)}</a>`;
+  // 来源短码。取哈希前 8 位就够区分了 —— 它只用于肉眼比对「这条和封禁名单里的
+  // 是不是同一个来源」，不承担任何安全职责，全长 32 位在手机上只会挤爆这一行。
+  const srcTag = (hash: string | null) =>
+    hash ? ` · <span class="s">来源 ${escapeHtml(hash.slice(0, 8))}</span>` : "";
   const card = (row: AdminRow) => `
     <div class="c">
-      <div class="m">#${row.id} · ${escapeHtml(row.nick)} · ${pageLink(row.page_id)} · ${escapeHtml(row.created_at)}</div>
+      <div class="m">#${row.id} · ${escapeHtml(row.nick)} · ${pageLink(row.page_id)} · ${escapeHtml(row.created_at)}${srcTag(row.ip_hash)}</div>
       <div class="t">${escapeHtml(row.content)}</div>
       <div class="b">
         ${
@@ -681,8 +736,17 @@ function renderAdminPage(
             : ""
         }
         ${row.status !== STATUS.removed ? `<button onclick="act('moderate',${row.id},2)">删除</button>` : ""}
-        <button class="d" onclick="act('ban',${row.id})">封禁来源</button>
+        <button class="d" onclick="ban(${row.id})">封禁来源</button>
       </div>
+    </div>`;
+
+  // 封禁名单条目。没有正文可显示，只有来源、时间和「由哪条评论引发」。
+  const banCard = (b: BanRow) => `
+    <div class="c">
+      <div class="m">来源 ${escapeHtml(b.ip_hash.slice(0, 8))} · ${escapeHtml(b.created_at)}${
+        b.reason ? ` · ${escapeHtml(b.reason)}` : ""
+      }</div>
+      <div class="b"><button onclick="unban('${escapeHtml(b.ip_hash)}')">解除封禁</button></div>
     </div>`;
 
   return `<!doctype html><html lang="zh-CN"><head>
@@ -702,6 +766,7 @@ button.d{color:#c00;border-color:#f0bbbb}
 .off b{color:#c00}
 .off .hint{font-size:13px;color:#a55;margin-top:6px}
 .empty{color:#999;font-size:14px}
+.s{color:#bbb;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 a{color:#06c}
 .p{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #f0f0f0}
 .p:last-child{border-bottom:0}
@@ -757,6 +822,16 @@ ${data.recent.length ? data.recent.map(card).join("") : '<div class="empty">还�
 <summary>已删除 (${data.removed.length})</summary>
 ${data.removed.length ? data.removed.map(card).join("") : '<div class="empty">没有已删除的评论</div>'}
 </details>
+<details>
+<summary>封禁名单 (${data.bans.length})</summary>
+${
+  data.bans.length
+    ? `<div class="empty" style="margin-bottom:10px">解封只是允许该来源重新发言；被连坐下架的评论不会自动恢复，需要时到「已删除」里按来源短码逐条恢复。</div>${data.bans
+        .map(banCard)
+        .join("")}`
+    : '<div class="empty">没有被封禁的来源</div>'
+}
+</details>
 <script>
 const TOKEN=${JSON.stringify(token)};
 async function post(payload){
@@ -766,6 +841,16 @@ async function post(payload){
 }
 function act(action,id,status){post({action,id,status})}
 function mode(value,scope){post({action:'set-moderation',value,scope})}
+// 封禁与解封都加确认：前者会连坐下架该来源的全部评论，后者放行的是曾被判定为
+// 垃圾源的来源 —— 两个方向都是「点错了要花力气收拾」的操作。
+function ban(id){
+  if(!confirm('封禁该来源？该来源的全部评论会一并下架。可在页面底部「封禁名单」里解除。'))return;
+  post({action:'ban',id});
+}
+function unban(hash){
+  if(!confirm('解除对该来源的封禁？此后它可以重新发言。被连坐下架的评论不会自动恢复。'))return;
+  post({action:'unban',hash});
+}
 // 关闭是会立刻改变站点外观的操作，加一道确认；重新开启无需确认。
 function enable(value){
   if(value==='off'&&!confirm('确定关闭留言？站点上的评论区会立刻整块隐藏。'))return;
