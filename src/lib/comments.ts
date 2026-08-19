@@ -82,8 +82,26 @@ export interface OverviewData {
   closed?: boolean;
 }
 
+/**
+ * 通用留言板的页面标识。留言板不挂钩任何文档，但复用同一张 comments 表 ——
+ * 它只是一个不对应任何文档的保留 page_id，于是限流、封禁、蜜罐、缓存、管理页操作
+ * 全都原样适用，一处特例都不用开。
+ *
+ * 站点上没有 /board 这个路由：留言板挂在 /comments 页面的一个标签页里。
+ * 必须与 Worker 侧的 BOARD_PAGE_ID 保持一致。
+ */
+export const BOARD_PAGE_ID = "/board";
+
 /** 昵称记在本地，回访免填。键名带前缀避免与其他站点数据冲突。 */
 export const NICK_STORAGE_KEY = "windinput-comment-nick";
+
+/**
+ * 正文草稿的存储键，按页面分开 —— 在文档 A 写了一半跳去文档 B，
+ * 回来时 A 的草稿还应该在，共用一个键会互相覆盖。
+ */
+export function draftStorageKey(pageId: string): string {
+  return `windinput-comment-draft:${pageId}`;
+}
 
 export const CONTENT_MAX = 1000;
 export const NICK_MAX = 20;

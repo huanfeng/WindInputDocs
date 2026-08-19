@@ -46,6 +46,14 @@ INSERT OR IGNORE INTO settings (key, value) VALUES ('moderation', 'open');
 -- 代码里读不到这个 key 时默认按 on 处理，所以已部署的库无需迁移。
 INSERT OR IGNORE INTO settings (key, value) VALUES ('enabled', 'on');
 
+-- 留言板（page_id = '/board'）的审核策略，取值同 moderation，但**独立配置**。
+-- 分开是因为两处的风险不同：文档页评论多半针对具体内容，留言板不挂钩任何文档、
+-- 更容易成为广告的落点，通常需要比文档页更严的策略。
+--
+-- 留言板本身不是新表：它只是一个不对应任何文档的保留 page_id，因此限流、封禁、
+-- 蜜罐、缓存、管理页操作全部原样复用，没有一处特例。
+INSERT OR IGNORE INTO settings (key, value) VALUES ('board_moderation', 'open');
+
 -- 封禁名单。只封哈希，封的是「同一来源」而不是「某个人」。
 CREATE TABLE IF NOT EXISTS bans (
   ip_hash    TEXT PRIMARY KEY,

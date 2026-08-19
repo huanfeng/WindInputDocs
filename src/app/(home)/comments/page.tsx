@@ -6,7 +6,8 @@ import { source } from "@/lib/source";
 
 export const metadata: Metadata = {
   title: "留言",
-  description: "清风输入法文档站的全站留言：看看大家都在哪篇文档里聊了什么",
+  description:
+    "清风输入法的留言板与全站留言汇总：随便聊点什么，或看看大家都在哪篇文档里说了什么",
 };
 
 export default function CommentsPage() {
@@ -31,8 +32,8 @@ export default function CommentsPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
       <h1 className="text-4xl font-black tracking-tight">留言</h1>
       <p className="mt-3 text-fd-muted-foreground">
-        文档站各页的留言都汇总在这里。发现文档有误、有没看懂的地方，
-        欢迎到对应页面下方留言。
+        留言板不挂钩任何文档，有什么想说的都可以在这里讲。
+        针对具体文档的问题，也可以直接在对应页面下方留言，都会汇总到这里。
       </p>
 
       <CommentsOverview titles={titles} />

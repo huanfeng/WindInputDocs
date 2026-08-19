@@ -3,9 +3,10 @@
 import Link from "fumadocs-core/link";
 import { MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Avatar } from "@/components/comments";
+import { Avatar, Comments } from "@/components/comments";
 import { cn } from "@/lib/cn";
 import {
+  BOARD_PAGE_ID,
   COMMENTS_ANCHOR,
   formatTime,
   type OverviewData,
@@ -34,7 +35,8 @@ export function CommentsOverview({
 }) {
   const [data, setData] = useState<OverviewData | null>(null);
   const [failed, setFailed] = useState(false);
-  const [tab, setTab] = useState<"recent" | "pages">("recent");
+  // 默认落在留言板：点顶栏「留言」进来的人多半是想说句话，而不是先浏览。
+  const [tab, setTab] = useState<"board" | "recent" | "pages">("board");
 
   useEffect(() => {
     const ac = new AbortController();
@@ -84,72 +86,102 @@ export function CommentsOverview({
     );
   }
 
-  if (data.total === 0) {
-    return (
-      <p className="mt-10 rounded-lg border border-dashed py-12 text-center text-fd-muted-foreground text-sm">
-        还没有任何留言。去文档里说第一句吧。
-      </p>
-    );
-  }
+  // 「按文档」只列文档。留言板不是文档，混在里面既没有标题可显示，也会让这个
+  // 视图的含义变浑；它在自己的标签页里，不必再占一行。
+  const docPages = data.pages.filter((p) => p.page !== BOARD_PAGE_ID);
 
   return (
     <>
       <div className="mt-8 flex items-center gap-1 border-b">
+        <Tab active={tab === "board"} onClick={() => setTab("board")}>
+          留言板
+        </Tab>
         <Tab active={tab === "recent"} onClick={() => setTab("recent")}>
           最新
         </Tab>
         <Tab active={tab === "pages"} onClick={() => setTab("pages")}>
           按文档
           <span className="ml-1.5 text-fd-muted-foreground text-xs">
-            {data.pages.length}
+            {docPages.length}
           </span>
         </Tab>
       </div>
 
-      {tab === "recent" ? (
-        <ul className="mt-6 space-y-6">
-          {data.items.map((item) => (
-            <li key={item.id}>
-              <div className="flex items-center gap-2">
-                <Avatar nick={item.nick} />
-                <span className="font-medium text-fd-foreground text-sm">
-                  {item.nick}
-                </span>
-                <span className="text-fd-muted-foreground text-xs">
-                  {formatTime(item.createdAt)}
-                </span>
-              </div>
-              {/* 正文是纯文本，交给 React 转义即可 —— 全站不存在把留言当 HTML 渲染的路径。
-                  折到 4 行，想看全文点下面的来源链接过去。 */}
-              <p className="mt-1.5 line-clamp-4 whitespace-pre-wrap break-words pl-8 text-fd-foreground/90 text-sm">
-                {item.content}
-              </p>
-              <div className="mt-1.5 pl-8">
-                <PageLink page={item.page} titles={titles} />
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <ul className="mt-6 divide-y">
-          {data.pages.map((p) => (
-            <li key={p.page}>
-              <Link
-                href={`${p.page}#${COMMENTS_ANCHOR}`}
-                className="flex items-baseline gap-3 py-3 transition-colors hover:text-fd-primary"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm">
-                  {titles[p.page] ?? <OrphanLabel page={p.page} />}
-                </span>
-                <span className="shrink-0 text-fd-muted-foreground text-xs">
-                  {p.count} 条 · {formatTime(p.lastAt)}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      {/* 留言板复用文档页的评论组件，只是换了个不挂钩任何文档的 page_id。
+          回复、限流、蜜罐、草稿保存因此全都现成，没有一行是重写的。 */}
+      {tab === "board" && (
+        <Comments
+          pageId={BOARD_PAGE_ID}
+          heading="留言板"
+          anchor="board"
+          variant="plain"
+        />
       )}
+
+      {tab === "recent" &&
+        (data.items.length === 0 ? (
+          <EmptyHint>还没有任何留言。</EmptyHint>
+        ) : (
+          <ul className="mt-6 space-y-6">
+            {data.items.map((item) => (
+              <li key={item.id}>
+                <div className="flex items-center gap-2">
+                  <Avatar nick={item.nick} />
+                  <span className="font-medium text-fd-foreground text-sm">
+                    {item.nick}
+                  </span>
+                  <span className="text-fd-muted-foreground text-xs">
+                    {formatTime(item.createdAt)}
+                  </span>
+                </div>
+                {/* 正文是纯文本，交给 React 转义即可 —— 全站不存在把留言当 HTML 渲染的路径。
+                  折到 4 行，想看全文点下面的来源链接过去。 */}
+                <p className="mt-1.5 line-clamp-4 whitespace-pre-wrap break-words pl-8 text-fd-foreground/90 text-sm">
+                  {item.content}
+                </p>
+                <div className="mt-1.5 pl-8">
+                  <PageLink
+                    page={item.page}
+                    titles={titles}
+                    onBoard={() => setTab("board")}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ))}
+
+      {tab === "pages" &&
+        (docPages.length === 0 ? (
+          <EmptyHint>还没有文档收到留言。</EmptyHint>
+        ) : (
+          <ul className="mt-6 divide-y">
+            {docPages.map((p) => (
+              <li key={p.page}>
+                <Link
+                  href={`${p.page}#${COMMENTS_ANCHOR}`}
+                  className="flex items-baseline gap-3 py-3 transition-colors hover:text-fd-primary"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm">
+                    {titles[p.page] ?? <OrphanLabel page={p.page} />}
+                  </span>
+                  <span className="shrink-0 text-fd-muted-foreground text-xs">
+                    {p.count} 条 · {formatTime(p.lastAt)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ))}
     </>
+  );
+}
+
+function EmptyHint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-6 rounded-lg border border-dashed py-12 text-center text-fd-muted-foreground text-sm">
+      {children}
+    </p>
   );
 }
 
@@ -178,14 +210,31 @@ function Tab({
   );
 }
 
-/** 「最新」视图里每条留言底部的来源文档链接。 */
+/** 「最新」视图里每条留言底部的来源标签。 */
 function PageLink({
   page,
   titles,
+  onBoard,
 }: {
   page: string;
   titles: Record<string, string>;
+  onBoard: () => void;
 }) {
+  // 留言板不是文档，标题映射里当然查不到它 —— 不特判就会被当成孤儿标上 ⚠️。
+  // 它不导航到别处，只是切回本页的留言板标签。
+  if (page === BOARD_PAGE_ID) {
+    return (
+      <button
+        type="button"
+        onClick={onBoard}
+        className="inline-flex items-center gap-1 text-fd-muted-foreground text-xs hover:text-fd-primary"
+      >
+        <MessageSquare className="size-3" aria-hidden />
+        留言板
+      </button>
+    );
+  }
+
   const title = titles[page];
   if (!title) return <OrphanLabel page={page} />;
 

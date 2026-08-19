@@ -12,6 +12,7 @@ import {
   CONTENT_MAX,
   type CommentItem,
   commentsApi,
+  draftStorageKey,
   formatTime,
   NICK_MAX,
   NICK_STORAGE_KEY,
@@ -32,7 +33,27 @@ interface Notice {
  * 与下载量徽章（download-stats.tsx）沿用同一套约定：请求失败 / Worker 未部署时整体
  * 收起、静默降级，绝不给用户看报错；卸载时 abort，避免切页后回写已卸载组件。
  */
-export function Comments({ pageId }: { pageId: string }) {
+export function Comments({
+  pageId,
+  heading = "评论",
+  anchor = COMMENTS_ANCHOR,
+  variant = "section",
+}: {
+  pageId: string;
+  /** 区块标题。留言板传「留言板」，避免顶着一个「评论」的名字。 */
+  heading?: string;
+  /** 锚点 id。同一页出现多个实例时必须区分，否则 #comments 会指向第一个。 */
+  anchor?: string;
+  /**
+   * section：文档正文之后的附属区块，用上边框与大间距和正文划清界限。
+   * plain：本身就是页面主体（留言板），不需要那道分隔线，间距也该收紧。
+   */
+  variant?: "section" | "plain";
+}) {
+  const shell =
+    variant === "section"
+      ? "mt-12 scroll-mt-20 border-t pt-8"
+      : "mt-6 scroll-mt-20";
   const [items, setItems] = useState<CommentItem[] | null>(null);
   const [failed, setFailed] = useState(false);
   // 运行时开关关停（settings.enabled = off）。与 failed 分开记，见拉取处的注释。
@@ -92,6 +113,55 @@ export function Comments({ pageId }: { pageId: string }) {
       // 隐私模式下 localStorage 可能直接抛错，昵称记不住而已，不影响发表。
     }
   }, []);
+
+  // 草稿恢复。刷新、误关标签页、提交失败、跳去别的文档再回来 —— 写到一半的内容
+  // 都不该凭空消失。按 pageId 分键，各页草稿互不覆盖。
+  useEffect(() => {
+    try {
+      setContent(localStorage.getItem(draftStorageKey(pageId)) ?? "");
+    } catch {
+      setContent("");
+    }
+  }, [pageId]);
+
+  // 草稿保存挂在**用户输入**上，而不是 content 状态上。这个区别很要紧：
+  // 若写成 useEffect(..., [content, pageId])，切页时 pageId 已经变新、content 还是
+  // 上一页的残留，就会把 A 页的草稿写进 B 页的键里。只在敲键盘时写，不存在这个窗口。
+  //
+  // 防抖 500ms：写 localStorage 是同步操作，长文里逐字写会卡手。
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const writeDraft = useCallback((pid: string, value: string) => {
+    try {
+      // 清空输入即清掉草稿，不留空串占着存储。
+      if (value.trim()) localStorage.setItem(draftStorageKey(pid), value);
+      else localStorage.removeItem(draftStorageKey(pid));
+    } catch {
+      // 隐私模式或存储配额满：草稿存不下而已，不影响正常发表。
+    }
+  }, []);
+
+  const handleContentChange = useCallback(
+    (value: string) => {
+      setContent(value);
+      if (draftTimer.current) clearTimeout(draftTimer.current);
+      draftTimer.current = setTimeout(() => writeDraft(pageId, value), 500);
+    },
+    [pageId, writeDraft],
+  );
+
+  // 卸载前把还在防抖窗口里的那一笔落盘。没有这一步，最后半秒内敲的字会随着
+  // 关标签页或切文档一起丢掉 —— 而那恰恰是用户最后写的、印象最深的内容。
+  const pending = useRef({ pageId, content: "" });
+  pending.current = { pageId, content };
+  useEffect(() => {
+    return () => {
+      if (!draftTimer.current) return;
+      clearTimeout(draftTimer.current);
+      draftTimer.current = null;
+      writeDraft(pending.current.pageId, pending.current.content);
+    };
+  }, [writeDraft]);
 
   const loaded = items !== null;
   useEffect(() => {
@@ -165,7 +235,21 @@ export function Comments({ pageId }: { pageId: string }) {
         setNotice({ kind: "info", text: "评论已提交，审核通过后显示" });
       }
 
+      // 只有确认提交成功才清草稿。失败路径一律不碰它 —— 提交失败正是最需要
+      // 草稿的时刻，此时清掉等于把用户刚写的东西连同错误一起吞了。
+      //
+      // 先撤掉在途的防抖写入：不然那个 500ms 的定时器会在清空之后落地，
+      // 把刚发出去的正文又原样写回草稿里。
+      if (draftTimer.current) {
+        clearTimeout(draftTimer.current);
+        draftTimer.current = null;
+      }
       setContent("");
+      try {
+        localStorage.removeItem(draftStorageKey(pageId));
+      } catch {
+        // 同上，清不掉只是残留一份草稿，下次进来会被新内容覆盖。
+      }
       setReplyTo(null);
       mountedAt.current = Date.now();
     } catch {
@@ -203,8 +287,7 @@ export function Comments({ pageId }: { pageId: string }) {
   // 加载中也要把锚点占住。从留言总览页带 #comments 跳进来时，浏览器在页面就绪的
   // 那一刻就要找这个 id —— 那会儿评论还没 fetch 回来，返回 null 会让锚点落空、
   // 停在页顶，用户以为链接坏了。
-  if (items === null)
-    return <section id={COMMENTS_ANCHOR} className="mt-12 scroll-mt-20" />;
+  if (items === null) return <section id={anchor} className={shell} />;
 
   const contentLen = [...content.trim()].length;
   const canSubmit =
@@ -219,14 +302,14 @@ export function Comments({ pageId }: { pageId: string }) {
 
   return (
     <section
-      id={COMMENTS_ANCHOR}
+      id={anchor}
       // scroll-mt 让锚点跳转停在标题下方而不是被 sticky 顶栏（h-14）盖住。
-      className={`mt-12 scroll-mt-20 border-t pt-8 transition-opacity duration-300 ${
+      className={`${shell} transition-opacity duration-300 ${
         shown ? "opacity-100" : "opacity-0"
       }`}
     >
       <h2 className="mb-4 font-semibold text-fd-foreground text-lg">
-        评论
+        {heading}
         {total > 0 && (
           <span className="ml-2 font-normal text-fd-muted-foreground text-sm">
             {total}
@@ -274,7 +357,7 @@ export function Comments({ pageId }: { pageId: string }) {
 
         <textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => handleContentChange(e.target.value)}
           rows={3}
           maxLength={CONTENT_MAX}
           placeholder="说点什么…… 发现文档有误或没看懂，也欢迎在这里指出"

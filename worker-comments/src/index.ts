@@ -45,6 +45,19 @@ type Moderation = "open" | "review" | "first";
  */
 type Enabled = "on" | "off";
 
+/** settings 里存审核策略的两个 key。 */
+type ModerationKey = "moderation" | "board_moderation";
+
+/**
+ * 通用留言板的页面标识。刻意复用 comments 表而不新建一张：留言板与文档页评论的
+ * 字段、反垃圾规则、管理动作完全一致，差别只在「不挂钩任何文档」。用一个保留的
+ * page_id 表达这件事，限流、封禁、蜜罐、缓存、管理页操作就全都原样适用，没有特例。
+ *
+ * 前端不存在 /board 这个路由 —— 留言板挂在 /comments 页面上，这个值只是数据标识。
+ * 与前端的 BOARD_PAGE_ID（src/lib/comments.ts）必须保持一致。
+ */
+const BOARD_PAGE_ID = "/board";
+
 const LIMITS = {
   nickMax: 20,
   contentMin: 2,
@@ -345,7 +358,7 @@ async function handlePost(
 
   // 7. 内容可疑度 + 审核策略，共同决定最终状态
   const suspicious = isSuspicious(content);
-  const mode = await getModeration(env);
+  const mode = await getModeration(env, pageId);
   const status = await resolveStatus(env, mode, suspicious, ipHash);
 
   const createdAt = new Date(now).toISOString();
@@ -507,11 +520,15 @@ async function handleAdmin(
       if (!["open", "review", "first"].includes(value)) {
         return json({ error: "invalid mode" }, 400, cors);
       }
+      // scope 决定改的是文档页还是留言板的策略。缺省为文档页，
+      // 老的调用方式（不带 scope）因此行为不变。
+      const key: ModerationKey =
+        body.scope === "board" ? "board_moderation" : "moderation";
       await env.DB.prepare(
-        "INSERT INTO settings (key, value) VALUES ('moderation', ?1) " +
-          "ON CONFLICT(key) DO UPDATE SET value = ?1",
+        "INSERT INTO settings (key, value) VALUES (?1, ?2) " +
+          "ON CONFLICT(key) DO UPDATE SET value = ?2",
       )
-        .bind(value)
+        .bind(key, value)
         .run();
       return json({ ok: true, moderation: value }, 200, cors);
     }
@@ -554,6 +571,8 @@ async function handleAdmin(
 interface AdminData {
   enabled: Enabled;
   moderation: Moderation;
+  /** 留言板的审核策略，与文档页各管各的。 */
+  boardModeration: Moderation;
   pending: AdminRow[];
   recent: AdminRow[];
   /**
@@ -582,9 +601,11 @@ interface AdminRow {
 }
 
 async function loadAdminData(env: Env): Promise<AdminData> {
-  const [enabled, moderation, pending, recent, removed, pages] = await Promise.all([
+  const [enabled, moderation, boardModeration, pending, recent, removed, pages] =
+    await Promise.all([
     getEnabled(env),
-    getModeration(env),
+    readModeration(env, "moderation"),
+    readModeration(env, "board_moderation"),
     env.DB.prepare(
       `SELECT id, page_id, nick, content, status, created_at
          FROM comments WHERE status = ?1 ORDER BY id DESC LIMIT ?2`,
@@ -621,6 +642,7 @@ async function loadAdminData(env: Env): Promise<AdminData> {
   return {
     enabled,
     moderation,
+    boardModeration,
     pending: pending.results ?? [],
     recent: recent.results ?? [],
     removed: removed.results ?? [],
@@ -705,10 +727,15 @@ ${
       ? `<div class="hint">站点上评论区已整块隐藏，访客看不到任何留言、也无法发表。数据仍在，重新开启即原样恢复。本页不受影响，可继续清理。</div>`
       : ""
   }</div>
-<div class="mode">当前审核策略：<b>${modeLabel[data.moderation]}</b><div style="margin-top:8px">
+<div class="mode">文档页审核策略：<b>${modeLabel[data.moderation]}</b><div style="margin-top:8px">
 <button onclick="mode('open')">直接公开</button>
 <button onclick="mode('review')">全部先审</button>
 <button onclick="mode('first')">首评先审</button>
+</div></div>
+<div class="mode">留言板审核策略：<b>${modeLabel[data.boardModeration]}</b><div style="margin-top:8px">
+<button onclick="mode('open','board')">直接公开</button>
+<button onclick="mode('review','board')">全部先审</button>
+<button onclick="mode('first','board')">首评先审</button>
 </div></div>
 <h2>按文档 (${data.pages.length})</h2>
 ${
@@ -738,7 +765,7 @@ async function post(payload){
   if(r.ok)location.reload();else alert('操作失败：'+r.status);
 }
 function act(action,id,status){post({action,id,status})}
-function mode(value){post({action:'set-moderation',value})}
+function mode(value,scope){post({action:'set-moderation',value,scope})}
 // 关闭是会立刻改变站点外观的操作，加一道确认；重新开启无需确认。
 function enable(value){
   if(value==='off'&&!confirm('确定关闭留言？站点上的评论区会立刻整块隐藏。'))return;
@@ -844,10 +871,28 @@ async function getEnabled(env: Env): Promise<Enabled> {
   return row?.value === "off" ? "off" : "on";
 }
 
-async function getModeration(env: Env): Promise<Moderation> {
+/**
+ * 取审核策略。留言板与文档页各用各的 key —— 两处风险不同：文档页评论多半针对
+ * 具体内容，留言板不挂钩任何文档、更容易成为广告落点，通常需要更严的策略。
+ */
+async function getModeration(env: Env, pageId: string): Promise<Moderation> {
+  return readModeration(env, moderationKeyOf(pageId));
+}
+
+/** 该 page_id 归哪个策略管。留言板是唯一的特例，其余一律走文档页策略。 */
+function moderationKeyOf(pageId: string): ModerationKey {
+  return pageId === BOARD_PAGE_ID ? "board_moderation" : "moderation";
+}
+
+async function readModeration(
+  env: Env,
+  key: ModerationKey,
+): Promise<Moderation> {
   const row = await env.DB.prepare(
-    "SELECT value FROM settings WHERE key = 'moderation'",
-  ).first<{ value: string }>();
+    "SELECT value FROM settings WHERE key = ?1",
+  )
+    .bind(key)
+    .first<{ value: string }>();
   const v = row?.value;
   return v === "review" || v === "first" ? v : "open";
 }
