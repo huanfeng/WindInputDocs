@@ -103,3 +103,13 @@ html > body[data-scroll-locked] {
     animation: none;
   }
 }
+
+/* 未发布内容（src/lib/remark-unreleased.ts 在构建期打的标记）。
+   文档常常先于发布写好，读者装的是已发布版，看到装不上的功能只会以为自己配错了。
+
+   用 :not([data-preview]) 而不是在预览态里改回 display：预览时这条规则整个不参与，
+   被藏的元素保持自己原本的 display，不必猜它该是 block 还是 table-row。
+   这个选择器的特异性（0,2,1）足以压过正文里的类样式，不需要 !important。 */
+:root:not([data-preview]) [data-unreleased] {
+  display: none;
+}
