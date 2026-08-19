@@ -1,10 +1,20 @@
 #!/usr/bin/env node
 /**
- * 检查 MDX 中的裸尖括号占位符。
+ * MDX 静态检查，两项：
  *
- * MDX v3 会先用 JSX 解析器处理正文，`<进程名>` 这类占位符会被当成开标签，
- * 因为找不到配对的闭合标签而在 `next build` 时报错。占位符必须写进反引号
- * （`` `<进程名>` ``）或代码块里。
+ * 1. **裸尖括号占位符**。MDX v3 会先用 JSX 解析器处理正文，`<进程名>` 这类占位符
+ *    会被当成开标签，因为找不到配对的闭合标签而在 `next build` 时报错。占位符必须
+ *    写进反引号（`` `<进程名>` ``）或代码块里。
+ *
+ * 2. **带 `<Since>` 的标题必须显式声明锚点**。fumadocs 拿标题文字生成 id，徽章会在
+ *    末尾留下空白，`## 首选保护 <Since v="0.113" />` 得到的是 `#首选保护-`——既不可读，
+ *    又随文案漂移，站内深链曾因此静默失效。这些标题还是更新记录反查文档的索引来源
+ *    （src/lib/since-index.ts），锚点缺失会让该条目整条不被收录。
+ *
+ * 3. **未发布版本的 `<Since>` 只能标在能整块藏住的位置**。未发布内容由
+ *    src/lib/remark-unreleased.ts 在构建期打标记、CSS 藏起来，能藏的单位是小节标题、
+ *    表格行、列表项。写在普通段落中间的标注藏不掉——抽掉它会把句子拆散，留着又会把
+ *    还没发布的功能直接摆给读者。这类只能改写句子，或挪进列表项。
  *
  * 检查前会把 frontmatter、围栏代码块、行内代码、MDX 注释统一遮蔽成空格，
  * 因此行号与列号保持与原文一致。
@@ -100,6 +110,33 @@ function* walk(dir) {
 }
 
 const problems = [];
+const sinceProblems = [];
+const unreleasedProblems = [];
+
+const HEADING_RE = /^#{1,6}\s+(.+)$/;
+const SINCE_RE = /<Since\s+v="[^"]*"\s*\/>/;
+const SINCE_VERSION_RE = /<Since\s+v="([\d.]+)"\s*\/>/g;
+/** 行尾的显式锚点声明，如 `[#top-protect]`。 */
+const ANCHOR_RE = /\[#[^\]]+\]\s*$/;
+/** 能被整块藏住的位置：表格行、列表项（标题另行判断）。 */
+const TABLE_ROW_RE = /^\|/;
+const LIST_ITEM_RE = /^[-*+]\s/;
+
+/** 已发布的最新版本，取自更新记录——与站点判定未发布内容用的是同一个数据源。 */
+const currentVersion = JSON.parse(
+  readFileSync(join("data", "releases.json"), "utf8"),
+)[0].version;
+
+function minorPair(version) {
+  const m = /^(\d+)\.(\d+)/.exec(version);
+  return m ? [Number(m[1]), Number(m[2])] : [0, 0];
+}
+
+function isUnreleased(version) {
+  const [major, minor] = minorPair(version);
+  const [curMajor, curMinor] = minorPair(currentVersion);
+  return major > curMajor || (major === curMajor && minor > curMinor);
+}
 
 for (const root of ROOTS) {
   for (const file of walk(root)) {
@@ -108,6 +145,32 @@ for (const root of ROOTS) {
     const lines = source.split("\n");
 
     masked.split("\n").forEach((line, index) => {
+      const trimmed = line.trim();
+      const heading = HEADING_RE.exec(trimmed);
+      if (heading && SINCE_RE.test(heading[1]) && !ANCHOR_RE.test(heading[1])) {
+        sinceProblems.push({
+          file: relative(process.cwd(), file).split(sep).join("/"),
+          line: index + 1,
+          text: lines[index].trim(),
+        });
+      }
+
+      // 未发布标注只有落在能整块藏住的位置才不会泄露
+      const hideable =
+        heading || TABLE_ROW_RE.test(trimmed) || LIST_ITEM_RE.test(trimmed);
+      if (!hideable) {
+        SINCE_VERSION_RE.lastIndex = 0;
+        for (const m of trimmed.matchAll(SINCE_VERSION_RE)) {
+          if (!isUnreleased(m[1])) continue;
+          unreleasedProblems.push({
+            file: relative(process.cwd(), file).split(sep).join("/"),
+            line: index + 1,
+            version: m[1],
+            text: lines[index].trim(),
+          });
+        }
+      }
+
       for (const match of line.matchAll(/<([^<>\n]{1,80})>/g)) {
         if (isValidTag(match[1])) continue;
         problems.push({
@@ -122,8 +185,15 @@ for (const root of ROOTS) {
   }
 }
 
-if (problems.length === 0) {
-  console.log("MDX 检查通过：未发现裸尖括号占位符。");
+if (
+  problems.length === 0 &&
+  sinceProblems.length === 0 &&
+  unreleasedProblems.length === 0
+) {
+  console.log(
+    `MDX 检查通过：无裸尖括号占位符，带 Since 的标题锚点齐备，` +
+      `未发布标注（> v${currentVersion}）都在能藏住的位置。`,
+  );
   process.exit(0);
 }
 
@@ -131,9 +201,38 @@ for (const p of problems) {
   console.error(`${p.file}:${p.line}:${p.column}  裸尖括号 ${p.tag}`);
   console.error(`  ${p.text}`);
 }
-console.error(
-  `\n共 ${problems.length} 处。MDX 会把 ${problems[0].tag} 当成 JSX 开标签，` +
-    `因找不到闭合标签导致 next build 失败。\n` +
-    `请把占位符包进反引号，例如 \`${problems[0].tag}\`，或放进代码块。`,
-);
+if (problems.length > 0) {
+  console.error(
+    `\n共 ${problems.length} 处裸尖括号。MDX 会把 ${problems[0].tag} 当成 JSX 开标签，` +
+      `因找不到闭合标签导致 next build 失败。\n` +
+      `请把占位符包进反引号，例如 \`${problems[0].tag}\`，或放进代码块。\n`,
+  );
+}
+
+for (const p of sinceProblems) {
+  console.error(`${p.file}:${p.line}  带 <Since> 的标题缺少显式锚点`);
+  console.error(`  ${p.text}`);
+}
+if (sinceProblems.length > 0) {
+  console.error(
+    `\n共 ${sinceProblems.length} 处。自动生成的 id 会带上徽章留下的尾部连字符` +
+      `（\`#首选保护-\`），既不可读又随标题文案漂移，也不会被更新记录的版本索引收录。\n` +
+      `请在标题行尾补显式锚点，例如 \`## 首选保护 <Since v="0.113" /> [#top-protect]\`。`,
+  );
+}
+
+for (const p of unreleasedProblems) {
+  console.error(
+    `${p.file}:${p.line}  未发布版本 v${p.version} 的标注写在了藏不住的位置`,
+  );
+  console.error(`  ${p.text}`);
+}
+if (unreleasedProblems.length > 0) {
+  console.error(
+    `\n共 ${unreleasedProblems.length} 处。已发布的最新版本是 v${currentVersion}，` +
+      `更高版本的内容会被构建期标记 + CSS 藏起来，但能藏的单位是**小节标题、表格行、\n` +
+      `列表项**——段落中间的标注抽掉会把句子拆散，只能原样显示，等于把还没发布的功能\n` +
+      `直接摆给读者。请改写句子把它拆出来，或挪进列表项 / 单独小节。`,
+  );
+}
 process.exit(1);

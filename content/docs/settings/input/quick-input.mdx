@@ -23,7 +23,7 @@ import { Since } from "@/components/since";
 - `Esc` 退出
 
 <Callout type="info" title="快捷输入本质是一个「混输实例」">
-它在配置里是 `schema.mix_modes` 数组的一项（内置实例 id 为 `quick_mix`）。所以下面的每一项设置都是**这个实例独有的**——你可以再建别的实例，各配各的触发键与候选来源。手写配置的写法见[方案与引擎配置](/docs/guides/config/schema#特殊模式与混输模式specialmodes-mixmodes)。
+它在配置里是 `schema.mix_modes` 数组的一项（内置实例 id 为 `quick_mix`）。所以下面的每一项设置都是**这个实例独有的**——你可以再建别的实例，各配各的触发键与候选来源。手写配置的写法见[方案与引擎配置](/docs/guides/config/schema#mix-modes)。
 </Callout>
 
 ## 设置项
@@ -57,7 +57,7 @@ import { Since } from "@/components/since";
 | 日期 / 年月 | 如 `12.25` → 今年 12 月 25 日；`2026.3` → 2026 年 3 月 |
 | 数字 / 金额 | 中文数字、财务大写、千分位；算式结果也会转换 |
 | 重复上次上屏 | 仅在刚进入、尚未输入时出现，空格即再上屏一次 |
-| 拼音 | 跟随[主拼音方案](/docs/settings/schema#主方案设置)（全拼 / 双拼） |
+| 拼音 | 跟随[主拼音方案](/docs/settings/schema#main-schema)（全拼 / 双拼） |
 | 英文 | 英文词库候选 |
 
 前四类候选**具体长什么样**（日期用哪几种写法、金额带不带「整」）也可以改，见[自定义候选格式](#format-table)。
@@ -329,7 +329,7 @@ text = "{year()}年{month(pad=2)}月{day(pad=2)}日"   # 2025年06月05日
 写 `cn='true'` 而不是 `cn=true`——不加引号会被当成函数调用。参数值写错（如 `zheng='nope'`）时这条候选不会出现，启动日志里有提示。
 </Callout>
 
-一条模板里**不能混用**两种写法，`${Y}年{month()}月` 不合法，要么全用变量、要么全用函数。函数写法里还可以套用[命令栏的文本函数](/docs/settings/dict/phrases#命令栏)，例如 `{concat('¥', thou())}`。
+一条模板里**不能混用**两种写法，`${Y}年{month()}月` 不合法，要么全用变量、要么全用函数。函数写法里还可以套用[命令栏的文本函数](/docs/guides/command-bar#text-functions)，例如 `{concat('¥', thou())}`。
 
 ### 写错了会怎样
 
@@ -354,9 +354,9 @@ zzbd → 、。·…""【】
 zzys → ①②③④⑤
 ```
 
-这些是**系统短语**，完整清单（含 `zz` 系列符号总表与自定义短语可用的日期时间变量）见[快捷短语](/docs/settings/dict/phrases#系统短语)。
+这些是**系统短语**，完整清单（含 `zz` 系列符号总表与自定义短语可用的日期时间变量）见[快捷短语](/docs/settings/dict/phrases#system-phrases)。
 
-## Ctrl / Alt 组合键不会被吞 <Since v="0.114" />
+## Ctrl / Alt 组合键不会被吞 <Since v="0.114" /> [#modifier-passthrough]
 
 在快捷输入、临时英文、临时拼音、网址输入、引导键特殊模式这五种模式里，带 Ctrl / Alt 的按键按主输入路径的语义处理：
 
@@ -366,5 +366,5 @@ zzys → ①②③④⑤
 0.113 及以前 `Ctrl + E` 这类组合键会被当成字面 `e` 插进缓冲区，宿主程序收不到。
 
 <Callout type="info" title="想让某个组合键在候选窗显示期间生效">
-把它配成候选窗快捷键（置顶、删除候选等）即可——那一层在上述守卫**之前**分派，天然优先，且五种模式一次接通。见[按键设置](/docs/settings/keys#候选词管理)。
+把它配成候选窗快捷键（置顶、删除候选等）即可——那一层在上述守卫**之前**分派，天然优先，且五种模式一次接通。见[按键设置](/docs/settings/keys#word-manage)。
 </Callout>

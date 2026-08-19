@@ -20,6 +20,32 @@ export const releases: ReleaseEntry[] = releasesData;
 // 最新版本即列表首项——下载直链与更新记录共用同一数据源，避免两处手工同步产生漂移。
 export const currentVersion = releases[0].version;
 
+/** 把 `0.117.0` / `0.111.0-rc.1` 归一到 `<major>.<minor>` 的数值对。
+ *
+ * 文档里的 `<Since v="0.117" />` 只写两段，releases.json 写三段，两侧对不上号。
+ * 补丁版不新增功能，按 minor 合并即可；预发布后缀同理并入其正式版。 */
+function minorPair(version: string): [number, number] {
+  const m = /^(\d+)\.(\d+)/.exec(version);
+  return m ? [Number(m[1]), Number(m[2])] : [0, 0];
+}
+
+/** 把版本归一到 `<major>.<minor>` 字符串，供按 minor 归拢的场合做键。 */
+export function minorOf(version: string): string {
+  const m = /^(\d+)\.(\d+)/.exec(version);
+  return m ? `${m[1]}.${m[2]}` : version;
+}
+
+/** 文档标注的版本是否还没发布。
+ *
+ * 文档常常先于发布写好（功能做完就补文档），但读者装的是已发布版，看到装不上的功能
+ * 只会困惑。判据取自 releases.json——版本一发布，CI 更新该文件，隐藏自动解除，
+ * 不需要回头去摘任何标记。 */
+export function isUnreleased(version: string): boolean {
+  const [major, minor] = minorPair(version);
+  const [curMajor, curMinor] = minorPair(currentVersion);
+  return major > curMajor || (major === curMajor && minor > curMinor);
+}
+
 // 下载走 Cloudflare R2（国内直连稳定）；GitHub Releases 作为备用渠道。
 //
 // 文件名口径以主仓打包脚本为准（pack-installer.sh / dev.ps1 均产出

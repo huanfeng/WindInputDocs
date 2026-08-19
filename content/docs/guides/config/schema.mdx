@@ -142,9 +142,9 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 
 四个 `protect_top_n*` 只对**纯码表方案**（及混输的码表侧）生效，按**本次输入的码长**决定用哪一档。出厂即为「一简二简保护、三简与全码放开」。
 
-保护名额只在**精确匹配**的候选里取，不足则少保护。分档的来龙去脉、老配置的迁移注意事项见[词频与候选排序 · 首选保护](/docs/guides/frequency#首选保护)。
+保护名额只在**精确匹配**的候选里取，不足则少保护。分档的来龙去脉、老配置的迁移注意事项见[词频与候选排序 · 首选保护](/docs/guides/frequency#top-protect)。
 
-## 码表自动造词（schema.codetable.auto_phrase）
+## 码表自动造词（schema.codetable.auto_phrase） [#codetable-auto-phrase]
 
 连续单字上屏累积成序列，遇终止符（标点 / 回车 / 空格 / 焦点切换 / 光标移动 / 多字词上屏）或超时后，为整个序列算词组编码并写入**临时词库**（立即可作候选）；累计使用达 `promote_count` 次才晋升进用户词库。
 
@@ -424,7 +424,7 @@ decimal_places = 6       # 计算器结果小数位数
 
 更多用法见[快捷输入](/docs/settings/input/quick-input)。
 
-## 混输模式（mix_modes）
+## 混输模式（mix_modes） [#mix-modes]
 
 ```toml
 
