@@ -10,7 +10,7 @@ import { Since } from "@/components/since";
 日常使用不需要读本页——启用、排序、扩展词库开关、导入导出都在[方案设置](/docs/settings/schema)里点几下就行。
 
 <Callout type="info" title="行为开关不写在方案文件里">
-上屏策略、调频、造词、模糊音、临时拼音等**行为**都是全局配置，集中在 `config.toml` 的 `[schema.codetable]` / `[schema.pinyin]` / `[schema.mix]` / `[schema.english]`。方案文件只写引擎的**固定参数**。见[核心概念](/docs/start/concepts#配置的分工全局行为-方案固定参数)。
+上屏策略、调频、造词、模糊音、临时拼音等**行为**都是全局配置，集中在 `config.toml` 的 `[schema.codetable]` / `[schema.pinyin]` / `[schema.mix]` / `[schema.english]`。方案文件只写引擎的**固定参数**。见[核心概念](/docs/start/concepts#config-split)。
 </Callout>
 
 ## 方案文件的位置与命名
@@ -371,7 +371,7 @@ comment_template_horizontal = "" # 同上（横排）
 
 ## 从零创建自定义方案
 
-1. **准备方案文件** —— 建议先在[方案页](/docs/settings/schema#导入与导出方案)导出一个内置方案作模板，在其基础上修改；方案 ID 必须与文件名前缀一致
+1. **准备方案文件** —— 建议先在[方案页](/docs/settings/schema#import-export)导出一个内置方案作模板，在其基础上修改；方案 ID 必须与文件名前缀一致
 2. **放置文件** —— 方案文件存入 `%APPDATA%\WindInput\schemas\`；引用的词库文件（`.dict.yaml`）放在用户数据目录 `schemas\` 下，或复用 `data\` 下的内置词库路径
 3. **登记方案** —— 在 `config.toml` 的 `schema.available` 中加入方案 ID
 4. **生效** —— 重启输入法或切换方案；扩展词库开关等热重载项除外

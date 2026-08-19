@@ -120,7 +120,7 @@ export default function HomePage() {
             </span>
           ))}
           <Link
-            href="/docs/customize/schemas"
+            href="/docs/settings/schema#import-export"
             className="ms-auto text-sm text-fd-primary hover:underline"
           >
             导入更多码表 →

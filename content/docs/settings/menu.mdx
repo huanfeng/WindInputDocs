@@ -16,7 +16,7 @@ description: 功能主菜单的三个入口与全部菜单项、应用独立配�
 | 任务栏 | 在任务栏的**输入状态指示器**上右键 |
 
 <Callout type="info" title="工具栏不见了？">
-按 `Ctrl + Shift + \` 可随时切回来，也可以在[外观设置 → 工具栏](/docs/settings/appearance#工具栏)里开启。工具栏可拖动到屏幕任意位置，并会记住每块显示器上的摆放位置。
+按 `Ctrl + Shift + \` 可随时切回来，也可以在[外观设置 → 工具栏](/docs/settings/appearance#toolbar)里开启。工具栏可拖动到屏幕任意位置，并会记住每块显示器上的摆放位置。
 </Callout>
 
 <Callout type="warn" title="macOS 的入口不一样">
@@ -34,8 +34,8 @@ macOS 没有浮动工具栏、也没有任务栏指示器，三个入口相应�
 | 中文标点 | 切换中文 / 英文标点 | [标点与符号](/docs/settings/input/punctuation) |
 | 简入繁出 | 开关简体输入 → 繁体输出（变体只能在设置里选） | [简入繁出](/docs/settings/input#简入繁出) |
 | 检索范围 ▸ | 智能 / 常用字 / 全部字符 | [候选检索范围](/docs/settings/input#候选检索范围) |
-| 显示工具栏 | 显示或隐藏工具栏 | [工具栏](/docs/settings/appearance#工具栏) |
-| 主题 ▸ | 切换主题，末尾三项是跟随系统 / 浅色 / 深色 | [主题](/docs/settings/appearance#主题) |
+| 显示工具栏 | 显示或隐藏工具栏 | [工具栏](/docs/settings/appearance#toolbar) |
+| 主题 ▸ | 切换主题，末尾三项是跟随系统 / 浅色 / 深色 | [主题](/docs/settings/appearance#theme) |
 | 重载配置 | 重新读取配置文件 | 见下 |
 | 重启服务 | 重启输入法后台服务 | 见下 |
 | 应用独立配置 ▸ | 只对**当前焦点应用**生效的规则 | [应用兼容性规则](/docs/guides/compat) |
@@ -55,7 +55,7 @@ macOS 没有浮动工具栏、也没有任务栏指示器，三个入口相应�
 
 改完 `compat.toml` 里的 `host_render` **必须重启服务**——重载配置不重建渲染通道。[日志级别](/docs/settings/advanced#日志设置)同理。
 
-## 应用独立配置
+## 应用独立配置 [#app-config]
 
 这个子菜单里的设置**只对你当前正在用的那个程序生效**。子菜单第一行是灰色的进程名（如 `Everything.exe`），仅作展示、点不动；焦点应用无法识别时显示「当前应用未知」，下面各项禁用。
 
@@ -122,7 +122,7 @@ macOS 没有浮动工具栏、也没有任务栏指示器，三个入口相应�
 
 ## 状态气泡的右键菜单
 
-[状态提示气泡](/docs/settings/appearance#状态提示)本身也可以右键，省去打开设置：
+[状态提示气泡](/docs/settings/appearance#status-tip)本身也可以右键，省去打开设置：
 
 | 菜单项 | 等效设置 |
 | --- | --- |

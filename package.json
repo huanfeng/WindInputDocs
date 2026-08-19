@@ -22,6 +22,7 @@
     "postinstall": "fumadocs-mdx",
     "lint": "pnpm lint:mdx && biome check",
     "lint:mdx": "node scripts/check-mdx.mjs",
+    "lint:links": "node scripts/check-links.mjs",
     "format": "biome format --write"
   },
   "dependencies": {

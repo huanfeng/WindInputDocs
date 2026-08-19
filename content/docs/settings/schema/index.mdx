@@ -10,7 +10,7 @@ import { Since } from "@/components/since";
 <Callout type="info" title="先理解一条：行为是全局的，方案文件只存固定参数">
 上屏策略、调频、造词、模糊音这些**行为开关是全局配置**，同类方案共享——改一次，所有码表方案（或所有拼音方案）一起变。方案文件只定义引擎的**固定参数**（引擎类型、码长、词库列表、双拼布局）。
 
-想让某个方案与全局不同，用「方案设置 → 码表配置」单独覆盖。详见[核心概念](/docs/start/concepts#配置的分工全局行为-方案固定参数)。
+想让某个方案与全局不同，用「方案设置 → 码表配置」单独覆盖。详见[核心概念](/docs/start/concepts#config-split)。
 </Callout>
 
 ## 输入方案
@@ -39,7 +39,7 @@ import { Since } from "@/components/since";
 | 设置 | 打开[方案设置对话框](#方案设置对话框) |
 | 删除 | 删除用户方案（内置方案不可删除），同时清理其词库数据与未被共享的资源文件 |
 | 刷新 | 重新加载方案列表 |
-| 导入 / 导出 | [方案包](#导入与导出方案)的导入导出 |
+| 导入 / 导出 | [方案包](#import-export)的导入导出 |
 
 也可以直接编辑 `%APPDATA%\WindInput\config.toml`：
 
@@ -135,7 +135,7 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 覆盖层按词库 id 只接受启用状态一个字段，词库的路径、名称、顺序等始终以方案文件为准。因此方案升级后新增或调整过的词库都能正常透传，不会被你点过的开关冻结在旧版本。若想替换词库文件本身，见[同结构覆盖机制](/docs/guides/config#同结构覆盖机制)。
 </Callout>
 
-### 导入与导出方案
+### 导入与导出方案 [#import-export]
 
 方案以**方案包**（`.zip`）形式分发，便于备份或分享社区码表方案（如 [WindInputCodeTable](https://github.com/huanfeng/WindInputCodeTable) 收集的第三方码表）：
 
@@ -159,7 +159,7 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
   <Card title="英文方案配置" href="/docs/settings/schema/english" description="英文引擎的词频调整策略、记账方式、上屏后自动加空格" />
 </Cards>
 
-## 主方案设置
+## 主方案设置 [#main-schema]
 
 这两项决定「当需要用到码表 / 拼音、但当前方案不是它」时，去找哪一个方案。
 

@@ -42,7 +42,7 @@ const supportWays = [
     icon: Palette,
     title: "贡献码表与主题",
     body: "把你调好的码表方案或候选窗主题分享出来，让后来者少走弯路。",
-    href: "/docs/customize/schemas",
+    href: "/docs/guides/schemas",
     action: "查看方案文档",
   },
   {
