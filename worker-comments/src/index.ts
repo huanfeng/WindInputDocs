@@ -556,6 +556,11 @@ interface AdminData {
   moderation: Moderation;
   pending: AdminRow[];
   recent: AdminRow[];
+  /**
+   * 已删除（status=2）。删除本就是可逆的——只改状态，正文一直在库里——但此前
+   * 管理页只查 0/1 两种状态，删掉的条目就此从界面上消失，误删无从挽回。
+   */
+  removed: AdminRow[];
   /** 按文档聚合。回答「哪些页有评论、各几条」—— 扁平的时间流答不了这个问题。 */
   pages: AdminPageRow[];
 }
@@ -577,7 +582,7 @@ interface AdminRow {
 }
 
 async function loadAdminData(env: Env): Promise<AdminData> {
-  const [enabled, moderation, pending, recent, pages] = await Promise.all([
+  const [enabled, moderation, pending, recent, removed, pages] = await Promise.all([
     getEnabled(env),
     getModeration(env),
     env.DB.prepare(
@@ -591,6 +596,12 @@ async function loadAdminData(env: Env): Promise<AdminData> {
          FROM comments WHERE status = ?1 ORDER BY id DESC LIMIT ?2`,
     )
       .bind(STATUS.published, LIMITS.adminMax)
+      .all<AdminRow>(),
+    env.DB.prepare(
+      `SELECT id, page_id, nick, content, status, created_at
+         FROM comments WHERE status = ?1 ORDER BY id DESC LIMIT ?2`,
+    )
+      .bind(STATUS.removed, LIMITS.adminMax)
       .all<AdminRow>(),
     // 一趟出公开数与待审数：SUM(CASE …) 比查两次再在内存里合并简单得多。
     // 已删除（status=2）不计入，管理页概览要反映的是「现在页面上有什么」。
@@ -612,6 +623,7 @@ async function loadAdminData(env: Env): Promise<AdminData> {
     moderation,
     pending: pending.results ?? [],
     recent: recent.results ?? [],
+    removed: removed.results ?? [],
     pages: pages.results ?? [],
   };
 }
@@ -639,7 +651,13 @@ function renderAdminPage(
       <div class="m">#${row.id} · ${escapeHtml(row.nick)} · ${pageLink(row.page_id)} · ${escapeHtml(row.created_at)}</div>
       <div class="t">${escapeHtml(row.content)}</div>
       <div class="b">
-        ${row.status !== STATUS.published ? `<button onclick="act('moderate',${row.id},1)">放行</button>` : ""}
+        ${
+          row.status !== STATUS.published
+            ? // 已删除条目的这个按钮是「恢复」而不是「放行」：两者动作相同（改回
+              // status=1），但站在被删内容前，「恢复」才说得清会发生什么。
+              `<button onclick="act('moderate',${row.id},1)">${row.status === STATUS.removed ? "恢复" : "放行"}</button>`
+            : ""
+        }
         ${row.status !== STATUS.removed ? `<button onclick="act('moderate',${row.id},2)">删除</button>` : ""}
         <button class="d" onclick="act('ban',${row.id})">封禁来源</button>
       </div>
@@ -668,6 +686,11 @@ a{color:#06c}
 .p a{flex:1;min-width:0;word-break:break-all}
 .p .n{font-size:13px;color:#888;white-space:nowrap}
 .p .w{color:#c60;font-weight:600}
+/* 已删除区默认折叠。用原生 details 而不是 JS 切换的筛选器：零脚本、手机上原生可用，
+   且日常不占版面——删除多是批量清垃圾，那堆内容平时没人想看见，需要时再展开找回。 */
+details{margin-top:24px}
+summary{font-size:16px;font-weight:600;cursor:pointer;padding:4px 0;color:#666}
+details[open] summary{margin-bottom:8px}
 </style></head><body>
 <div class="mode${data.enabled === "off" ? " off" : ""}">留言功能：<b>${
     data.enabled === "off" ? "已关闭" : "开启中"
@@ -703,6 +726,10 @@ ${
 ${data.pending.length ? data.pending.map(card).join("") : '<div class="empty">没有待审评论</div>'}
 <h2>最近公开 (${data.recent.length})</h2>
 ${data.recent.length ? data.recent.map(card).join("") : '<div class="empty">还没有评论</div>'}
+<details>
+<summary>已删除 (${data.removed.length})</summary>
+${data.removed.length ? data.removed.map(card).join("") : '<div class="empty">没有已删除的评论</div>'}
+</details>
 <script>
 const TOKEN=${JSON.stringify(token)};
 async function post(payload){
