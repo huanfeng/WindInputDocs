@@ -113,6 +113,7 @@ export function CommentsOverview({
         <Comments
           pageId={BOARD_PAGE_ID}
           heading="留言板"
+          noun="留言"
           anchor="board"
           variant="plain"
           placeholder="说点什么……"

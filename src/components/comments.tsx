@@ -36,6 +36,7 @@ interface Notice {
 export function Comments({
   pageId,
   heading = "评论",
+  noun = "评论",
   anchor = COMMENTS_ANCHOR,
   variant = "section",
   placeholder = "说点什么…… 发现文档有误或没看懂，也欢迎在这里指出",
@@ -43,7 +44,18 @@ export function Comments({
   pageId: string;
   /** 区块标题。留言板传「留言板」，避免顶着一个「评论」的名字。 */
   heading?: string;
-  /** 输入框提示。默认那句是针对文档页的，留言板需要换成通用的。 */
+  /**
+   * 这些东西叫什么。空状态、提交提示、输入框的可访问名都由它派生 ——
+   * 与 heading 分开是因为标题是「留言板」而单条叫「留言」，不能混用。
+   *
+   * 收成一个 prop 而不是给每处文案各开一个：它们同属一个语义域，一处切换
+   * 全体跟上，日后新增第五处文案也不会被漏在「评论」上。
+   */
+  noun?: string;
+  /**
+   * 输入框提示。不并入 noun：文档页那句带「发现文档有误」这类场景专属的引导语，
+   * 不是名词替换能生成的。
+   */
   placeholder?: string;
   /** 锚点 id。同一页出现多个实例时必须区分，否则 #comments 会指向第一个。 */
   anchor?: string;
@@ -232,10 +244,10 @@ export function Comments({
         // item 为 null 是服务端对可疑请求的伪装成功。这里用本地数据补齐，
         // 万一误伤真人，他看到的也是一切正常 —— 机器人同样无从分辨。
         setItems((prev) => [...(prev ?? []), data.item ?? local]);
-        setNotice({ kind: "ok", text: "评论已发布" });
+        setNotice({ kind: "ok", text: `${noun}已发布` });
       } else {
         setLocalPending((prev) => [...prev, local]);
-        setNotice({ kind: "info", text: "评论已提交，审核通过后显示" });
+        setNotice({ kind: "info", text: `${noun}已提交，审核通过后显示` });
       }
 
       // 只有确认提交成功才清草稿。失败路径一律不碰它 —— 提交失败正是最需要
@@ -364,7 +376,7 @@ export function Comments({
           rows={3}
           maxLength={CONTENT_MAX}
           placeholder={placeholder}
-          aria-label="评论内容"
+          aria-label={`${noun}内容`}
           className="w-full resize-y rounded-md border bg-fd-background px-3 py-2 text-sm outline-none focus:border-fd-primary"
         />
 
@@ -404,7 +416,7 @@ export function Comments({
       <div className="mt-6">
         {total === 0 ? (
           <p className="py-6 text-center text-fd-muted-foreground text-sm">
-            还没有评论，来说第一句吧
+            还没有{noun}，来说第一句吧
           </p>
         ) : (
           <ul className="space-y-5">
