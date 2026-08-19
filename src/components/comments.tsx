@@ -78,7 +78,7 @@ export function Comments({
   const [content, setContent] = useState("");
   // 蜜罐：真人看不见这个框，只有自动填表的机器人会填。服务端据此静默丢弃。
   const [hp, setHp] = useState("");
-  const [replyTo, setReplyTo] = useState<CommentItem | null>(null);
+  const [replying, setReplying] = useState<CommentItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   // 待审条目只存在于本地，刷新即消失。作用是让作者确信「话确实发出去了」，
@@ -96,7 +96,7 @@ export function Comments({
     setFailed(false);
     setClosed(false);
     setLocalPending([]);
-    setReplyTo(null);
+    setReplying(null);
     setNotice(null);
     mountedAt.current = Date.now();
 
@@ -189,7 +189,7 @@ export function Comments({
   }, [loaded]);
 
   const handleReply = useCallback((item: CommentItem) => {
-    setReplyTo(item);
+    setReplying(item);
     setNotice(null);
   }, []);
 
@@ -210,7 +210,7 @@ export function Comments({
           page: pageId,
           nick: trimmedNick,
           content: trimmedContent,
-          parent: replyTo?.id ?? null,
+          parent: replying?.id ?? null,
           elapsed: Date.now() - mountedAt.current,
           hp,
         }),
@@ -231,10 +231,15 @@ export function Comments({
         // 同上，记不住昵称不算失败。
       }
 
+      // 归属与 @ 目标按服务端同一套规则算（见 worker-comments 的第 5 步）：目标是顶层
+      // 就挂到它这一楼，目标在楼中则提升到同楼、把它记成 @ 目标。这份重复是必要的 ——
+      // 待审与「伪装成功」两条路径服务端都不回 item，本地条目只能自己算对归属，
+      // 算错了它会挂到别的楼下，或者凭空变成一条新的顶层评论。
       const local: CommentItem = {
         // 负数 id 标记「本地临时条目」，不会与服务端自增 id 冲突。
         id: -Date.now(),
-        parent: replyTo?.id ?? null,
+        parent: replying ? (replying.parent ?? replying.id) : null,
+        replyTo: replying?.parent != null ? replying.id : null,
         nick: trimmedNick,
         content: trimmedContent,
         createdAt: new Date().toISOString(),
@@ -265,7 +270,7 @@ export function Comments({
       } catch {
         // 同上，清不掉只是残留一份草稿，下次进来会被新内容覆盖。
       }
-      setReplyTo(null);
+      setReplying(null);
       mountedAt.current = Date.now();
     } catch {
       setNotice({ kind: "error", text: "网络异常，请稍后重试" });
@@ -312,8 +317,28 @@ export function Comments({
     contentLen <= CONTENT_MAX;
 
   const tops = items.filter((i) => i.parent === null);
-  const repliesOf = (id: number) => items.filter((i) => i.parent === id);
   const total = items.length + localPending.length;
+
+  // 被 @ 的人叫什么。整页评论都在手里，本地一次 Map 命中就够，不必让服务端 JOIN。
+  // 待审的本地条目也可能 @ 了别人，一并收进来。
+  const nickById = new Map(
+    [...items, ...localPending].map((i) => [i.id, i.nick] as const),
+  );
+
+  /**
+   * 一楼之下的全部回复，已公开的在前、本地待审的在后 —— 与顶层列表同一个约定。
+   * 待审条目按 parent 归到对应楼下而不是堆在页尾：多级回复模型里「回复楼中回复」
+   * 会变常见，堆在页尾就完全看不出它是在回应谁。
+   */
+  const repliesOf = (id: number) => [
+    ...items
+      .filter((i) => i.parent === id)
+      .map((item) => ({ item, pending: false })),
+    ...localPending
+      .filter((i) => i.parent === id)
+      .map((item) => ({ item, pending: true })),
+  ];
+  const pendingTops = localPending.filter((i) => i.parent === null);
 
   return (
     <section
@@ -333,14 +358,14 @@ export function Comments({
       </h2>
 
       <form onSubmit={submit} className="rounded-lg border bg-fd-card/50 p-4">
-        {replyTo && (
+        {replying && (
           <div className="mb-3 flex items-center gap-2 text-fd-muted-foreground text-sm">
             <span>
-              回复 <span className="text-fd-foreground">{replyTo.nick}</span>
+              回复 <span className="text-fd-foreground">{replying.nick}</span>
             </span>
             <button
               type="button"
-              onClick={() => setReplyTo(null)}
+              onClick={() => setReplying(null)}
               className="text-fd-primary text-xs hover:underline"
             >
               取消
@@ -420,23 +445,35 @@ export function Comments({
           </p>
         ) : (
           <ul className="space-y-5">
-            {tops.map((item) => (
+            {tops.map((item) => {
+              const replies = repliesOf(item.id);
+              return (
+                <li key={item.id}>
+                  <Row item={item} onReply={handleReply} nickById={nickById} />
+                  {replies.length > 0 && (
+                    // 楼中回复只缩进这一层，不再往里嵌 —— 存储本就没有第三层，
+                    // 更深的对话靠每条自带的「回复 @某某」串起来。
+                    <ul className="mt-4 space-y-4 border-fd-border border-l pl-4">
+                      {replies.map(({ item: reply, pending }) => (
+                        <li key={reply.id}>
+                          <Row
+                            item={reply}
+                            // 楼中回复同样可以被回复：新回复会被提升到本楼，
+                            // 只是多带一个 @ 目标，楼层不会因此变深。
+                            onReply={handleReply}
+                            pending={pending}
+                            nickById={nickById}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+            {pendingTops.map((item) => (
               <li key={item.id}>
-                <Row item={item} onReply={handleReply} />
-                {repliesOf(item.id).length > 0 && (
-                  <ul className="mt-4 space-y-4 border-fd-border border-l pl-4">
-                    {repliesOf(item.id).map((reply) => (
-                      <li key={reply.id}>
-                        <Row item={reply} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-            {localPending.map((item) => (
-              <li key={item.id}>
-                <Row item={item} pending />
+                <Row item={item} pending nickById={nickById} />
               </li>
             ))}
           </ul>
@@ -450,18 +487,36 @@ function Row({
   item,
   onReply,
   pending,
+  nickById,
 }: {
   item: CommentItem;
   onReply?: (item: CommentItem) => void;
   pending?: boolean;
+  /** 用来把 replyTo 的 id 换成昵称。见主组件里构造它的注释。 */
+  nickById: Map<number, string>;
 }) {
+  // 被 @ 的那条可能已被删除或封禁下架 —— 此时它不在列表里，查不到名字。
+  // 这种情况不能把整个「回复」标记省掉：读者会看到一句凭空冒出来、不知在回应谁的话。
+  // 明说「已删除的评论」，脉络才是完整的。
+  const replyToNick = item.replyTo === null ? null : nickById.get(item.replyTo);
+
   return (
     <div className={pending ? "opacity-60" : undefined}>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <Avatar nick={item.nick} />
         <span className="font-medium text-fd-foreground text-sm">
           {item.nick}
         </span>
+        {item.replyTo !== null && (
+          <span className="text-fd-muted-foreground text-xs">
+            回复{" "}
+            {replyToNick ? (
+              <span className="text-fd-foreground/80">@{replyToNick}</span>
+            ) : (
+              "已删除的评论"
+            )}
+          </span>
+        )}
         <span className="text-fd-muted-foreground text-xs">
           {formatTime(item.createdAt)}
         </span>

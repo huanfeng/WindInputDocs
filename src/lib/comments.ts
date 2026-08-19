@@ -33,8 +33,18 @@ export const commentsEnabled = true;
 
 export interface CommentItem {
   id: number;
-  /** 回复目标；顶层为 null。只允许一层嵌套 */
+  /** 所属楼层（顶层评论的 id）；顶层自身为 null。存储恒定只有两层 */
   parent: number | null;
+  /**
+   * 楼中回复的 @ 目标（同楼另一条的 id）；直接回复楼主时为 null。
+   *
+   * 二级 + @ 引用模型：交互上可以一直「回复回复」，但新评论的 parent 会被服务端提升到
+   * 同一楼，只把被回复者记在这里，展示为「回复 @某某」。层级规则由 Worker 独家执行
+   * （见 worker-comments/src/index.ts 的第 5 步），前端只负责报「在回复哪一条」。
+   *
+   * 这里只有 id 没有昵称：整页评论前端都有，查名字是本地一次 Map 命中。
+   */
+  replyTo: number | null;
   nick: string;
   content: string;
   createdAt: string;

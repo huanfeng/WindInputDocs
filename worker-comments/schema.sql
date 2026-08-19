@@ -8,7 +8,8 @@
 CREATE TABLE IF NOT EXISTS comments (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   page_id    TEXT    NOT NULL,           -- 页面标识，取 fumadocs 的 page.url，如 /docs/start/concepts
-  parent_id  INTEGER,                    -- 回复目标；顶层为 NULL。只允许一层嵌套
+  parent_id  INTEGER,                    -- 所属楼层（顶层评论的 id）；顶层自身为 NULL。**恒定只有两层**
+  reply_to   INTEGER,                    -- 楼中回复的@目标（同楼另一条的 id）；直接回复楼主时为 NULL
   nick       TEXT    NOT NULL,
   content    TEXT    NOT NULL,
   status     INTEGER NOT NULL DEFAULT 1, -- 0=待审 1=公开 2=已删/垃圾
@@ -16,6 +17,15 @@ CREATE TABLE IF NOT EXISTS comments (
   ua         TEXT,
   created_at TEXT    NOT NULL
 );
+
+-- 二级 + @ 引用模型（B 站 / 微博 的做法）：交互上可以一直「回复回复」，但存储永远是两层。
+-- 回复一条楼中回复时，新评论的 parent_id 跟着提升到同一楼，被回复者记进 reply_to，
+-- 展示为「回复 @某某」。服务端是这条不变量的唯一执行者：parent_id 要么取目标自身的 id
+-- （目标是顶层），要么取目标的 parent_id（目标在楼中，其父必是顶层）—— 归纳下来深度恒为 2，
+-- 伪造请求也造不出第三层。因此前端不需要递归组件，也不存在孤儿节点与循环引用。
+--
+-- 已部署的库升级到这个模型，执行一次（ADD COLUMN 会给存量行填 NULL，正是想要的）：
+--   wrangler d1 execute windinput-comments --remote --command="ALTER TABLE comments ADD COLUMN reply_to INTEGER"
 
 -- 列表查询：按页取公开评论，按 id 升序（= 时间序，AUTOINCREMENT 保证单调）。
 CREATE INDEX IF NOT EXISTS idx_comments_page ON comments(page_id, status, id);

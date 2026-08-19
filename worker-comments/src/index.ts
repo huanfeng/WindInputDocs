@@ -146,7 +146,7 @@ async function handleList(
   if ((await getEnabled(env)) === "off") return closedResponse(cors);
 
   const { results } = await env.DB.prepare(
-    `SELECT id, parent_id, nick, content, created_at
+    `SELECT id, parent_id, reply_to, nick, content, created_at
        FROM comments
       WHERE page_id = ?1 AND status = ?2
       ORDER BY id ASC
@@ -305,21 +305,33 @@ async function handlePost(
     return fail("invalid", `评论不能超过 ${LIMITS.contentMax} 个字`, cors);
   }
 
-  // 5. 回复目标。只允许一层嵌套：parent 必须存在、同页、且自身是顶层。
+  // 5. 回复目标。前端只报「在回复哪一条」，归到哪一楼、@ 谁由这里决定 ——
+  //    层级规则只有这一处实现，前端不需要（也无权）参与判断。
+  //
+  //    目标是顶层  → 挂到它这一楼，不记 @：楼主的名字就在楼顶，再 @ 一遍是噪音。
+  //    目标在楼中  → 提升到同一楼（target.parent_id，其父必是顶层），把目标记进 reply_to。
+  //
+  //    于是 parent_id 永远指向顶层，深度恒为 2，伪造请求也造不出第三层。
   let parentId: number | null = null;
+  let replyTo: number | null = null;
   if (body.parent !== undefined && body.parent !== null) {
     const pid = Number(body.parent);
     if (!Number.isInteger(pid) || pid <= 0) {
       return fail("invalid", "回复目标有误", cors);
     }
-    const parent = await env.DB.prepare(
-      `SELECT id FROM comments
-        WHERE id = ?1 AND page_id = ?2 AND status = ?3 AND parent_id IS NULL`,
+    const target = await env.DB.prepare(
+      `SELECT id, parent_id FROM comments
+        WHERE id = ?1 AND page_id = ?2 AND status = ?3`,
     )
       .bind(pid, pageId, STATUS.published)
-      .first<{ id: number }>();
-    if (!parent) return fail("invalid", "回复的评论不存在或已被删除", cors);
-    parentId = pid;
+      .first<{ id: number; parent_id: number | null }>();
+    if (!target) return fail("invalid", "回复的评论不存在或已被删除", cors);
+    if (target.parent_id === null) {
+      parentId = target.id;
+    } else {
+      parentId = target.parent_id;
+      replyTo = target.id;
+    }
   }
 
   // 6. 来源哈希、封禁、限流
@@ -363,13 +375,14 @@ async function handlePost(
 
   const createdAt = new Date(now).toISOString();
   const inserted = await env.DB.prepare(
-    `INSERT INTO comments (page_id, parent_id, nick, content, status, ip_hash, ua, created_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
-     RETURNING id, parent_id, nick, content, created_at`,
+    `INSERT INTO comments (page_id, parent_id, reply_to, nick, content, status, ip_hash, ua, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+     RETURNING id, parent_id, reply_to, nick, content, created_at`,
   )
     .bind(
       pageId,
       parentId,
+      replyTo,
       nick,
       content,
       status,
@@ -913,6 +926,7 @@ async function notifyTelegram(
 interface CommentRow {
   id: number;
   parent_id: number | null;
+  reply_to: number | null;
   nick: string;
   content: string;
   created_at: string;
@@ -938,6 +952,10 @@ function toItem(row: CommentRow) {
   return {
     id: row.id,
     parent: row.parent_id,
+    // 只给 id，不给昵称。前端手里已有整页评论，查个名字是本地一次 Map 命中；
+    // 服务端 JOIN 一次是为了同一份数据多跑一趟 SQL，还会把「被 @ 的人后来改了昵称」
+    // 这种不一致烘焙进响应里。
+    replyTo: row.reply_to,
     nick: row.nick,
     content: row.content,
     createdAt: row.created_at,
