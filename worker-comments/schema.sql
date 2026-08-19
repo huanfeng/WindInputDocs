@@ -38,6 +38,14 @@ CREATE TABLE IF NOT EXISTS settings (
 --   first  首评先审，同 ip_hash 有通过记录后自动放行。
 INSERT OR IGNORE INTO settings (key, value) VALUES ('moderation', 'open');
 
+-- enabled 取值 on / off。off 时三个公开接口一律回空，文档页与留言页整个评论区消失，
+-- 发表也被拒——但**管理页不受影响**，仍能看到并清理全部内容。这正是关闭功能的主场景：
+-- 被刷爆时先一键藏起来止血，再慢慢清理；若关闭连管理端也看不到，就把自己锁在门外了。
+--
+-- 数据不动，重新打开即原样恢复。
+-- 代码里读不到这个 key 时默认按 on 处理，所以已部署的库无需迁移。
+INSERT OR IGNORE INTO settings (key, value) VALUES ('enabled', 'on');
+
 -- 封禁名单。只封哈希，封的是「同一来源」而不是「某个人」。
 CREATE TABLE IF NOT EXISTS bans (
   ip_hash    TEXT PRIMARY KEY,

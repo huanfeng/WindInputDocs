@@ -9,7 +9,7 @@
  *   2. POST /api/comments                —— 发表评论，服务端反垃圾后入库。
  *   3. GET  /api/comments/overview       —— 全站概览：哪些页有评论 + 最近 N 条，同样带缓存。
  *   4. GET  /api/comments/admin?token=   —— 极简管理页（HTML），手机浏览器可直接操作。
- *   5. POST /api/comments/admin          —— 放行 / 删除 / 封禁 / 切换审核策略。
+ *   5. POST /api/comments/admin          —— 放行 / 删除 / 封禁 / 切换审核策略 / 开关留言。
  *
  * 设计取舍：
  *   - **不接验证码**。Turnstile 的 challenges.cloudflare.com 在大陆访问很慢，接它等于
@@ -35,6 +35,15 @@ const STATUS = { pending: 0, published: 1, removed: 2 } as const;
 
 /** 审核策略。存库而非存环境变量，理由见 schema.sql。 */
 type Moderation = "open" | "review" | "first";
+
+/**
+ * 留言总开关（运行时）。同样存库：需要紧急关停的场景就是「被刷爆了、人不在电脑前」，
+ * 存环境变量意味着必须找到装了 wrangler 的机器，那时候就晚了。
+ *
+ * off 时三个公开接口一律回空、发表被拒，但 handleAdmin **不受约束** ——
+ * 关停是为了止血后清理，不是为了把自己也关在门外。
+ */
+type Enabled = "on" | "off";
 
 const LIMITS = {
   nickMax: 20,
@@ -119,6 +128,10 @@ async function handleList(
   const hit = await cache.match(cacheKey);
   if (hit) return withHeaders(hit, cors);
 
+  // 缓存未命中才查总开关。命中即说明留言是开着的 —— 关闭态的响应从不写入缓存
+  // （见下方 closedResponse 的注释），所以缓存里不可能存在「关闭」这个状态。
+  if ((await getEnabled(env)) === "off") return closedResponse(cors);
+
   const { results } = await env.DB.prepare(
     `SELECT id, parent_id, nick, content, created_at
        FROM comments
@@ -164,6 +177,8 @@ async function handleOverview(
   const cacheKey = overviewCacheKey(request.url);
   const hit = await cache.match(cacheKey);
   if (hit) return withHeaders(hit, cors);
+
+  if ((await getEnabled(env)) === "off") return closedResponse(cors);
 
   // 两条独立只读查询，用 Promise.all 而非 DB.batch：batch 的泛型只有一个，
   // 而这两条返回的行形状不同，套 batch 就得靠 as 强转把类型信息丢掉。
@@ -250,7 +265,14 @@ async function handlePost(
     return fail("invalid", "页面开启太久，请刷新后重试", cors);
   }
 
-  // 3. 字段校验
+  // 3. 总开关。放在蜜罐与耗时之后：那两条是对机器人的静默丢弃，语义上与开关无关，
+  //    先跑完它们，机器人拿到的仍是伪装的成功，不会得到「这站关停了」这条额外情报。
+  //    对真人则明确告知，而不是让提交石沉大海。
+  if ((await getEnabled(env)) === "off") {
+    return fail("closed", "留言功能已关闭", cors);
+  }
+
+  // 4. 字段校验
   const pageId = normalizePageId(body.page);
   if (!pageId) return fail("invalid", "页面标识有误", cors);
 
@@ -270,7 +292,7 @@ async function handlePost(
     return fail("invalid", `评论不能超过 ${LIMITS.contentMax} 个字`, cors);
   }
 
-  // 4. 回复目标。只允许一层嵌套：parent 必须存在、同页、且自身是顶层。
+  // 5. 回复目标。只允许一层嵌套：parent 必须存在、同页、且自身是顶层。
   let parentId: number | null = null;
   if (body.parent !== undefined && body.parent !== null) {
     const pid = Number(body.parent);
@@ -287,7 +309,7 @@ async function handlePost(
     parentId = pid;
   }
 
-  // 5. 来源哈希、封禁、限流
+  // 6. 来源哈希、封禁、限流
   const ip = request.headers.get("cf-connecting-ip") ?? "0.0.0.0";
   const ipHash = await hashIp(ip, env.IP_SALT);
 
@@ -321,7 +343,7 @@ async function handlePost(
     return fail("rate_limited", "今天发言次数已达上限，明天再来吧", cors);
   }
 
-  // 6. 内容可疑度 + 审核策略，共同决定最终状态
+  // 7. 内容可疑度 + 审核策略，共同决定最终状态
   const suspicious = isSuspicious(content);
   const mode = await getModeration(env);
   const status = await resolveStatus(env, mode, suspicious, ipHash);
@@ -455,6 +477,31 @@ async function handleAdmin(
       if (row) await purgeCaches(request.url, [row.page_id]);
       return json({ ok: true }, 200, cors);
     }
+    case "set-enabled": {
+      const value = String(body.value);
+      if (value !== "on" && value !== "off") {
+        return json({ error: "invalid value" }, 400, cors);
+      }
+      await env.DB.prepare(
+        "INSERT INTO settings (key, value) VALUES ('enabled', ?1) " +
+          "ON CONFLICT(key) DO UPDATE SET value = ?1",
+      )
+        .bind(value)
+        .run();
+      // 必须清掉全部缓存，否则「关闭」要等最多 60 秒才见效 —— 那就谈不上「直接关闭」了。
+      // 总开关影响每一页，所以取全表的 DISTINCT page_id 逐个清。页面数最多几十，不重。
+      //
+      // 重新打开时其实无需再清（关闭期间的响应带 no-store，从未入缓存），
+      // 但两个方向都清更好记，也省得日后有人改了 no-store 就埋下一个隐雷。
+      const all = await env.DB.prepare(
+        "SELECT DISTINCT page_id FROM comments",
+      ).all<{ page_id: string }>();
+      await purgeCaches(
+        request.url,
+        (all.results ?? []).map((r) => r.page_id),
+      );
+      return json({ ok: true, enabled: value }, 200, cors);
+    }
     case "set-moderation": {
       const value = String(body.value);
       if (!["open", "review", "first"].includes(value)) {
@@ -505,6 +552,7 @@ async function handleAdmin(
 }
 
 interface AdminData {
+  enabled: Enabled;
   moderation: Moderation;
   pending: AdminRow[];
   recent: AdminRow[];
@@ -529,7 +577,8 @@ interface AdminRow {
 }
 
 async function loadAdminData(env: Env): Promise<AdminData> {
-  const [moderation, pending, recent, pages] = await Promise.all([
+  const [enabled, moderation, pending, recent, pages] = await Promise.all([
+    getEnabled(env),
     getModeration(env),
     env.DB.prepare(
       `SELECT id, page_id, nick, content, status, created_at
@@ -559,6 +608,7 @@ async function loadAdminData(env: Env): Promise<AdminData> {
       .all<AdminPageRow>(),
   ]);
   return {
+    enabled,
     moderation,
     pending: pending.results ?? [],
     recent: recent.results ?? [],
@@ -606,8 +656,11 @@ h2{font-size:16px;margin:24px 0 8px}
 .t{margin:8px 0;white-space:pre-wrap;word-break:break-word}
 button{font:inherit;padding:5px 12px;margin-right:6px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer}
 button.d{color:#c00;border-color:#f0bbbb}
-.mode{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:12px}
+.mode{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:12px;margin-bottom:10px}
 .mode b{color:#0a0}
+.off{background:#fff4f4;border-color:#f0bbbb}
+.off b{color:#c00}
+.off .hint{font-size:13px;color:#a55;margin-top:6px}
 .empty{color:#999;font-size:14px}
 a{color:#06c}
 .p{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #f0f0f0}
@@ -616,6 +669,19 @@ a{color:#06c}
 .p .n{font-size:13px;color:#888;white-space:nowrap}
 .p .w{color:#c60;font-weight:600}
 </style></head><body>
+<div class="mode${data.enabled === "off" ? " off" : ""}">留言功能：<b>${
+    data.enabled === "off" ? "已关闭" : "开启中"
+  }</b><div style="margin-top:8px">
+${
+  data.enabled === "off"
+    ? `<button onclick="enable('on')">重新开启</button>`
+    : `<button class="d" onclick="enable('off')">关闭留言</button>`
+}
+</div>${
+    data.enabled === "off"
+      ? `<div class="hint">站点上评论区已整块隐藏，访客看不到任何留言、也无法发表。数据仍在，重新开启即原样恢复。本页不受影响，可继续清理。</div>`
+      : ""
+  }</div>
 <div class="mode">当前审核策略：<b>${modeLabel[data.moderation]}</b><div style="margin-top:8px">
 <button onclick="mode('open')">直接公开</button>
 <button onclick="mode('review')">全部先审</button>
@@ -646,6 +712,11 @@ async function post(payload){
 }
 function act(action,id,status){post({action,id,status})}
 function mode(value){post({action:'set-moderation',value})}
+// 关闭是会立刻改变站点外观的操作，加一道确认；重新开启无需确认。
+function enable(value){
+  if(value==='off'&&!confirm('确定关闭留言？站点上的评论区会立刻整块隐藏。'))return;
+  post({action:'set-enabled',value});
+}
 </script></body></html>`;
 }
 
@@ -732,6 +803,18 @@ function toItem(row: CommentRow) {
     content: row.content,
     createdAt: row.created_at,
   };
+}
+
+/**
+ * 读总开关。**读不到就按 on 处理** —— 这样已经部署的 D1 库不需要任何迁移，
+ * schema.sql 里那条 INSERT OR IGNORE 只对全新初始化生效。
+ * 同理，值是任何意外内容时也按 on：故障时宁可留言还开着，也不要莫名其妙全站消失。
+ */
+async function getEnabled(env: Env): Promise<Enabled> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM settings WHERE key = 'enabled'",
+  ).first<{ value: string }>();
+  return row?.value === "off" ? "off" : "on";
 }
 
 async function getModeration(env: Env): Promise<Moderation> {
@@ -880,9 +963,32 @@ function json(
   });
 }
 
+/**
+ * 留言已关闭时两个读接口的统一响应。
+ *
+ * 字段形状与正常响应保持一致（items / pages / total 都在，只是空的），前端不必为
+ * 关闭状态写另一套解析；`closed: true` 才是它据以整块收起评论区的依据。
+ *
+ * **刻意不缓存**：关闭态入了缓存，重新打开后就要再清一次才能恢复，一来一回都得记着。
+ * 不缓存的代价只是关闭期间每次请求多读一行 settings —— 而关闭期间本就没什么流量。
+ */
+function closedResponse(cors: Record<string, string>): Response {
+  return new Response(
+    JSON.stringify({ items: [], pages: [], total: 0, closed: true }),
+    {
+      status: 200,
+      headers: {
+        ...cors,
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    },
+  );
+}
+
 /** 用户可见的失败。status 字段供前端决定提示文案，message 直接展示。 */
 function fail(
-  status: "invalid" | "rate_limited",
+  status: "invalid" | "rate_limited" | "closed",
   message: string,
   cors: Record<string, string>,
 ): Response {

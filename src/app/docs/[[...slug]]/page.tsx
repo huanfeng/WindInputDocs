@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { Comments } from "@/components/comments";
 import { DocsVersion } from "@/components/docs-version";
 import { getMDXComponents } from "@/components/mdx";
+import { commentsEnabled } from "@/lib/comments";
 import { gitConfig } from "@/lib/shared";
 import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
 
@@ -46,8 +47,9 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
         />
       </DocsBody>
       {/* 评论区。pageId 用 page.url（如 /docs/start/concepts）作页面标识——
-          改文档路径时记得一并迁移 comments.page_id，否则旧评论会成为孤儿。 */}
-      <Comments pageId={page.url} />
+          改文档路径时记得一并迁移 comments.page_id，否则旧评论会成为孤儿。
+          commentsEnabled 是构建期总开关，关掉后整个功能不进产物（见 lib/comments.ts）。 */}
+      {commentsEnabled && <Comments pageId={page.url} />}
     </DocsPage>
   );
 }

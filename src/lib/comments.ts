@@ -16,6 +16,21 @@ export const overviewApi = `${commentsApi}/overview`;
 /** 文档页在评论区上的锚点 id。管理页与概览页的链接都指向它。 */
 export const COMMENTS_ANCHOR = "comments";
 
+/**
+ * 留言功能的**构建期**总开关。改成 false 并重新部署，站点将彻底不含留言功能：
+ * 文档页不渲染评论区、顶栏不显示入口、/comments 页不生成、sitemap 也不收录。
+ *
+ * 与运行时开关（存在 D1 的 settings.enabled，管理页一键切）分工不同，别混：
+ *
+ *   运行时开关  暂停 —— 手机上点一下即时生效，入口仍在，随时能开回来。
+ *               应对「被刷爆了、先止血」。
+ *   构建期开关  下架 —— 需要重新部署，站点上再看不出曾有过留言功能。
+ *               应对「这个功能不要了」。
+ *
+ * 关掉它不影响 Worker 与 D1：数据都在，改回 true 重新部署即恢复。
+ */
+export const commentsEnabled = true;
+
 export interface CommentItem {
   id: number;
   /** 回复目标；顶层为 null。只允许一层嵌套 */
@@ -26,7 +41,14 @@ export interface CommentItem {
 }
 
 /** 服务端对一次发表的判定。前端据此决定提示文案与列表行为。 */
-export type SubmitStatus = "published" | "pending" | "rate_limited" | "invalid";
+export type SubmitStatus =
+  | "published"
+  | "pending"
+  | "rate_limited"
+  | "invalid"
+  /** 留言已被运行时开关关停。正常情况下前端根本不会渲染出表单，
+   *  但页面开着的时候管理员关了闸，这条提交就会撞上它。 */
+  | "closed";
 
 export interface SubmitResult {
   ok: boolean;
@@ -56,6 +78,8 @@ export interface OverviewData {
   pages: PageSummary[];
   items: OverviewItem[];
   total: number;
+  /** 运行时开关处于关闭态。两个读接口都会带这个字段，前端据此整块收起。 */
+  closed?: boolean;
 }
 
 /** 昵称记在本地，回访免填。键名带前缀避免与其他站点数据冲突。 */

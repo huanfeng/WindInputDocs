@@ -26,6 +26,7 @@ import { usePathname } from "next/navigation";
 import { type ComponentProps, useState } from "react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/cn";
+import { commentsEnabled } from "@/lib/comments";
 import { appName, githubUrl, navLinks } from "@/lib/shared";
 
 /**
@@ -122,7 +123,7 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
             </nav>
 
             <div className="ms-auto flex min-w-0 items-center gap-2">
-              <CommentsLink pathname={pathname} />
+              {commentsEnabled && <CommentsLink pathname={pathname} />}
               <FullSearchTrigger
                 hideIfDisabled
                 className="w-full max-w-[240px] min-w-0 rounded-full ps-2.5 max-md:hidden"

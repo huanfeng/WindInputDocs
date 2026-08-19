@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { commentsEnabled } from "@/lib/comments";
 import { siteUrl } from "@/lib/shared";
 import { source } from "@/lib/source";
 
@@ -21,7 +22,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     "/download",
     "/changelog",
-    "/comments",
+    // 构建期总开关关掉时这条路由是 404，收录进来会给搜索引擎送死链。
+    ...(commentsEnabled ? ["/comments"] : []),
     "/sponsor",
     ...source.getPages().map((page) => page.url),
   ];

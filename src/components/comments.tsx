@@ -35,6 +35,8 @@ interface Notice {
 export function Comments({ pageId }: { pageId: string }) {
   const [items, setItems] = useState<CommentItem[] | null>(null);
   const [failed, setFailed] = useState(false);
+  // 运行时开关关停（settings.enabled = off）。与 failed 分开记，见拉取处的注释。
+  const [closed, setClosed] = useState(false);
 
   const [nick, setNick] = useState("");
   const [content, setContent] = useState("");
@@ -56,6 +58,7 @@ export function Comments({ pageId }: { pageId: string }) {
     const ac = new AbortController();
     setItems(null);
     setFailed(false);
+    setClosed(false);
     setLocalPending([]);
     setReplyTo(null);
     setNotice(null);
@@ -65,8 +68,11 @@ export function Comments({ pageId }: { pageId: string }) {
       signal: ac.signal,
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("bad status"))))
-      .then((data: { items?: CommentItem[] }) => {
-        if (Array.isArray(data?.items)) setItems(data.items);
+      .then((data: { items?: CommentItem[]; closed?: boolean }) => {
+        // 关停与请求失败在读者眼里是同一回事（都没有评论区），但内部必须分开：
+        // 复用 failed 会让开发模式打出「评论服务未连接」，而此时服务连得好好的。
+        if (data?.closed) setClosed(true);
+        else if (Array.isArray(data?.items)) setItems(data.items);
         else setFailed(true);
       })
       .catch(() => {
@@ -169,8 +175,19 @@ export function Comments({ pageId }: { pageId: string }) {
     }
   }
 
-  // 加载确认成功前不占据任何布局空间。若先撑开骨架、失败再整块抽走，页面会在滚动中
-  // 骤然变短，体感像出了故障——底部区域「长出来」是温和的，「塌下去」不是。
+  // 运行时开关关停：整块消失，不留任何痕迹。刻意不显示「评论已关闭」之类的说明——
+  // 关停多半是应对垃圾评论的临时措施，挂个牌子等于告诉刷站的人「这儿的闸门是活的」。
+  if (closed) {
+    if (process.env.NODE_ENV === "development") {
+      return (
+        <section className="mt-12 border-t pt-8 text-fd-muted-foreground text-sm">
+          留言功能已在管理页关闭（settings.enabled =
+          off），生产环境下此处不显示任何内容。
+        </section>
+      );
+    }
+    return null;
+  }
   if (failed) {
     // 本地开发时给一句明确提示，免得以为组件写坏了。
     // process.env.NODE_ENV 是编译期常量，生产构建会把整个分支摇掉。

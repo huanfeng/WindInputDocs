@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { CommentsOverview } from "@/components/comments-overview";
+import { commentsEnabled } from "@/lib/comments";
 import { source } from "@/lib/source";
 
 export const metadata: Metadata = {
@@ -8,6 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function CommentsPage() {
+  // 构建期总开关关掉时这条路由直接 404，与顶栏入口的消失保持一致 ——
+  // 留一个空页面在那儿，等于留下一个「功能坏了」的印象。
+  if (!commentsEnabled) notFound();
+
   // 构建期烘焙 { page.url -> 标题 } 映射。
   //
   // 这是本页最关键的一处设计：评论 Worker 只存 page_id（即 /docs/... 这样的 URL），

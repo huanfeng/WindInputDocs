@@ -73,6 +73,17 @@ export function CommentsOverview({
     );
   }
 
+  // 运行时开关关停。这里与文档页的处理刻意不同：文档页整块消失即可（评论区本就是
+  // 附属物），而这个页面是从顶栏点进来的，什么都不说会让人以为页面坏了。
+  // 只说「已关闭」，不解释原因——理由同文档页，不给刷站的人反馈信号。
+  if (data.closed) {
+    return (
+      <p className="mt-10 rounded-lg border border-dashed py-12 text-center text-fd-muted-foreground text-sm">
+        留言功能已关闭。
+      </p>
+    );
+  }
+
   if (data.total === 0) {
     return (
       <p className="mt-10 rounded-lg border border-dashed py-12 text-center text-fd-muted-foreground text-sm">
