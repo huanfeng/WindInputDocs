@@ -42,6 +42,7 @@ show_code_hint = true         # 显示编码提示
 single_code_input = false     # 精确匹配模式（关闭前缀匹配）
 single_code_complete = true   # 精确匹配空码补全（无候选时从更长编码取首选）
 z_key_repeat = true           # z 键重复输入
+z_key_action = ""             # z 键附加功能：空 = 不启用（方案级参数，见下方 Callout）
 short_code_yield_level = 3    # 出简让全：0 关 / 2 一二级简码 / 3 全部简码
 input_chars = ""              # 码元字符集：哪些字符可进输入缓冲；空 = a-z
 leading_chars = ""            # 可作第一码的字符（码元字符集的子集）；空 = 与 input_chars 相同
@@ -60,6 +61,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `single_code_input` | 布尔 | — | `false` | 精确匹配模式，关闭前缀匹配 |
 | `single_code_complete` | 布尔 | — | `true` | 精确匹配空码补全：无候选时从更长编码取首选 |
 | `z_key_repeat` | 布尔 | — | `false`（预置为 `true`） | z 键重复输入 |
+| `z_key_action` | 字符串 | `""` / `none` / `temp_pinyin` / `temp_english` / `mix:<实例id>` / `special:<方案id>` | `""` <Since v="0.114" /> | z 键的附加功能：进临时拼音 / 临时英文 / 融合模式 / 特殊模式；`""` 与 `none` = 不启用，z 作正常码元。与 `z_key_repeat` 正交：重复输入先手，继续打字母才轮到本项。动词语义同 [`key_actions`](/docs/guides/config/keys#key-actions)，字母键让位规则也一致（z 是活码时先当编码） |
 | `short_code_yield_level` | 整数 | `0` / `2` / `3` | `3` <Since v="0.117" /> | [出简让全](/docs/settings/schema/codetable#short-code-yield)：有简码的字在更长编码上把首选让给词组。值 = 对哪几级简码生效 |
 | `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
 | `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
@@ -68,8 +70,8 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 `schema.codetable.auto_commit_min_len` 不在设置工具中开放，仅可通过 `config.toml` 手改。`0` 表示等于全码长（默认行为）。
 </Callout>
 
-<Callout type="warn" title="input_chars / leading_chars 实际取方案文件那份">
-这两个键在本段与方案文件的 `[engine.codetable]` 段里都存在，但**引擎只从方案文件取**——它们是方案的引擎固定参数，不是全局行为基线。写在 `config.toml` 的 `[schema.codetable]` 下不会生效。
+<Callout type="warn" title="input_chars / leading_chars / z_key_action 实际取方案文件那份">
+这三个键在本段与方案文件的 `[engine.codetable]` 段里都存在，但**引擎只从方案文件取**——它们是方案的引擎固定参数，不是全局行为基线。写在 `config.toml` 的 `[schema.codetable]` 下不会生效。`z_key_action` 按码表在自己的方案文件（或 `schema_overrides/<方案ID>.toml`）里开。
 
 写法（范围 + 字面）、数字作码元时为何要配 `leading_chars`、以及码元会从选词键手里抢按键的代价，见[方案配置 · 码元字符集](/docs/guides/schemas#input-chars)。
 </Callout>
@@ -308,6 +310,21 @@ max_extra_syllables = 5   # 词组最多比输入多几个音节
 
 逐档的候选对照表、「堤岸」为何仍在、以及两项如何配合，见[拼音方案配置 · 词组补全](/docs/settings/schema/pinyin#completion)。
 
+## 上下文语言模型（schema.pinyin.grammar） <Since v="0.117" /> [#pinyin-grammar]
+
+整句转换的 n-gram 上下文打分。**实验性，尚未正式发布**：默认关闭，且模型文件不随安装包分发（许可与体积），需自行获取并放到 `data/schemas/pinyin/grammar/` 下。
+
+```toml
+[schema.pinyin.grammar]
+weight = 0.0   # 语言模型权重，0 = 关闭
+model = ""     # 模型文件名，空 = 不启用
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `weight` | 浮点 | — | `0.0` <Since v="0.117" /> | 语言模型在整句打分中的权重；`0` = 关闭。关闭时不读模型文件、不占内存，整句结果与没有该功能时逐位相同 |
+| `model` | 字符串 | — | `""` <Since v="0.117" /> | 模型文件名，相对 `data/schemas/pinyin/grammar/`；空 = 不启用。`weight` 与 `model` **两个都要显式配置**才生效——只调 `weight` 不会静默启用某个默认模型 |
+
 ## 拼音自动造词（schema.pinyin.auto_learn）
 
 ```toml
@@ -349,6 +366,8 @@ min_english_length = 3               # 英文最小触发长度
 block_commit_on_pinyin_word = true   # 拼音歧义拦截（词强度启发式）
 pinyin_word_min_weight = 0           # 拼音歧义拦截的权重阈值
 enable_pinyin_abbrev = false         # 拼音产出简拼候选（声母缩写，nh→你好）
+pinyin_partial_candidates = false    # 码长内保留「未消费整串」的拼音候选
+pinyin_partial_candidates_overflow = true # 超码长时保留同类候选
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -364,6 +383,8 @@ enable_pinyin_abbrev = false         # 拼音产出简拼候选（声母缩写�
 | `block_commit_on_pinyin_word` | 布尔 | — | `true` | 拼音歧义拦截：整串是强拼音词时否决码表自动 / 顶码上屏（如 wangba→网吧） |
 | `pinyin_word_min_weight` | 整数 | — | `0` | 拼音歧义拦截的词强度权重阈值；`0` = 仅结构判据（≥2 汉字且消费整串） |
 | `enable_pinyin_abbrev` | 布尔 | — | `false` <Since v="0.117" /> | 混输时拼音是否产出简拼候选（声母缩写）。**出厂关**：开着它会让超码长顶码上屏基本不发生，见下。仅影响混输的拼音子引擎，纯拼音方案不受影响 |
+| `pinyin_partial_candidates` | 布尔 | — | `false` <Since v="0.117" /> | 码长内（输入未超过主码表码长）是否保留**未消费整串**的拼音候选。关（默认）：`gedw`（五笔精确码「青春」）不再列出 `ge` 的两百多条同音单字——它们每条只解释了 4 键中的 2 键。代价：码长内没有分步上屏（选一条部分候选先上屏、剩余码接着打）。正在输入中的拼音不受影响：`wanl` → 「完了」是前缀补全（消费整串），照常出候选 |
+| `pinyin_partial_candidates_overflow` | 布尔 | — | `true` <Since v="0.117" /> | 超码长（输入已超过主码表码长、切入纯拼音语境）是否保留同类候选。开（默认）：长拼音是拼音的地盘，`nihaom` 选「你好」再续打 `ma` 的分步上屏要留着 |
 
 <Callout type="info" title="顶码上屏时，「归属已判给码表」不受本项否决">
 超码长（编码长度超过码表满码）顶码上屏时，若**前 N 码是码表精确全码**且**拼音与英文都解释不了整串**，`auto_commit_block_on_pinyin` 不再否决——让路给拼音的前提是拼音接得住这一串。

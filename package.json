@@ -23,6 +23,7 @@
     "lint": "pnpm lint:mdx && biome check",
     "lint:mdx": "node scripts/check-mdx.mjs",
     "lint:links": "node scripts/check-links.mjs",
+    "check:config": "node scripts/check-config-coverage.mjs",
     "format": "biome format --write"
   },
   "dependencies": {

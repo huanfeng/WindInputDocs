@@ -44,6 +44,21 @@ comment_max_chars = 0           # 候选注释最大字数
 | `comment_template_horizontal` | 字符串 | — | `"${code_hint\|code}"` | **横排**候选注释模板。横排宽度由全部候选共享，放注音/字根易撑宽窗口 |
 | `comment_max_chars` | 整数 | — | `0` | 候选注释最大字数，超出截断并加省略号（`0` = 不限） |
 
+### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]
+
+供注释模板 `${dict}` 变量查询的**独立注释词库**列表（如英汉释义、Emoji 名称）。`ui.comment_dicts` 是结构体数组（TOML 的 `[[ui.comment_dicts]]` 形态），**出厂为空**——词典多有版权，不随附任何内容，由用户自行放置后在用户配置里增补：
+
+```toml
+[[ui.comment_dicts]]
+id = "emoji"                        # 稳定标识（日志 / 设置页定位用）
+label = "Emoji 名称"                 # 显示名
+path = "comments/emoji.dict.yaml"   # 相对 schemas/；用户目录优先，回落安装目录
+enabled = true                      # 是否启用，省略视为启用
+schemas = []                        # 限定生效方案 id；留空 = 全部方案
+```
+
+数组顺序即优先级（同一个词多库都有注释时取靠前的）；`schemas` 用来避免无谓开销——一份大英汉词典写 `schemas = ["english"]` 后，中文方案下根本不加载。词库文件格式与完整挂载说明见[候选注释](/docs/settings/appearance/candidate-comment#挂载)。
+
 ## 候选窗——尺寸稳定（ui.candidate） <Since v="0.117" /> [#candidate-min-size]
 
 候选窗默认完全跟随内容缩放：单字候选与多字候选间来回切换时宽度跳动，竖排下候选数变化又让高度跟着伸缩，连续输入时观感抖动明显。三个下限项用来锁住尺寸，出厂均为 `0`（关闭）。宽度下限按排布方向拆成两项——横排候选并列于一行、竖排每行独占一整行，两种排布的实用值往往不同。
@@ -269,6 +284,7 @@ visible = true              # 是否显示常驻工具栏
 hide_in_fullscreen = true   # 全屏时自动隐藏
 auto_hide = false           # 无交互超时后自动隐藏
 auto_hide_delay = 5         # 自动隐藏超时（秒）
+vertical = false            # 纵向排列（默认横条）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -277,6 +293,7 @@ auto_hide_delay = 5         # 自动隐藏超时（秒）
 | `hide_in_fullscreen` | 布尔 | — | `true` | 前台应用全屏时自动隐藏工具栏 |
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
+| `vertical` | 布尔 | — | `false` <Since v="0.115" /> | 纵向排列：竖着摆放工具栏（默认横条）。几何仍取主题 `[toolbar]`：条宽 = `height`、每格高 = `button_width` |
 
 ## 任务栏图标（ui.langbar） <Since v="0.117" /> [#langbar]
 
