@@ -115,6 +115,7 @@ export function CommentsOverview({
           heading="留言板"
           anchor="board"
           variant="plain"
+          placeholder="说点什么……"
         />
       )}
 

@@ -38,10 +38,13 @@ export function Comments({
   heading = "评论",
   anchor = COMMENTS_ANCHOR,
   variant = "section",
+  placeholder = "说点什么…… 发现文档有误或没看懂，也欢迎在这里指出",
 }: {
   pageId: string;
   /** 区块标题。留言板传「留言板」，避免顶着一个「评论」的名字。 */
   heading?: string;
+  /** 输入框提示。默认那句是针对文档页的，留言板需要换成通用的。 */
+  placeholder?: string;
   /** 锚点 id。同一页出现多个实例时必须区分，否则 #comments 会指向第一个。 */
   anchor?: string;
   /**
@@ -360,7 +363,7 @@ export function Comments({
           onChange={(e) => handleContentChange(e.target.value)}
           rows={3}
           maxLength={CONTENT_MAX}
-          placeholder="说点什么…… 发现文档有误或没看懂，也欢迎在这里指出"
+          placeholder={placeholder}
           aria-label="评论内容"
           className="w-full resize-y rounded-md border bg-fd-background px-3 py-2 text-sm outline-none focus:border-fd-primary"
         />
