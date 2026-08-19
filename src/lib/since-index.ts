@@ -21,6 +21,10 @@ export interface SinceEntry {
   url: string;
   /** page = 整页都是新功能；section = 页内某一节 */
   scope: "page" | "section";
+  /** 所属分区名，取自各分区的 meta.json，如「设置说明」 */
+  area: string;
+  /** 所属页面标题；scope 为 page 时与 title 相同 */
+  pageTitle: string;
 }
 
 const SINCE_RE = /<Since\s+v="([\d.]+)"\s*\/>/;
@@ -52,6 +56,74 @@ function cleanTitle(text: string): string {
       .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "$1")
       .trim()
   );
+}
+
+/** 页面 url → 所属分区名（「设置说明」「进阶专题」…）。
+ *
+ * 聚合页把同一版本的功能按分区归拢，光有小节标题看不出「联想」和「出简让全」分别
+ * 属于哪一块。分区名读各分区的 meta.json，跟着导航改名走，不在这里另抄一份。 */
+const areaCache = new Map<string, string>();
+function areaOf(url: string): string {
+  const segment = url.split("/")[2] ?? "";
+  if (!segment) return "";
+
+  const cached = areaCache.get(segment);
+  if (cached !== undefined) return cached;
+
+  // 取不到就留空，聚合页不显示分区名即可，不该为此中断构建
+  let name = "";
+  try {
+    const meta: unknown = JSON.parse(
+      readFileSync(
+        join(process.cwd(), "content/docs", segment, "meta.json"),
+        "utf8",
+      ),
+    );
+    if (
+      meta &&
+      typeof meta === "object" &&
+      "title" in meta &&
+      typeof meta.title === "string"
+    ) {
+      name = meta.title;
+    }
+  } catch {
+    // 分区没有 meta.json，或它没写 title
+  }
+
+  areaCache.set(segment, name);
+  return name;
+}
+
+/** 分区在导航里的先后，供聚合页固定分组顺序。
+ *
+ * 不排的话，各版本的分组顺序跟着「哪个分区先被扫到」走，同一份页面上一处是
+ * 「设置说明」在前、另一处是「进阶专题」在前，扫视时得重新找位置。顺序取自
+ * content/docs/meta.json 的 pages，与左侧导航同源。 */
+let areaOrder: string[] | null = null;
+export function areaRank(area: string): number {
+  if (!areaOrder) {
+    let segments: string[] = [];
+    try {
+      const meta: unknown = JSON.parse(
+        readFileSync(join(process.cwd(), "content/docs/meta.json"), "utf8"),
+      );
+      if (
+        meta &&
+        typeof meta === "object" &&
+        "pages" in meta &&
+        Array.isArray(meta.pages)
+      ) {
+        segments = meta.pages.filter((p): p is string => typeof p === "string");
+      }
+    } catch {
+      // 读不到就退化成原顺序，不值得为排序中断构建
+    }
+    areaOrder = segments.map((s) => areaOf(`/docs/${s}`)).filter(Boolean);
+  }
+
+  const i = areaOrder.indexOf(area);
+  return i < 0 ? areaOrder.length : i; // 认不出的排在最后
 }
 
 /** 去重键：剥掉标题尾部的配置项后缀，让「联想（input.association）」与「联想」
@@ -143,7 +215,13 @@ function scanPage(text: string, url: string, pageTitle: string): PageScan {
 
       found.push({
         version: since[1],
-        entry: { title, url: `${url}#${anchor[1]}`, scope: "section" },
+        entry: {
+          title,
+          url: `${url}#${anchor[1]}`,
+          scope: "section",
+          area: areaOf(url),
+          pageTitle,
+        },
       });
       continue;
     }
@@ -156,7 +234,13 @@ function scanPage(text: string, url: string, pageTitle: string): PageScan {
       if (since) {
         found.push({
           version: since[1],
-          entry: { title: pageTitle, url, scope: "page" },
+          entry: {
+            title: pageTitle,
+            url,
+            scope: "page",
+            area: areaOf(url),
+            pageTitle,
+          },
         });
       }
     }

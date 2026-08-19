@@ -1,8 +1,9 @@
-import { Link2 } from "lucide-react";
+import { ArrowRight, Link2, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ReleaseNotes } from "@/components/release-notes";
 import { SinceLinks } from "@/components/since-links";
-import { minorOf, releases } from "@/lib/releases";
+import { isFirstOfMinor, releases } from "@/lib/releases";
 import { releasesUrl } from "@/lib/shared";
 import { getSinceLinks } from "@/lib/since-index";
 
@@ -10,14 +11,6 @@ export const metadata: Metadata = {
   title: "更新记录",
   description: "清风输入法各版本的更新内容",
 };
-
-/** 每个 minor 版本里首个发布的版本号，如 `0.115` → `0.115.0`。
- *
- * 文档里的 `<Since v="0.115" />` 只精确到 minor，而 releases 有 0.115.0 / 0.115.1
- * 两条——不挑一条挂，同一批文档链接会在两处各列一遍。挂在首发版上：功能是那次带来的，
- * 补丁版只是修它。releases 按版本降序，同 minor 最后写入的即最早发布的那个。 */
-const firstOfMinor = new Map<string, string>();
-for (const r of releases) firstOfMinor.set(minorOf(r.version), r.version);
 
 export default function ChangelogPage() {
   return (
@@ -30,6 +23,20 @@ export default function ChangelogPage() {
         </a>
         。
       </p>
+
+      {/* 看更新记录的人多半是刚升级完、想知道新功能怎么开——本页每个版本块底部
+          都挂着相关文档，但要滚很久才看得到，这里先给一个纵览全部版本的入口 */}
+      <Link
+        href="/whats-new"
+        className="mt-5 inline-flex items-center gap-2 rounded-lg border bg-fd-card px-4 py-2.5 text-sm transition-colors hover:border-fd-primary/40 hover:bg-fd-primary/5"
+      >
+        <Sparkles className="size-4 text-fd-primary" aria-hidden />
+        <span className="font-medium">想知道新功能怎么配？</span>
+        <span className="text-fd-muted-foreground">
+          按版本查看新功能与配置说明
+        </span>
+        <ArrowRight className="size-3.5 text-fd-muted-foreground" aria-hidden />
+      </Link>
 
       <div className="mt-10 flex flex-col">
         {releases.map((r) => {
@@ -88,7 +95,7 @@ export default function ChangelogPage() {
                   。
                 </p>
               )}
-              {firstOfMinor.get(minorOf(r.version)) === r.version && (
+              {isFirstOfMinor(r.version) && (
                 <SinceLinks entries={getSinceLinks(r.version)} />
               )}
             </section>

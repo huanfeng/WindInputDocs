@@ -28,6 +28,7 @@ export const navLinks: LinkItemType[] = [
   { text: "主页", url: "/", active: "url" },
   { text: "文档", url: "/docs", active: "nested-url" },
   { text: "下载", url: "/download", active: "url" },
+  { text: "新功能", url: "/whats-new", active: "url" },
   { text: "更新记录", url: "/changelog", active: "url" },
   { text: "支持项目", url: "/sponsor", active: "url" },
   { text: "主题编辑器", url: "https://theme.windinput.com", external: true },

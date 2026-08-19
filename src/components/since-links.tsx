@@ -3,6 +3,20 @@ import Link from "next/link";
 import type { SinceEntry } from "@/lib/since-index";
 
 /**
+ * 一条新功能的入口。更新记录与新功能页共用，两处的条目样式因此不会各走各的。
+ */
+export function FeatureLink({ entry }: { entry: SinceEntry }) {
+  return (
+    <Link
+      href={entry.url}
+      className="inline-flex rounded-full border px-2.5 py-1 text-xs text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:bg-fd-primary/10 hover:text-fd-primary"
+    >
+      {entry.title}
+    </Link>
+  );
+}
+
+/**
  * 更新记录里的「本版相关文档」区块。
  *
  * 更新条目是从主仓 Release 同步来的纯文本（同步脚本会剥掉行内链接，见
@@ -26,12 +40,7 @@ export function SinceLinks({ entries }: { entries: SinceEntry[] }) {
       <ul className="mt-2.5 flex flex-wrap gap-2">
         {entries.map((entry) => (
           <li key={entry.url}>
-            <Link
-              href={entry.url}
-              className="inline-flex rounded-full border px-2.5 py-1 text-xs text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:bg-fd-primary/10 hover:text-fd-primary"
-            >
-              {entry.title}
-            </Link>
+            <FeatureLink entry={entry} />
           </li>
         ))}
       </ul>

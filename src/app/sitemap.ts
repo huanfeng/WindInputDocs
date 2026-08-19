@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/": 1,
     "/docs": 0.9,
     "/download": 0.8,
+    "/whats-new": 0.6,
     "/changelog": 0.5,
     "/comments": 0.5,
     "/sponsor": 0.4,
@@ -21,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     "/",
     "/download",
+    "/whats-new",
     "/changelog",
     // 构建期总开关关掉时这条路由是 404，收录进来会给搜索引擎送死链。
     ...(commentsEnabled ? ["/comments"] : []),

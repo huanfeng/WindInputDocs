@@ -35,6 +35,21 @@ export function minorOf(version: string): string {
   return m ? `${m[1]}.${m[2]}` : version;
 }
 
+/** 每个 minor 版本的首发版本号，如 `0.115` → `0.115.0`。
+ *
+ * releases 按版本降序，同 minor 最后写入的即最早发布的那个。 */
+const firstOfMinor = new Map<string, string>();
+for (const r of releases) firstOfMinor.set(minorOf(r.version), r.version);
+
+/** 这个版本是不是它那个 minor 的首发版。
+ *
+ * 文档里的 `<Since v="0.115" />` 只精确到 minor，而 releases 有 0.115.0 / 0.115.1
+ * 两条——不挑一条挂，同一批功能会在两处各列一遍。挂在首发版上：功能是那次带来的，
+ * 补丁版只是修它。 */
+export function isFirstOfMinor(version: string): boolean {
+  return firstOfMinor.get(minorOf(version)) === version;
+}
+
 /** 文档标注的版本是否还没发布。
  *
  * 文档常常先于发布写好（功能做完就补文档），但读者装的是已发布版，看到装不上的功能
