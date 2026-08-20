@@ -3,6 +3,8 @@ title: 配置文件与数据目录
 description: 数据的两层结构、目录职责、覆盖机制、三层合并，以及按域组织的完整配置项参考
 ---
 
+import { Since } from "@/components/since";
+
 <Callout type="warn" title="高级主题">
 普通用户通过[设置工具](/docs/settings)即可完成全部配置，修改即时生效。本分类面向需要手动放置文件、编辑 `config.toml`、或查阅**每个配置项确切含义**的用户。
 </Callout>
@@ -178,8 +180,14 @@ wind_input config describe ui.candidate.layout
 | `<方案ID>.schema.toml` | 方案定义：引擎类型、码长、码元字符集、词库列表、双拼布局、拆字库、词组编码器 | [方案配置](/docs/guides/schemas) |
 | `compat.toml` | 逐应用兼容规则：候选框定位、首显策略、初始中英状态、宿主代理渲染 | [应用兼容性规则](/docs/guides/compat) |
 
-<Callout type="info" title="改配置的另外三条路">
-除手工编辑外，[设置工具](/docs/settings)提供图形界面（覆盖绝大多数常用项），[命令行 config](/docs/guides/cli#config) 可脚本化读写，[配置片段导入](/docs/guides/import-export#fragment)可把别人分享的一段配置经预览确认后一步应用。功能页面只讲"这个功能怎么用"，配置项的确切键名与取值一律查本分类。
+<Callout type="info" title="改配置的另外几条路">
+除手工编辑外：
+
+- [设置工具](/docs/settings)提供图形界面，覆盖绝大多数常用项
+- [命令行 config](/docs/guides/cli#config) 可脚本化读写
+- [配置片段导入](/docs/guides/import-export#fragment) <Since v="0.118" /> 可把别人分享的一段配置经预览确认后一步应用
+
+功能页面只讲"这个功能怎么用"，配置项的确切键名与取值一律查本分类。
 </Callout>
 
 ## 相关阅读

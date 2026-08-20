@@ -9,9 +9,9 @@ import { Since } from "@/components/since";
 
 | 载体 | 形态 | 适合装什么 |
 | --- | --- | --- |
-| [配置片段](#fragment) | 一段 TOML 文本 | 若干配置项。论坛帖、聊天消息、文档代码块里直接贴 |
-| [方案包](#wpkg) | `.wpkg` / `.zip` 文件 | 完整方案连同词库、字体等资源，可附带配置片段 |
-| [方案文本](#schema-text) | 一段 TOML 文本 | 小方案（方案文件 + 小词库，总共几 KB 那种） |
+| [配置片段](#fragment) <Since v="0.118" /> | 一段 TOML 文本 | 若干配置项。论坛帖、聊天消息、文档代码块里直接贴 |
+| [方案包](#wpkg) <Since v="0.118" /> | `.wpkg` / `.zip` 文件 | 完整方案连同词库、字体等资源，可附带配置片段 |
+| [方案文本](#schema-text) <Since v="0.118" /> | 一段 TOML 文本 | 小方案（方案文件 + 小词库，总共几 KB 那种） |
 
 不论内容从哪个入口进来，走的都是同一条路：**校验 → 逐项预览 → 确认 → 应用**。没有哪个入口能跳过预览确认。
 
@@ -19,7 +19,7 @@ import { Since } from "@/components/since";
 [快符表示例](/docs/guides/special-modes#quick-start)三种装法都提供了：一键链接、下载 `.wpkg`、复制一段文本。它同时用到了方案文件、词库与随包配置，是这套机制的完整用例。
 </Callout>
 
-## 导入入口
+## 导入入口 <Since v="0.118" /> [#entries]
 
 | 入口 | 接受什么 |
 | --- | --- |
@@ -29,7 +29,7 @@ import { Since } from "@/components/since";
 | **双击 `.wpkg` 文件** | 方案包（需先在[桌面集成](/docs/settings/advanced#desktop-integration)注册关联） |
 | 网页上的 **`windinput://` 链接** | 官方托管的方案包，见[一键安装](#protocol) |
 
-## 配置片段 [#fragment]
+## 配置片段 <Since v="0.118" /> [#fragment]
 
 一段 TOML 文本，内容是配置项的任意子集：
 
@@ -77,7 +77,7 @@ backslash = "special:quick_symbols"
 包里的 `config_patch.toml` 有任何一项校验不过，方案文件也不会导入。给分发者的提示：发布前自己先导一遍。
 </Callout>
 
-## 方案文本 [#schema-text]
+## 方案文本 <Since v="0.118" /> [#schema-text]
 
 小方案可以整体变成一段纯文本：收到的人复制全文，走**从剪贴板导入配置**，校验时自动识别为方案文本，进入与方案包相同的导入确认。适合在论坛、文档里直接贴一个符号表、快捷短语方案这类小东西。
 
@@ -108,7 +108,7 @@ content = '''
 - 也可以带 `path = "config_patch.toml"` 的条目，语义同方案包的随包配置
 - 限制：全文不超过 2 MB、最多 64 个文件。装不下就改用 `.wpkg`
 
-## 一键安装链接 [#protocol]
+## 一键安装链接 <Since v="0.118" /> [#protocol]
 
 网页上形如 `windinput://import/schema?url=…` 的链接，点击后唤起设置程序，下载方案包并进入同一个导入确认对话框。
 
@@ -118,7 +118,7 @@ content = '''
 
 主题的一键安装（`windinput://import/theme`）早已可用，见[主题](/docs/settings/appearance/themes#获取更多主题)。
 
-## 安全设计 [#security]
+## 安全设计 <Since v="0.118" /> [#security]
 
 - 所有入口汇入同一个预览确认，显示来源与逐项改动，确认前不落任何东西
 - 配置片段只能改配置项，不能写文件；方案包与方案文本的文件只能落进方案目录，带路径穿越的包直接拒绝

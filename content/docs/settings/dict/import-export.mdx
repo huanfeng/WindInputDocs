@@ -216,7 +216,7 @@ WindDict 文件头带 `engine_type` 时，导入端会与目标方案比对，�
 
 在**设置 → 词库 → 快捷短语**中导入导出，格式同为 WindDict，只含 `phrases` 一段（默认文件名 `phrases.wdict.yaml`）。短语独有 `position` 列（同编码同权重时的先后），导入会保留该列的值。详见[自定义短语](/docs/settings/dict/phrases)。
 
-## 方案包（`.zip` / `.wpkg`） [#方案包zip]
+## 方案包（`.zip`） [#方案包zip]
 
 单个方案连同其引用资源打成的分发包。在**设置 → 方案**页选中方案后用「导出」/「导入」，也可从[高级页统一导入](/docs/settings/advanced#import-export)进入。
 
@@ -296,8 +296,8 @@ semicolon = "special:kf"
 - 根目录下有 `*.schema.toml` → 认为是方案包（**没有 `package.toml` 也能导入**，方便手工打包）
 - 根目录下没有任何 `.schema.toml` → 拒绝，提示「不是有效的方案包」
 - 含 `manifest.toml` / `manifest.json` → 拒绝，提示误选了整机备份包或旧格式归档
-- `format_version` 高于当前程序支持的版本 → 拒绝，提示升级
-- 含 `config_patch.toml` 但没有声明 `format_version = 2` → 拒绝（旧版程序会把这份文件当死文件落进方案目录，打包方必须声明版本）
+- `format_version` 高于当前程序支持的版本 → 拒绝，提示升级 <Since v="0.118" />
+- 含 `config_patch.toml` 但没有声明 `format_version = 2` → 拒绝（旧版程序会把这份文件当死文件落进方案目录，打包方必须声明版本）<Since v="0.118" />
 
 导入前预览显示：方案 ID 与版本、创建时间、**新增文件 / 已存在 / 系统引用 / 缺失**各多少个。随后选择：
 
@@ -418,9 +418,12 @@ state/state.toml                       type="state"       （勾选「包含界�
 
 ## 安全限制
 
-所有归档与文本类导入对条目路径做统一守卫，只放行「普通路径段」：拦截 `..`、绝对路径、盘符相对路径（`C:foo`）、UNC 路径，以及段内含冒号的名称（Windows 的 NTFS 备用数据流）。构造恶意包无法把文件写到用户数据目录之外。方案文本另有全文 2 MB、64 个文件的上限。
+所有归档与文本类导入对条目路径做统一守卫，只放行「普通路径段」：拦截 `..`、绝对路径、盘符相对路径（`C:foo`）、UNC 路径，以及段内含冒号的名称（Windows 的 NTFS 备用数据流）。构造恶意包无法把文件写到用户数据目录之外。
 
-从 HTTPS 链接导入主题时会先交给核心程序校验内容再落盘；导入前对话框会提示确认来源可信。`windinput://` 一键安装的方案包下载仅接受 windinput.com 官方域，上限 64 MB，下载后仍走完整的导入确认。
+从 HTTPS 链接导入主题时会先交给核心程序校验内容再落盘；导入前对话框会提示确认来源可信。
+
+- 方案文本另有全文 2 MB、64 个文件的上限 <Since v="0.118" />
+- `windinput://` 一键安装的方案包下载仅接受 windinput.com 官方域，上限 64 MB，下载后仍走完整的导入确认 <Since v="0.118" />
 
 <Callout type="warn" title="跨平台还原不做自动转换">
 备份包记录了来源平台，但热键、应用规则里的路径这类平台专属项**不会自动转换**。从 Windows 的备份还原到 macOS（或反之）时，这些项需要自行复核。
@@ -428,7 +431,7 @@ state/state.toml                       type="state"       （勾选「包含界�
 
 ## 相关阅读
 
-- [配置分发与导入](/docs/guides/import-export) —— 片段 / 方案包 / 方案文本的用法与分享方式
+- [配置分发与导入](/docs/guides/import-export) —— 片段 / 方案包 / 方案文本的用法与分享方式 <Since v="0.118" />
 - [备份与还原](/docs/settings/advanced#备份与还原) —— 一键备份的操作流程与换机迁移
 - [词库与词频](/docs/settings/dict) —— 词库管理界面与调频原理
 - [自定义短语](/docs/settings/dict/phrases) —— 短语字段与 `position`
