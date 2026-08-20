@@ -218,7 +218,10 @@ WindDict 文件头带 `engine_type` 时，导入端会与目标方案比对，�
 
 ## 方案包（`.zip` / `.wpkg`） [#方案包zip]
 
-单个方案连同其引用资源打成的分发包。在**设置 → 方案**页选中方案后用「导出」/「导入」，也可从[高级页统一导入](/docs/settings/advanced#import-export)进入。<Since v="0.118" /> 起支持 `.wpkg` 后缀（格式与 `.zip` 完全相同，注册[文件关联](/docs/settings/advanced#desktop-integration)后可双击导入），并支持[随包配置](#config-patch)。
+单个方案连同其引用资源打成的分发包。在**设置 → 方案**页选中方案后用「导出」/「导入」，也可从[高级页统一导入](/docs/settings/advanced#import-export)进入。
+
+- 新后缀 `.wpkg` <Since v="0.118" />：格式与 `.zip` 完全相同，注册[文件关联](/docs/settings/advanced#desktop-integration)后可双击导入
+- 包内可带[随包配置](#config-patch) <Since v="0.118" />：把「装上方案」和「配好相关配置」合成一步
 
 ### 包内布局
 
@@ -252,7 +255,11 @@ system = ["wubi86/wubi86_jidian.dict.yaml"]
 missing = []
 ```
 
-`format_version` 是包格式版本号 <Since v="0.118" />：缺省视为 1（旧格式，照常导入）；高于当前程序支持的版本则拒绝导入并提示升级。携带[随包配置](#config-patch)的包**必须**声明 `format_version = 2`。其余字段可缺省——导入端读不到就显示「未知」。`[refs]` 记录两类**不在包内**的引用：
+其余字段可缺省——导入端读不到就显示「未知」。
+
+- `format_version` 是包格式版本号 <Since v="0.118" />：缺省视为 1（旧格式，照常导入）；高于当前程序支持的版本则拒绝导入并提示升级。携带[随包配置](#config-patch)的包**必须**声明 `format_version = 2`
+
+`[refs]` 记录两类**不在包内**的引用：
 
 - `system` —— 指向程序自带数据目录的引用。这类文件人人都有，不打包，只记路径
 - `missing` —— 导出时就已经找不到的引用，供接收方排查
