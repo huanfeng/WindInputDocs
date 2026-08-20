@@ -17,21 +17,21 @@ import { Since } from "@/components/since";
 
 ## 快速开始：装一个现成的快符表 <Since v="0.118" /> [#quick-start]
 
-这是一个可直接使用的符号表示例：按**反斜杠键**呼出，一个键选中一个符号，选完自动回到原方案。三种装法任选，效果相同——都会先弹确认框列出要装的文件和要改的配置，看清楚再决定。
+这是一个可直接使用的符号表示例：按**反斜杠键**呼出，候选窗列出整张表，再按一个键选中符号上屏，随即自动回到原方案。三种装法任选，效果相同——都会先弹确认框列出要装的文件和要改的配置，看清楚再决定。
 
 ### 方式一：一键链接
 
 点击这个链接，浏览器会唤起设置程序并进入导入确认：
 
 <Callout type="info">
-**[⬇ 一键安装快符表](windinput://import/schema?url=https://dl.windinput.com/packages/kf-1.00.0.wpkg)**
+**[⬇ 一键安装快符示例](windinput://import/schema?url=https://dl.windinput.com/packages/quick_symbols-1.0.wpkg)**
 
 链接点了没反应，通常是 `windinput://` 协议未注册——到[设置 → 高级 → 桌面集成](/docs/settings/advanced#desktop-integration)看协议状态。便携版不注册协议，请改用下面两种方式。
 </Callout>
 
 ### 方式二：下载文件
 
-下载 [kf-1.00.0.wpkg](https://dl.windinput.com/packages/kf-1.00.0.wpkg) 后双击（需先注册 [`.wpkg` 文件关联](/docs/settings/advanced#desktop-integration)），或在**设置 → 高级 → 导入与导出 → 导入文件…**里选它。
+下载 [quick_symbols-1.0.wpkg](https://dl.windinput.com/packages/quick_symbols-1.0.wpkg) 后双击（需先注册 [`.wpkg` 文件关联](/docs/settings/advanced#desktop-integration)），或在**设置 → 高级 → 导入与导出 → 导入文件…**里选它。
 
 ### 方式三：复制文本
 
@@ -41,7 +41,7 @@ import { Since } from "@/components/since";
 [package]
 format_version = 2
 kind = "schema_text"
-title = "快符 · 引导键符号表"
+title = "快符示例 · 引导键符号表"
 description = '''
 按引导键呼出的符号表：常用标点、书名号与各类括号，按一个键选中即上屏。
 配对符号（如「」『』）上屏后光标自动落到中间。
@@ -50,21 +50,23 @@ description = '''
 '''
 
 [schema]
-id = "kf"
-version = "1.00.0"
+id = "quick_symbols"
+version = "1.0"
 
 [[files]]
-path = "kf.schema.toml"
+path = "quick_symbols.schema.toml"
 content = '''
 [schema]
-id = "kf"
-name = "快符"
+id = "quick_symbols"
+name = "快符示例"
 icon_label = "符"
-version = "1.00.0"
-author = "WindInput"
-description = "引导键呼出的符号表"
+version = "1.0"
+author = "内置"
+description = "快符特殊模式"
+# 隐藏方案：不在设置页「方案管理」列出。
 hidden = true
 
+# ── overlay 激活面 ──
 [overlay]
 kind = "special"
 show_all_on_enter = true
@@ -74,54 +76,75 @@ candidate_layout = "follow"
 type = "codetable"
 
 [engine.codetable]
+# 最大码长，影响自动上屏，配置为1仍然支持更长码长
 max_code_length = 1
+# 符号无权重，按码表出现序。
 base_sort = "natural"
-single_code_input = true
+# 自动上屏
 auto_commit_at_full = true
+# 自动上屏长度为1，如果 max_code_length > 1，配置这个可以保证唯一时上屏
+auto_commit_min_len = 1
+# 精确匹配模式，按需配置
+single_code_input = true
+# 精确匹配模式候选为空时，补全下一个
+single_code_complete = true
+
+# z 键不做重复。
+z_key_repeat = false
 
 [[dictionaries]]
-id = "kf"
-label = "快符"
-description = "符号表"
-path = "kf/kf.dict.yaml"
+id = "symbols_main"
+label = "快符表"
+path = "special/symbols.dict.yaml"
 type = "rime_codetable"
 default = true
 base_order = 0
 '''
 
 [[files]]
-path = "kf/kf.dict.yaml"
+path = "special/symbols.dict.yaml"
 content = '''
 ---
-name: "kf"
-note: "快符：引导键呼出的符号表"
+name: special_symbols
 columns:
-  - text
   - code
-  - weight
+  - text
 ...
-$CC("‘’", type("‘’"), key.tap("Left"))	i
-：	m
-：“	q
-？	w
-（	e
-）	r
-@	t
-《	y
-》	u
-$CC("「」", type("「」"), key.tap("Left"))	o
-$CC("『』", type("『』"), key.tap("Left"))	p
-！	a
-……	s
-、	d
-$CC(last(), type(last()))	f
-·	g
-$CC("《》",   type("《》"),   key.tap("Left"))	h
-$CC("“”",   type("“”"),   key.tap("Left"))	j
-$CC("（）",   type("（）"),   key.tap("Left"))	k
-$CC("〔〕",   type("〔〕"),   key.tap("Left"))	l
-“	z
-→	x
+i	$CC("‘’", ime.pair("‘", "’"))
+m	：
+q	：“
+w	？
+e	（
+r	）
+t	@
+y	《
+u	》
+o	$CC("「」", ime.pair("「", "」"))
+p	$CC("『』", ime.pair("『", "』"))
+a	！
+s	……
+d	、
+f	$CC(last(), type(last()))
+g	·
+h	$CC("《》",ime.pair("《", "》"))
+j	$CC("“”",ime.pair("“", "”"))
+k	$CC("（）",   ime.pair("（", "）"))
+l	$CC("〔〕",   ime.pair("〔", "〕"))
+z	“
+x	1
+x	2
+x	3
+x	4
+x	5
+x	6
+x	7
+x	8
+x	9
+x	0
+c	”
+v	——
+b	$CC("⎵", type("　"))
+n	$CC("[End]", key.seq("End"))
 '''
 
 [[files]]
@@ -132,21 +155,29 @@ title = "接上引导键"
 description = "把反斜杠键设为快符表的引导键。按键功能表是逐条并入的，你已有的其他绑定都会保留。"
 
 [keys.key_actions]
-backslash = "special:kf"
+backslash = "special:quick_symbols"
 '''
 ```
 
 ### 装完之后
 
-按一下反斜杠键，候选窗出现「快符」徽标并列出整张表，再按 `i` `m` `q` 等键选中对应符号上屏，随即自动回到原方案。按 `Esc` 可中途退出。
+按一下反斜杠键，候选窗出现「符」徽标并列出整张表，按对应键即可上屏。除了插入符号，这张表还演示了特殊模式能做的几类事：
 
-这个示例装了三样东西，都能照着改：
+| 按键 | 效果 | 用到的能力 |
+| --- | --- | --- |
+| `m` `w` `a` `d` | `：` `？` `！` `、` | 直接插入符号 |
+| `o` `p` `j` `k` | 「」『』“” （） | `ime.pair()` 插入配对符号并把光标放中间 |
+| `x` | 1 2 3 … 0 | 一个编码对应多个候选，按数字键选 |
+| `f` | 重复上次上屏的内容 | `last()` + `type()` |
+| `n` | 光标跳到行尾 | `key.seq("End")` 发送按键 |
+
+这三个文件都能照着改：
 
 | 装了什么 | 落到哪里 | 改它做什么 |
 | --- | --- | --- |
-| `kf.schema.toml` | `%APPDATA%\WindInput\schemas\` | 改模式徽标、候选排列、上屏行为（见下文[配置](#配置)） |
-| `kf/kf.dict.yaml` | 同上 | 改符号表内容：一行一个「符号 + Tab + 编码」 |
-| 引导键 `backslash = "special:kf"` | `config.toml` 的 `[keys.key_actions]` | 换成别的键；也可在**设置 → 按键设置 → 引导键**里改 |
+| `quick_symbols.schema.toml` | `%APPDATA%\WindInput\schemas\` | 改模式徽标、候选排列、上屏行为（见下文[配置](#配置)） |
+| `special/symbols.dict.yaml` | 同上 | 改符号表内容：一行一个「编码 + Tab + 内容」 |
+| 引导键 `backslash = "special:quick_symbols"` | `config.toml` 的 `[keys.key_actions]` | 换成别的键；也可在**设置 → 按键设置 → 引导键**里改 |
 
 <Callout type="info" title="它不会动你已有的配置">
 按键功能表是**逐条并入**的：这个包只写 `backslash` 一条，你原有的其他按键绑定原样保留。导入确认框里会逐项列出「当前值 → 新值」，看清楚再点。
