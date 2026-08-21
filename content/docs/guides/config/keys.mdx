@@ -85,8 +85,8 @@ toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
 
 指向不存在或未启用方案的条目会被安静忽略，不影响其它绑定；目标方案正在后台预热时提示「准备中…」并保持当前方案不变。
 
-<Callout type="warn" title="schema_hotkeys 已并入 key_actions">
-旧写法 `[keys] schema_hotkeys = { wubi86 = "ctrl+shift+w" }` **仍可用**：加载时自动折算成 `key_actions` 的 `switch_schema:<方案id>`（不写回文件，回退旧版本照常工作），下次用设置工具保存时旧字段自然消失。
+<Callout type="warn" title="schema_hotkeys 已废弃，需手改">
+旧写法 `[keys] schema_hotkeys = { wubi86 = "ctrl+shift+w" }` **不再生效，且不会自动迁移**。残留的旧段会在启动日志里告警一次，请改写成上面 `key_actions` 的形式，或在设置工具「方案 → 选中方案 → 设置 → 进入方式」里重配一次。
 
 合并的原因是两处配的本是同一件事、只差单向/往返，却编译进同一张热键表：同一个键两处都配时后者**静默失效**；而旧表不校验键形态，在里面写一个单字符键会让那个字符再也打不出来。
 </Callout>
