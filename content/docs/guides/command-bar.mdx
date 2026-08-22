@@ -108,6 +108,21 @@ cotmp = $CC("[打开临时目录]", open("D:\notes\temp"))
 路径写单反斜杠时能否工作，取决于下一个字母恰好是不是转义字母。同一条短语换个目录名就可能失效，且失败时只弹一句「命令执行失败」，不会告诉你是反斜杠的问题。**统一写 `\\`**，不要逐条去试。
 </Callout>
 
+### 网络共享路径开头是四个 [#unc]
+
+UNC 路径（`\\服务器\共享名`）**本身就以两个反斜杠开头**，每个都要按上面的规则写成两个，所以开头一共是四个：
+
+| 想访问的路径 | 命令里写 |
+| --- | --- |
+| `\\nas\share\dict.exe` | `\\\\nas\\share\\dict.exe` |
+| `\\192.168.1.5\tools` | `\\\\192.168.1.5\\tools` |
+
+```
+conas = $CC("[打开共享]", open("\\\\nas\\share"))
+```
+
+规则本身没变，仍然是「一个 `\` 写成 `\\`」——只是 UNC 的开头恰好有两个。写成两个（`\\nas`）解析出来是单个反斜杠开头的 `\nas`，那不是 UNC 路径，打不开；而这同样属于上面说的「不报错，只是打不开」。
+
 ### 换个地方写，还是两个 [#escape-layers]
 
 输入法内部只有**一份真实文本**：库里存的就是输入时用的，存储层对转义一无所知。转义只发生在文本进出系统的**边界**上，一共三类：
@@ -263,7 +278,7 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `proc.shell(cmdline, flags?, cwd?)` | 执行 shell 命令，flags 见下、`cwd` 见下 |
 | `key.tap(combo)` / `key.seq(...combos)` | 单次按键 / 按键序列 |
 | `key.hold(combo)` / `key.release(combo)` | 按下 / 抬起（须成对使用） |
-| `key.type(text)` | Unicode 直输，绕过键盘布局（走 SendInput，非 TSF） |
+| `key.type(text)` | Unicode 直输，绕过键盘布局（走 SendInput，非 TSF）。文本里的换行与制表符会发成回车 / Tab **按键** <Since v="0.118" /> |
 | `clip.copy(s)` / `clip.paste()` | 写入剪贴板 / 模拟 Ctrl+V |
 | `dict.add(s)` / `dict.add(s, code)` | 加词到用户库（编码自动推导或指定） |
 | `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `preedit` / `toolbar` |
