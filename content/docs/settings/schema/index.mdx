@@ -103,8 +103,8 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 | 入口 | 管什么 | 落点 |
 | --- | --- | --- |
 | 本方案-按键自定义 | 给一个键指定**功能**（进模式、切方案、切状态） | 方案文件的 [`[key_actions]`](/docs/guides/config/keys#key-actions) |
-| 本方案-输入中按键自定义 | 这个键在**输入过程中**（有编码或候选）干什么（翻页、选词、放弃） | 方案文件的 [`[session_actions]`](/docs/guides/config/keys#schema-session-actions) |
-| 按键总览 | 这个键**现在到底**干什么，以及来自哪一层 | 不写任何配置（只展示） |
+| 本方案-输入中按键自定义 | 这个键在**输入中**（有编码或候选）干什么（翻页、选词、放弃） | 方案文件的 [`[session_actions]`](/docs/guides/config/keys#schema-session-actions) |
+| 按键总览 | 这个键**现在到底**干什么，以及来自哪一层（本方案 / 全局**两层都列**） | 不写任何配置（只展示） |
 
 前两行的界面与全局那两个入口完全一样——一行一条绑定，点「添加 / 修改」弹出同一个[按键选择对话框](/docs/settings/keys#custom-keys-howto)。
 
