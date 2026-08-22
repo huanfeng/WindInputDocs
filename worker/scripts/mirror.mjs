@@ -3,7 +3,7 @@
  * 下载镜像管理 CLI。
  *
  *   pnpm mirror ls                    列出所有镜像
- *   pnpm mirror add <对象名> <直链>    校验并登记（校验不过不写库）
+ *   pnpm mirror add <直链> [对象名]    校验并登记（校验不过不写库）
  *   pnpm mirror on|off <对象名>       启用 / 停用
  *   pnpm mirror rm <对象名>           删除
  *   pnpm mirror check                 只读探活，诊断所有已登记镜像
@@ -11,6 +11,12 @@
  * 用**完整对象名**而不是版本号寻址：镜像是「一个文件 ↔ 一个直链」的映射，与
  * 版本/平台无关。Windows 与 macOS 同版本是两个不同的包，各自需要各自的直链；
  * 将来新增任何产物类型，这个 CLI 也不用改。
+ *
+ * add 的对象名可以省略：绝大多数网盘直链的路径末段就是原文件名
+ * （…/f/vQa5UP/WindInput-Setup-0.118.0.exe），跟随重定向后的稳定地址也常带上它。
+ * 只有当推断出的名字匹配已知产物命名时才采信，否则仍要求显式给出——
+ * 宁可多打一次字，也不能把镜像登记到一个猜错的对象名下。两个参数不分先后，
+ * 带 http(s):// 的那个是直链，另一个是对象名，旧写法照常能用。
  *
  * 为什么校验放在本机而不是 Worker 里：Worker 跑在境外边缘节点，到国内网盘的链路
  * 和真实用户的链路完全不同，在那边测出的「能连通」说明不了什么，还慢。本机执行
@@ -32,7 +38,7 @@ const WORKER_HOP = 1;
 const TIMEOUT_MS = 20_000;
 const MAX_HOPS = 5;
 
-/** 与 src/env.ts 的 ARTIFACTS 保持一致，仅用于给出更准确的提示。 */
+/** 与 src/env.ts 的 ARTIFACTS 保持一致：用于提示，以及判定推断出的对象名可否采信。 */
 const ARTIFACT_RES = [
   /^WindInput-Setup-(.+)\.exe$/i,
   /^WindInput-Portable-(.+)\.zip$/i,
@@ -59,6 +65,12 @@ const nowIso = () => new Date().toISOString();
 
 function assertKey(key) {
   if (!key) die("缺少对象名。例：WindInput-Setup-0.115.1.exe");
+  // on/off/rm 也允许直接粘直链：手边有的往往就是那条链接，不必回头去翻文件名
+  if (isUrl(key)) {
+    const inferred = keyFromUrl(key);
+    if (!inferred) die(`认不出对象名，请直接给文件名：${key}`);
+    return inferred;
+  }
   if (key.includes("/") || /\s/.test(key)) die(`对象名不合法：${key}`);
   if (!ARTIFACT_RES.some((re) => re.test(key))) {
     console.log(
@@ -69,6 +81,45 @@ function assertKey(key) {
     );
   }
   return key;
+}
+
+const isUrl = (s) => /^https?:\/\//i.test(s ?? "");
+
+/**
+ * 从地址的路径末段推断对象名。
+ *
+ * 只在末段**匹配**已知产物命名时返回，其余一律 null：网盘的分享入口常常长成
+ * /s/abc123 或 /f/vQa5UP 这种，把它当文件名登记，将来 ls 出来的是一堆看不懂的 key。
+ * 采信的门槛卡在这里，R2 大小比对是第二道闸——名字猜错时 R2 上找不到对象，
+ * 校验会直接失败，不会写库。
+ *
+ * 容忍上传方加的前缀：这家网盘的存储地址长成
+ * …/5147a68c-06e6-…_WindInput-Setup-0.118.0.exe，从最后一个 WindInput- 起截断才认得出。
+ * 从**最后**一个起截，是因为前缀里再出现一次 WindInput- 时，靠后的那个才是真文件名。
+ */
+function keyFromUrl(url) {
+  let last;
+  try {
+    last = new URL(url).pathname.split("/").filter(Boolean).pop();
+  } catch {
+    return null;
+  }
+  if (!last) return null;
+  let name;
+  try {
+    name = decodeURIComponent(last);
+  } catch {
+    name = last; // 末段含孤立的 % 时 decodeURIComponent 会抛，按原文再试一次
+  }
+  const matches = (s) => ARTIFACT_RES.some((re) => re.test(s));
+  if (matches(name)) return name;
+
+  const i = name.toLowerCase().lastIndexOf("windinput-");
+  if (i > 0) {
+    const trimmed = name.slice(i);
+    if (matches(trimmed)) return trimmed;
+  }
+  return null;
 }
 
 // ── 校验 ────────────────────────────────────────────────────────────────
@@ -171,6 +222,10 @@ async function r2Size(key) {
  * 网关），正好顶满 ureq 的 redirects(3)，网盘哪天多加一跳就静默失败。存「无 Range
  * 最终地址」既省掉入口那一跳，又天然停在不带签名的稳定地址上——带 Range 才会跳到
  * 带 X-Amz-Signature 的临时节点，那种地址有效期只有十几分钟，绝不能入库。
+ *
+ * key 传 null 表示交给这里推断：入口先猜，猜不出再拿解析后的稳定地址猜（短链入口
+ * 没有文件名，跳到的网盘网关地址通常有）。推断在解析之后、R2 比对之前，正好还能
+ * 让比对那一步替猜测兜底。返回值带上最终采用的 key。
  */
 async function verify(key, entryUrl) {
   if (!/^https:\/\//i.test(entryUrl)) {
@@ -198,6 +253,18 @@ async function verify(key, entryUrl) {
     (resolved.hops === 0 ? "入口即目标地址" : `跟随 ${resolved.hops} 跳 → ${resolved.url}`) +
       (resolved.stoppedBeforeSigned ? c.dim("（已在签名地址前停下）") : ""),
   );
+
+  if (!key) {
+    key = keyFromUrl(entryUrl) ?? keyFromUrl(resolved.url);
+    if (!key) {
+      step("fail", "对象名", "地址里认不出安装包文件名，请显式给出对象名");
+      console.log(
+        c.dim("      例：pnpm mirror add '<直链>' WindInput-Setup-0.115.1.exe"),
+      );
+      return null;
+    }
+    step("ok", "对象名", `${c.bold(key)} ${c.dim("（自地址推断）")}`);
+  }
 
   // 走到这里 url 通常已不含签名。仍要检查：若入口本身就是临时地址，就无处可退，
   // 只能告警——配合 Cron 探活仍能用，但必须让人知道它会过期。
@@ -271,7 +338,7 @@ async function verify(key, entryUrl) {
   }
   step("ok", "与 R2 比对", `大小一致（${size} 字节）`);
 
-  return { url: resolved.url, size: probe.total };
+  return { key, url: resolved.url, size: probe.total };
 }
 
 // ── 命令 ────────────────────────────────────────────────────────────────
@@ -293,11 +360,21 @@ function cmdList() {
   }
 }
 
-async function cmdAdd(key, url) {
-  assertKey(key);
-  if (!url) die("用法：pnpm mirror add <对象名> '<网盘直链>'");
+/**
+ * 参数不分先后：带 http(s):// 的是直链，另一个是对象名（可省，见 keyFromUrl）。
+ * 这样 `add <对象名> <直链>`（旧写法）和 `add <直链>`（新写法）都成立，
+ * 也不必记住哪个在前。
+ */
+async function cmdAdd(args) {
+  const urls = args.filter(isUrl);
+  const rest = args.filter((s) => !isUrl(s));
+  if (urls.length !== 1 || rest.length > 1) {
+    die("用法：pnpm mirror add '<网盘直链>' [对象名]");
+  }
+  const url = urls[0];
+  let key = rest[0] ? assertKey(rest[0]) : null;
 
-  console.log(`校验 ${c.bold(key)} → ${c.dim(url)}\n`);
+  console.log(`校验 ${key ? `${c.bold(key)} → ` : ""}${c.dim(url)}\n`);
   const result = await verify(key, url);
   if (!result) {
     console.log(`\n${c.fail("未写入数据库。")}`);
@@ -305,6 +382,7 @@ async function cmdAdd(key, url) {
     return;
   }
 
+  key = result.key; // 省略时由 verify 推断得出
   const now = nowIso();
   d1(
     `INSERT INTO mirrors (key, url, size, enabled, fail_count, last_check, last_status, updated_at)
@@ -317,7 +395,7 @@ async function cmdAdd(key, url) {
 }
 
 function cmdToggle(key, enabled) {
-  assertKey(key);
+  key = assertKey(key);
   // 重新启用时清零 fail_count，否则下一轮探活失败会立刻又把它下线
   d1(
     `UPDATE mirrors SET enabled = ${enabled ? 1 : 0}, fail_count = 0,
@@ -329,7 +407,7 @@ function cmdToggle(key, enabled) {
 }
 
 function cmdRemove(key) {
-  assertKey(key);
+  key = assertKey(key);
   d1(`DELETE FROM mirrors WHERE key = ${q(key)};`);
   console.log(`${key} 的镜像已删除，该文件回落 R2（最多 60 秒生效）。`);
 }
@@ -398,7 +476,7 @@ function die(msg) {
 const USAGE = `下载镜像管理
 
   pnpm mirror ls                    列出所有镜像
-  pnpm mirror add <对象名> '<直链>'  校验并登记（任一项校验不过都不写库）
+  pnpm mirror add '<直链>' [对象名]  校验并登记（任一项校验不过都不写库）
   pnpm mirror on  <对象名>          启用
   pnpm mirror off <对象名>          停用，回落 R2
   pnpm mirror rm  <对象名>          删除
@@ -409,16 +487,21 @@ const USAGE = `下载镜像管理
   WindInput-0.115.1-macOS.pkg       macOS 安装包
   WindInput-Portable-0.115.1.zip    Windows 便携版
 
+add 的对象名通常不用写——直链末段就是文件名时会自动认出来：
+  pnpm mirror add 'https://www.senluopan.com/f/vQa5UP/WindInput-Setup-0.118.0.exe'
+认不出（如 /s/abc123 这类短链）才需要补一个对象名，两个参数不分先后。
+
 直链务必用单引号包起来，否则其中的 & 会被 shell 当作后台运行符号。
 改动最多 60 秒全球生效。`;
 
-const [cmd, a, b] = process.argv.slice(2);
+const [cmd, ...rest] = process.argv.slice(2);
+const a = rest[0];
 switch (cmd) {
   case "ls":
     cmdList();
     break;
   case "add":
-    await cmdAdd(a, b);
+    await cmdAdd(rest);
     break;
   case "on":
     cmdToggle(a, true);

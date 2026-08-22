@@ -50,13 +50,22 @@ macOS 与 Windows 共用同一个 `wind-setting` 的下载器（`Artifact::Exe` 
 cd worker
 
 pnpm mirror ls                                          # 列出所有镜像
-pnpm mirror add WindInput-Setup-0.115.1.exe '<直链>'     # 校验并登记
-pnpm mirror add WindInput-0.115.1-macOS.pkg '<直链>'     # macOS 同理
+pnpm mirror add '<直链>'                                 # 校验并登记，对象名自地址推断
+pnpm mirror add '<短链>' WindInput-0.115.1-macOS.pkg     # 推断不出时才补对象名
 pnpm mirror on  WindInput-Setup-0.115.1.exe             # 启用
 pnpm mirror off WindInput-Setup-0.115.1.exe             # 停用，回落 R2
 pnpm mirror rm  WindInput-Setup-0.115.1.exe             # 删除
 pnpm mirror check                                       # 只读探活，诊断所有镜像
 ```
+
+`add` 的对象名通常不用写。地址里（入口，或跟随重定向后的存储地址）能认出完整的安装包文件名就直接采用，`…/5147a68c-…_WindInput-Setup-0.118.0.exe` 这种带上传前缀的也认得：
+
+```bash
+pnpm mirror add 'https://www.senluopan.com/f/vQa5UP/WindInput-Setup-0.118.0.exe'
+#   ✓ 对象名  WindInput-Setup-0.118.0.exe （自地址推断）
+```
+
+只有 `/s/abc123` 这类纯短链才需要补对象名，两个参数不分先后。推断只认已知产物命名，猜不出宁可报错也不瞎登记；万一猜错，登记前的 R2 大小比对也会拦下来。`on`/`off`/`rm` 同样接受直链，省得回头翻文件名。
 
 直链务必用**单引号**包起来，否则其中的 `&` 会被 shell 当作后台运行符号，写进库的 URL 会少半截。
 
@@ -65,6 +74,7 @@ pnpm mirror check                                       # 只读探活，诊断�
 | 检查 | 挡住什么 |
 |---|---|
 | 解析重定向 | 入口不可达 / 最终不是 200 |
+| 对象名 | 省略时地址里认不出安装包文件名 → 报错，不猜着写库 |
 | 地址稳定性 | 地址带签名与有效期（数分钟后失效）→ 告警但不阻断 |
 | Range 支持 | 不返回 206 → 分片下载失效，且一次在线更新会被计成 2 次 |
 | 跳数预算 | 客户端跳数超过 `ureq` 的 `redirects(3)` → 在线更新静默失败 |
