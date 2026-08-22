@@ -180,10 +180,18 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 | --- | --- | --- | --- | --- |
 | `session_actions` | 表（键名 → 动词） | 见下 | `{}` | 打字期间的「键 → 干什么」表，只存你显式配的键 |
 
-- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`，以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
+- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`，以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。
 
 本表与下面的 `page_keys` / `highlight_keys` / `select_key_groups` / `select_char_keys` 各自独立保存，**运行时**才合并（本表写了的键优先）——改一处不会动到另一处。出厂默认留在那四项里，这样把它们清成 `[]` 就真的能关掉对应功能。撞键时按消费顺序裁决：以词定字 > 翻页 / 高亮 > 二三候选。
+
+<Callout type="warn" title="把 z 配成功能键的代价">
+字母里**只有 `z`** 能写进本表——其余字母在任何码表里几乎都是活码前缀，配了等于把那个字母在该方案里废掉。
+
+配了 `z` 之后：**空缓冲按 `z` 不受影响**，照常起头打编码；被夺走的只有「已经出候选、再按一次 `z`」那一下。所以五笔那 37 条 `zz` 开头的标点短语（`zzbd`、`zzsz`）就打不出来了——它们正需要这一下。
+
+要的是「空闲时按 z 进某个模式」而不是打字中的功能，请写 [`key_actions`](#key-actions)（或方案文件的 `z_key_action`），那是另一张表。
+</Callout>
 
 <Callout type="warn" title="capslock 会安装全局键盘钩子">
 Windows 的大小写锁定状态在输入法拿到按键之前就已翻转，常规通路压不住。本表**或任何一个方案**的 `[session_actions]` 配了 `capslock`，程序就会安装一个全局键盘钩子，在系统改状态之前拦下它（打字时才拦，空闲时 CapsLock 照常切大小写）；**哪儿都没配 capslock 就完全不装这个钩子**。副作用：极少数安全软件会对全局键盘钩子告警。
