@@ -121,7 +121,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `mix:<实例id>` | 进指定融合模式（`mix:quick_mix` = 内置[快捷输入](/docs/settings/input/quick-input)） |
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
-| `switch_schema:<方案id>` | 切到指定方案，**单向**（原 `keys.schema_hotkeys` 的语义；只能写在全局那份表里） |
+| `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**（原 `keys.schema_hotkeys` 的语义；只能写在全局那份表里） |
 | `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
 | `none` | 显式什么都不做，用于在方案级覆盖里**关掉**某个全局绑定 |
 

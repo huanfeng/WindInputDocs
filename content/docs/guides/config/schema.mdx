@@ -136,7 +136,9 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 
 **默认策略与码表不同**（`position` vs `top`），且**没有 `protect_top_n*`**——原因见[英文方案配置](/docs/settings/schema/english#默认策略与码表刻意不同)。
 
-`code_scope` 按**候选来源**生效（混输里混进来的英文候选同样按它记账），`commit_space` 按**当前方案**生效（只在英文方案下补空格）。两者的完整语义与补空格的边界见[英文方案配置](/docs/settings/schema/english#调频记账方式)。
+`code_scope` 按**候选来源**生效（混输里混进来的英文候选同样按它记账）。两者的完整语义与补空格的边界见[英文方案配置](/docs/settings/schema/english#调频记账方式)。
+
+- 本段同时管辖[临时英文](/docs/settings/input/temp-modes#临时英文) <Since v="0.118" />——两者打同一份英文词库，调频与补空格是同一套配置、同一份学习数据；临英里选过的词，切到英文方案照样排在前面，反之亦然。临英独有的按键语义（大小写变形、字符白名单、空格作输入）仍在 `input.temp_english` 段
 
 码表与拼音的记账口径**不受 `code_scope` 影响**：码表恒用输入码，拼音恒用候选码，见[词频与候选排序 · 记账口径](/docs/guides/frequency#记账口径用哪个编码存这条记录)。
 

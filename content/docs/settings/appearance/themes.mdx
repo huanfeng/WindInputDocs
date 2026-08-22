@@ -83,7 +83,7 @@ primary = "#0066CC"     # 只改主色，其余外观沿用 default
 | `hide_pager` | bool | 隐藏整个翻页栏（含箭头） |
 | `show_page_number` | bool | 显示页码文字 |
 | `pager_align` | string | 独立翻页栏行的水平对齐（`left` / `center` / `right`，默认 `center`）；仅竖排独立翻页栏生效，翻页栏并入编码栏时固定右对齐 |
-| `vertical_max_width` | number | 竖排模式最大宽度（像素） |
+| `vertical_max_width` | number | 竖排模式最大宽度（dp），`0` = 不限 <Since v="0.118" />。出厂 0.118 起由 `600` 改为 `0`——超宽候选此前会被硬裁且不带省略号。仍需上限的主题显式配即可 |
 
 `[views]` 按具名节点描述各窗口的盒模型（内外边距、边框、圆角、背景、字体、阴影等），字段较多且随版本演进。制作或调整几何时，建议直接以内置主题文件为模板，或用主题编辑器可视化编辑。
 
