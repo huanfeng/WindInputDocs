@@ -231,6 +231,23 @@ max_phrase_len = 0
 | `enabled` | 布尔 | — | `false` | 总开关。开启会改变触发键的既有语义并把码表读进内存，故出厂关闭 |
 | `max_phrase_len` | 整数 | ≥ 0 | `0` | 词组长度上限：字数**大于**此值的词组不参与筛选（`0` = 不限，单字恒参与）。长词组靠首字前缀容易大量残留，设 4 左右可挡掉 |
 
+开了总开关还要有**触发键**，两张表都能绑，取决于键的种类：
+
+```toml
+# 符号键与 z 走这张（键名值域只有它们）
+[keys.key_actions]
+backslash = "aux_code"
+
+# Tab / PageDown / 方向键那一批走这张
+[keys.session_actions]
+tab = "aux_code"
+```
+
+两条通向同一个功能。方案文件里写同名段即为**只对该方案生效**（双拼出厂就是
+`[key_actions] backtick = "aux_code"`）。
+
+⚠️ 全拼**不能绑 `` ` ``**：出厂 `separator = "auto"` 且 `'` 作次选键，于是反引号被判为音节分隔符，而分隔符的分派排在 `key_actions` 裁决之前——绑了也走不到辅助码，内核会为此打一条告警。
+
 ## 模糊音（schema.pinyin.fuzzy）
 
 各模糊音配对开关默认全关，需先开 `enabled` 总开关再逐项启用。
