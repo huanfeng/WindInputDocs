@@ -117,6 +117,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | 动词 | 含义 |
 | --- | --- |
 | `temp_pinyin` / `temp_english` | 进临时拼音 / 临时英文 |
+| `aux_code` <Since v="0.118" /> | 进[辅助码](/docs/settings/schema/pinyin)筛选：对已出的拼音候选按字形二次过滤。需已开启辅助码且当前有候选 |
 | `mix:<实例id>` | 进指定融合模式（`mix:quick_mix` = 内置[快捷输入](/docs/settings/input/quick-input)） |
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
@@ -135,6 +136,12 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | 组合键（`ctrl+shift+u`） | 热键 | 不与输入争键，可全局拦截 |
 | 纯修饰键（`rshift`、`lctrl`） | 松开时的**轻敲**判定 | 按下时不能吃——宿主还要看到这个修饰键 |
 | 单个有字符的键（`backslash`、`;`） | 引导键链 | 排在中英文分水岭之后，英文模式下照常出字符 |
+
+<Callout type="warn" title="组合键只认三类动词">
+走热键通路的**组合键**（`ctrl+shift+u` 这种）只接受 `toggle_schema:`、`switch_schema:`、`special:` 三类动词。其余动词要么需要操作当前的编码与候选、要么已经有自己的[功能快捷键](#功能快捷键)字段，配在组合键上会被整条丢弃并在日志里告警。
+
+设置界面的按键选择对话框据此过滤：选了组合键，功能列表就只剩这三类。
+</Callout>
 
 <Callout type="warn" title="切方案 / 切中英文只能绑修饰键">
 `toggle_mode`、`switch_engine`、`toggle_schema:*`、`switch_schema:*` 这几类**只接受修饰键**（组合键当然也行），绑到单个有字符的键上会被拒绝。
@@ -169,7 +176,13 @@ backslash = "none"      # 本方案关掉全局配的 \ 引导键
 
 ### 会话态按键功能表（session_actions） <Since v="0.115" /> [#session-actions]
 
-`key_actions` 管的是**空闲时**这个键干什么，`session_actions` 管的是「**正在打字**（有编码或候选）时这个键干什么」——两张表，同一个键在两种状态下可以是两个动作（如 Tab 打字时翻页、空闲时仍是宿主的制表符）。
+`key_actions` 给一个键指定**功能**（进模式、切方案、切状态）；`session_actions` 管的是「**正在打字**（有编码或候选）时这个键干什么」。两张表，同一个键在两处可以是两个动作——Tab 打字时翻页、没在打字时仍是宿主的制表符。
+
+<Callout type="info" title="分野不是「空闲时 vs 输入中」">
+`key_actions` 的三条通路在**打字中同样触发**：组合键走热键、修饰键走松开轻敲、有字符的键先把已有编码上屏再执行。「轻敲右 Shift 切中英文」正是打字中途最常用的一个。
+
+真正的差别是：`session_actions` **只**在有编码或候选时生效，且管的是对这段输入本身的操作（翻页、选词、放弃）。
+</Callout>
 
 ```toml
 [keys]
@@ -181,7 +194,7 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 | `session_actions` | 表（键名 → 动词） | 见下 | `{}` | 打字期间的「键 → 干什么」表，只存你显式配的键 |
 
 - **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`，以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
-- **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。
+- **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。两个 N 的取值范围都是 **1–9**。
 
 本表与下面的 `page_keys` / `highlight_keys` / `select_key_groups` / `select_char_keys` 各自独立保存，**运行时**才合并（本表写了的键优先）——改一处不会动到另一处。出厂默认留在那四项里，这样把它们清成 `[]` 就真的能关掉对应功能。撞键时按消费顺序裁决：以词定字 > 翻页 / 高亮 > 二三候选。
 
