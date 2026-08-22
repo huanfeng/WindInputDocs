@@ -62,6 +62,7 @@ jobs:
           python-version: "3.x"
 
       - name: Sync release notes into data/releases.json
+        id: sync
         run: python3 scripts/sync_release_notes.py /tmp/release.json
 
       - name: Create PR
@@ -84,3 +85,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
         run: gh pr merge --rebase --auto ${{ steps.create-pr.outputs.pull-request-number }}
+
+      # 放在建 PR 与自动合并之后：标记块坏掉时，版本号照常入库（下载页直链不受
+      # 更新日志的格式问题牵连），但这一步让整个 workflow 变红并发出失败通知。
+      # v0.118.0 的更新说明就是因为解析失败只打了一行普通日志、全流程绿灯，
+      # 才在站点上留下"有版本号、点开没内容"的空条目。
+      - name: Fail if the user-facing block could not be parsed
+        if: steps.sync.outputs.malformed == 'true'
+        run: |
+          echo "::error::${{ steps.release.outputs.tag }} 的更新说明未同步：Release 正文里的 user-facing 标记块解析失败。修好 Release 正文后重跑本工作流（workflow_dispatch，填入该 tag）。"
+          exit 1

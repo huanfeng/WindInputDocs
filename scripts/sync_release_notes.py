@@ -32,6 +32,15 @@ RELEASES_JSON = os.path.join(
 USER_START = "<!-- user-facing:start -->"
 USER_END = "<!-- user-facing:end -->"
 
+# 标记行前允许有缩进或列表符号：v0.118.0 的 Release body 把结束标记写成了
+# `- <!-- user-facing:end -->`（编辑时并进了上一条列表项），严格匹配整段落空，
+# 最终只同步到版本号。标记是 HTML 注释，前面挂什么都不改变它的语义。
+_LEAD = r"[ \t]*(?:[-*+]\s+)?"
+MARKER_BLOCK_RE = re.compile(
+    rf"{re.escape(USER_START)}[ \t]*\n(.*?)\n{_LEAD}{re.escape(USER_END)}",
+    re.DOTALL,
+)
+
 
 def main():
     if len(sys.argv) < 2:
@@ -55,10 +64,13 @@ def main():
 
     # 更新说明可能缺失（Release 未填标记块，或占位文本未替换），此时仍要写入版本
     # 条目：下载页的直链只依赖 version，不该被"更新日志写没写"卡住。
-    section = extract_user_section(release.get("body", ""))
+    body = release.get("body") or ""
+    section = extract_user_section(body)
     notes = to_notes(section) if section else []
     if not notes:
         print(f"v{version} 没有可用的用户向更新说明，只写版本号。")
+        if marker_block_broken(body):
+            report_malformed(version)
 
     entry = {"version": version}
     if date:
@@ -71,13 +83,7 @@ def main():
 
 def extract_user_section(body: str) -> str | None:
     """取出 Release body 中的用户向段落。"""
-    body = body.replace("\r\n", "\n").replace("\r", "\n")
-
-    m = re.search(
-        rf"{re.escape(USER_START)}\n(.*?)\n{re.escape(USER_END)}",
-        body,
-        re.DOTALL,
-    )
+    m = MARKER_BLOCK_RE.search(normalize(body))
     if m:
         content = m.group(1).strip()
         # 主仓的 Release 模板里留了占位文本，未编辑时不应同步
@@ -86,11 +92,48 @@ def extract_user_section(body: str) -> str | None:
         return content
 
     # 旧格式兼容：`## 更新记录` 到 `---` 分隔符
-    m = re.search(r"\n## 更新记录\n(.*?)(?:\n---(?:\n|$)|$)", body, re.DOTALL)
+    m = re.search(r"\n## 更新记录\n(.*?)(?:\n---(?:\n|$)|$)", normalize(body), re.DOTALL)
     if m:
         return m.group(1).strip()
 
     return None
+
+
+def normalize(body: str) -> str:
+    return (body or "").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def marker_block_broken(body: str) -> bool:
+    """body 里有 user-facing 标记，却拼不出一个成对的标记块。
+
+    区别于"标记块在、内容是占位文本"——那是主仓还没写更新说明的正常状态，
+    标记块本身完好，MARKER_BLOCK_RE 能匹配上，不算故障。
+    """
+    body = normalize(body)
+    if USER_START not in body and USER_END not in body:
+        return False
+    return not MARKER_BLOCK_RE.search(body)
+
+
+def report_malformed(version: str) -> None:
+    """标记块坏了：照常写版本条目，但要让 CI 显式报出来。
+
+    这里不 exit 1——版本号仍要进仓库，下载页的直链不该被更新日志的格式问题卡住。
+    workflow 拿 malformed 标志在建完 PR 之后再失败，告警和直链两头都不耽误。
+
+    v0.118.0 就是缺了这一步：解析失败只 print 了一行普通日志，workflow 全绿、
+    PR 自动合并，故障只在页面上表现为"有版本号、点开没内容"。
+    """
+    print(
+        f"::error::v{version} 的 Release body 里有 user-facing 标记，却解析不出成对的"
+        "标记块（缺一侧、顺序颠倒，或标记被并进了别的行）。更新说明未同步，"
+        "请检查 Release 正文后重跑本工作流。",
+        file=sys.stderr,
+    )
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        with open(github_output, "a", encoding="utf-8") as f:
+            f.write("malformed=true\n")
 
 
 def to_notes(section: str) -> list[str]:
