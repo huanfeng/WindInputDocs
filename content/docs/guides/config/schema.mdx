@@ -56,7 +56,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `clear_on_empty_max` | 布尔 | — | `false` | 满码无候选时清空缓冲 |
 | `auto_commit_at_full` | 布尔 | — | `false` | 满码唯一精确时自动上屏 |
 | `auto_commit_min_len` | 整数 | — | `0` | 自动上屏最短码长；`0` = 等于全码长。隐藏项 |
-| `punct_commit` | 布尔 | — | `true` | 标点触发上屏 |
+| `punct_commit` | 布尔 | — | `true` | 标点触发上屏。关掉是**吞键**——标点本身也不输出，编码留着继续打。想「废码作废、标点照常出」请用 [`input.punct_on_empty_behavior`](/docs/guides/config/input)，两者不是一回事 |
 | `show_code_hint` | 布尔 | — | `true` | 显示编码提示 |
 | `single_code_input` | 布尔 | — | `false` | 精确匹配模式，关闭前缀匹配 |
 | `single_code_complete` | 布尔 | — | `true` | 精确匹配空码补全：无候选时从更长编码取首选 |
