@@ -354,6 +354,60 @@ comment_template_horizontal = "" # 同上（横排）
 
 本段也可以写进 `schema_overrides\<方案ID>.toml`，设置工具的「特殊模式」一节改的就是那里。
 
+## 方案级行为 <Since v="0.119" /> [#schema-behavior]
+
+三段可选配置，声明「**切到本方案时**，标点、候选排列、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
+
+设置工具位置：**方案 → 选中一个方案 → 本方案行为**（`enabled` 之外的两个短语字段仅配置文件）。
+
+```toml
+[punct]
+mode = "follow"        # follow（默认，跟随全局）/ chinese / english
+
+[candidate]
+layout = "follow"      # follow（默认，跟随全局）/ vertical / horizontal
+
+[phrases]
+enabled = true                # 本方案是否加载短语
+categories = []               # 只加载这些分类（空 = 不限制）
+exclude_categories = []       # 排除这些分类（空 = 不限制）
+```
+
+| 段 · 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `punct.mode` | 枚举 | `follow` / `chinese` / `english` | `"follow"` | 切到本方案时的标点态。`follow` = 不干预 |
+| `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
+| `phrases.enabled` | 布尔 | — | `true` | 本方案是否加载[短语](/docs/settings/dict/phrases)。关掉后不出短语候选，短语也不再占用码位 |
+| `phrases.categories` | 字符串数组 | — | `[]` | **只**加载列出的分类。空数组 = 不施加这项限制（全部加载） |
+| `phrases.exclude_categories` | 字符串数组 | — | `[]` | 在上一项的结果里再**排除**这些分类。空数组 = 不排除 |
+
+内置英文方案三段全写了：英文标点、竖排、不加载短语——它正是这三项能力的来由。
+
+### 「跟随全局」不是「保持现状」 [#follow-semantics]
+
+`follow` 的含义是**回到不受任何方案影响的那个值**，不是「沿用上一个方案留下的值」。
+
+举例：五笔（`follow`）下你用的是中文标点 → 切到英文方案（`mode = "english"`）变英文标点 → **切回五笔会变回中文标点**。若你在五笔下本就把标点设成了英文，那么这一趟往返之后仍是英文——还原的是**你自己的偏好**，不是硬编码的中文。
+
+候选排列同理。
+
+### 方案期间手动改，仍然算数 [#manual-wins]
+
+方案声明的是**默认值**，不是锁。在英文方案期间按 `toggle_punct`（中/英标点切换）改成中文标点，它在本次停留期间一直有效，不会被方案意图顶回去；切走再切回来，重新按方案声明落地。
+
+### 短语分类 [#phrase-categories]
+
+`categories` / `exclude_categories` 面向**短语分类**功能。分类界面尚未开放时，所有存量短语的分类都是**空串**——因此：
+
+- 写 `categories = ["工作"]` 会把**未分类短语一并滤掉**（它们不在白名单里）
+- 要同时保留未分类的，显式列出空串：`categories = ["", "工作"]`
+
+两个字段都是「空数组 = 不施加这项限制」，不是「一条都不要」——「一条都不要」由 `enabled = false` 表达。
+
+<Callout type="info" title="三段都能写进 schema_overrides">
+`[punct]` / `[candidate]` / `[phrases]` 既可写在方案文件里（作方案作者给的默认），也可写在 `schema_overrides\<方案ID>.toml`（作你自己的覆盖）。设置工具改的是后者。
+</Callout>
+
 ## 差异化覆盖（schema_overrides）
 
 全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。设置工具的[扩展词库开关](/docs/settings/schema#扩展词库)、双拼布局、[方案级码表配置](/docs/settings/schema#schema-codetable)都写入这个文件。它不会被安装包升级覆盖。

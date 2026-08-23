@@ -214,7 +214,7 @@ english_chars = ".,?!:;"                 # 上面两个英文场景共用的源�
 `english_chars` 里**不建议放配对符**（`(`、`[`、`{`、`"`、`'` 等）：英文模式下这些键被接管后配对改由引擎处理，而输入法 DLL 的跳出栈是空的，Tab 跳出会失效。
 </Callout>
 
-## 临时英文（input.temp_english）
+## 临时英文（input.temp_english） [#temp-english]
 
 Shift + 字母或触发键进入临时英文缓冲，输完自动上屏。
 
@@ -222,6 +222,7 @@ Shift + 字母或触发键进入临时英文缓冲，输完自动上屏。
 [input.temp_english]
 enabled = true                # 临时英文总开关
 show_candidates = true        # 显示英文候选
+raw_candidate = true          # 首候选恒是所打原文
 case_variants = true          # 生成大小写变形候选
 shift_behavior = "temp_english" # Shift 键行为
 trigger_keys = []             # 额外触发键（符号键进入临英）
@@ -235,7 +236,8 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `true` | 临时英文总开关 |
 | `show_candidates` | 布尔 | — | `true` | 显示英文候选 |
-| `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |
+| `raw_candidate` | 布尔 | — | `true` <Since v="0.119" /> | 把**所打原文**作首候选。默认开 = 保持一直以来的行为。⚠️ 与下面的 `case_variants` 同时关闭且词库无命中时候选会是空的，此时空格上屏缓冲原文 |
+| `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |（[英文方案那侧默认关](/docs/guides/config/schema#english)，两侧各自独立）
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
 | `allow_symbols` | 布尔 | — | `false` | 总开关：符号与数字是否直接进入临英缓冲，而非上屏退出或选词。放行哪些字符由 `symbol_chars` 决定 |
@@ -285,7 +287,7 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 
 它不是布尔开关：`follow` 与 `vertical` 的区别只在**全局本身是竖排时**才显现——前者跟着全局变，后者恒定竖排。也正因如此，才能表达「全局竖排、但临时英文横排」这种组合（英文候选一行放得下，竖排反而占屏）。
 
-各模式的键位置不同：
+各模式的键位置不同（末行的**方案级**不是模式，见表下说明）：
 
 | 模式 | 配置键 | 出厂默认 | 设置工具 |
 | --- | --- | --- | --- |
@@ -295,8 +297,26 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 | 网址输入 | `input.url.candidate_layout` | `follow` | 暂不显示（该模式当前不产出候选） |
 | 特殊模式 | 方案文件 `[overlay]` 的 `candidate_layout` | `follow` | ✅ 下拉（方案设置 → 特殊模式），见[引导键特殊模式](/docs/guides/special-modes#候选窗布局) |
 | 快捷加词 | `input.add_word.candidate_layout` | `vertical` | 仅配置文件 |
+| **方案级** <Since v="0.119" /> | 方案文件 `[candidate]` 的 `layout` | `follow` | ✅ 下拉（方案设置 → 本方案行为），见[方案级行为](/docs/guides/schemas#schema-behavior) |
 
 快捷输入与特殊模式是**每实例**的——你配了多个融合模式或多个特殊模式时，每个各设各的，互不影响。
+
+### 方案级与模式级的关系 <Since v="0.119" /> [#schema-vs-mode-layout]
+
+表格末行的**方案级**与其余各行有两点不同：
+
+- **键名是 `[candidate]` 段下的 `layout`**，不叫 `candidate_layout`——它住在方案文件里，段名已经含了 candidate
+- **生效范围是「整个方案期间」**，不是「进入 / 退出一个临时模式」。它没有「退出自动恢复」这回事，换方案才换
+
+两者同时存在时**模式级赢**：在英文方案（竖排）里进临时拼音（横排），临拼期间就是横排，退出回到竖排。模式比方案更内层、更短暂，它对候选面的要求本就该压过你对整个方案的偏好；且模式一退出，方案级自动重新生效。
+
+完整优先级从高到低：
+
+```
+快捷加词  >  上表前五行的任一模式  >  你在本方案期间手动改的值  >  方案级  >  全局 ui.candidate.layout
+```
+
+「你手动改的值」指用[菜单或快捷键](/docs/guides/config/keys)切换横竖排——它在**本次停留于该方案期间**一直有效，切走再切回来重新按方案声明落地。
 
 ## 模式级注释模板
 
