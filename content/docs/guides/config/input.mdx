@@ -30,7 +30,7 @@ numpad_behavior = "direct"          # 小键盘按键语义
 | `filter_mode` | 枚举 | `gb18030` / `general` / `smart` | `"smart"` | 候选过滤模式：`gb18030` = 不过滤（全集）；`general` = 只保留常用词；`smart` = 智能过滤（同一编码下存在常用词时过滤掉非常用词） |
 | `enter_behavior` | 枚举 | `commit` / `clear` | `"commit"` | 有编码时按回车：`commit` = 上屏「已转换前缀 + 剩余原码」；`clear` = 清空编码、不上屏 |
 | `space_on_empty_behavior` | 枚举 | `commit` / `clear` | `"commit"` | 有编码但当前无候选时按空格：`commit` = 上屏「已转换前缀 + 剩余拼音原码」；`clear` = 清空编码 |
-| `punct_on_empty_behavior` <Since v="0.118" /> | 枚举 | `commit` / `clear` | `"clear"` | 有编码但当前无候选时按标点/符号键：`commit` = 上屏「已转换前缀 + 剩余原码」再接标点；`clear` = 丢弃编码，只上屏标点。两种取值下标点本身都照常上屏。移动端出厂为 `commit`。**与 `schema.codetable.punct_commit` 不同**——后者关掉是吞键、连标点都不输出 |
+| `punct_on_empty_behavior` <Since v="0.118" /> | 枚举 | `commit` / `clear` / `clear_no_input` | `"clear"` | 有编码但当前无候选时按标点/符号键：`commit` = 上屏「已转换前缀 + 剩余原码」再接标点；`clear` = 丢弃编码，只上屏标点；`clear_no_input`（0.119 起）= 丢弃编码，标点本身也不上屏，整个按键当没按过。移动端出厂为 `commit`。**与 `schema.codetable.punct_commit` 不同**——后者关掉是吞键但编码**留着**继续打，`clear_no_input` 是吞键且**丢弃**编码 |
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 
