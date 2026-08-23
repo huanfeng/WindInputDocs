@@ -341,7 +341,7 @@ select_char_keys = []  # 以词定字键组，默认禁用
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `select_char_keys` | 字符串数组 | `comma_period` / `minus_equal` / `brackets` | `[]` | 用成对标点键从当前高亮候选词中**逐字上屏**：第 1 键取第 1 字、第 2 键取第 2 字。空数组=禁用。词长不足时按 `[keys.overflow].select_char_key` 策略处理 |
+| `select_char_keys` | 字符串数组 | `comma_period` / `minus_equal` / `brackets` | `[]` | 用成对标点键从当前高亮候选词中**逐字上屏**：第 1 键取第 1 字、第 2 键取第 2 字。空数组=禁用。词长不足时按 `[keys.overflow].select_char_key` 策略处理；**没有候选时这几个键回归标点身份**，由 [`input.punct_on_empty_behavior`](/docs/guides/config/input) 处置 |
 
 `select_char_keys` 可选值对照：
 
@@ -381,6 +381,10 @@ global_hotkeys = []  # 提升为系统级全局热键的动作名列表
 ## 无效按键策略（keys.overflow）
 
 当按下选择/翻页/以词定字类按键，但**候选数量或词长不足以命中目标位次**时的处理方式。三项共用同一套枚举。
+
+<Callout type="info" title="「一个候选都没有」不归这里管">
+本节管的是「有候选，但不够到目标位次」。若**一个候选都没有**——空缓冲，或打了码却没出任何候选（空码，多半是打错了字根）——以词定字用的那几个键（`,` `.` `-` `=` `[` `]`）就不再算以词定字键，而是回归标点身份，交由 [`input.punct_on_empty_behavior`](/docs/guides/config/input) 处置。所以开不开以词定字，不会改变空码时按这些标点的行为。
+</Callout>
 
 ```toml
 [keys.overflow]
