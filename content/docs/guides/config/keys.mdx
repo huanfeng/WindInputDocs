@@ -267,11 +267,13 @@ delete_candidate = "ctrl+shift+number"  # 删除候选（Ctrl+Shift+数字）
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `pin_candidate` | 热键字符串（模板） | `ctrl+number` / `ctrl+shift+number` | `ctrl+number` | 对当前页第 N 个候选执行置顶。`number` 占位符展开为数字键 0–9 |
-| `delete_candidate` | 热键字符串（模板） | `ctrl+number` / `ctrl+shift+number` | `ctrl+shift+number` | 对当前页第 N 个候选执行删词。`number` 占位符展开为数字键 0–9 |
+| `pin_candidate` | 热键字符串（模板） | `ctrl+number` / `ctrl+shift+number` / `ctrl+alt+number` <Since v="0.118" /> | `ctrl+number` | 对当前页第 N 个候选执行置顶。`number` 占位符展开为数字键 0–9 |
+| `delete_candidate` | 热键字符串（模板） | `ctrl+number` / `ctrl+shift+number` / `ctrl+alt+number` <Since v="0.118" /> | `ctrl+shift+number` | 对当前页第 N 个候选执行删词。`number` 占位符展开为数字键 0–9 |
 
 <Callout type="info" title="这两项只认固定模板">
-`pin_candidate` / `delete_candidate` 只识别 `ctrl+number` 与 `ctrl+shift+number` 两种写法（`number` 代表数字键组）；填其它值会被判为无效并忽略，等同于不绑定。
+`pin_candidate` / `delete_candidate` 只识别 `ctrl+number`、`ctrl+shift+number`、`ctrl+alt+number` 三种写法（`number` 代表数字键组）；填其它值会被判为无效并忽略，等同于不绑定。
+
+修饰键按**完全相同**匹配：配成 `ctrl+number` 时，按 Ctrl+Alt+3 不会触发置顶，而是照旧交给应用处理。
 </Callout>
 
 ## 候选选择键组
