@@ -433,7 +433,7 @@ backslash = "special:quick_symbols"
 - `single_code_complete`：精确匹配下当前编码无精确候选、但更长前缀有候选时，补一条「首位后续码」。**任意未满码长**都会补（不限某个具体码长），只有打满全码仍无候选时才不补
 
 <Callout type="info" title="这些项在设置工具里也能配">
-不必手写：在方案页勾选「显示特殊方案」，选中该方案 → **设置 → 码表配置**，打开「自定义码表配置」即可逐项调整（顶码上屏、精确匹配、调频等）。见[方案级码表配置](/docs/settings/schema#schema-codetable)。
+不必手写：在方案页勾选「显示特殊方案」，选中该方案 → **设置 → 方案自定义**，勾上要改的那几项即可（顶码上屏、精确匹配、调频等）。见[方案级码表配置](/docs/settings/schema#schema-codetable)。
 
 写进的是用户覆盖层 `schema_overrides/<方案id>.toml`，与本页说的 `[engine.codetable]` 是同一组字段、同样的语义。
 </Callout>
@@ -524,7 +524,7 @@ comment_template_horizontal = ""
 
 **默认不开**。小符号表的顺序往往是作者精心排过的，调频会打乱它。
 
-要开，在设置工具里是 **选中方案 → 设置 → 码表配置 → 自定义码表配置 → 设置 → 词频调整**；手写则是该方案的 `[engine.codetable.frequency]` 段：
+要开，在设置工具里是 **选中方案 → 设置 → 方案自定义 → 词频调整**，勾上「启用词频调整」那一行；手写则是该方案的 `[engine.codetable.frequency]` 段：
 
 ```toml
 [engine.codetable.frequency]

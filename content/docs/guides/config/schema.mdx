@@ -43,7 +43,7 @@ single_code_input = false     # 精确匹配模式（关闭前缀匹配）
 single_code_complete = true   # 精确匹配空码补全（无候选时从更长编码取首选）
 z_key_repeat = true           # z 键重复输入
 z_key_action = ""             # z 键附加功能：空 = 不启用（方案级参数，见下方 Callout）
-short_code_yield_level = 3    # 出简让全：0 关 / 2 一二级简码 / 3 全部简码
+short_code_yield_level = 0    # 出简让全：0 关 / 2 一二级简码 / 3 全部简码（全局出厂关，由方案自行开启）
 input_chars = ""              # 码元字符集：哪些字符可进输入缓冲；空 = a-z
 leading_chars = ""            # 可作第一码的字符（码元字符集的子集）；空 = 与 input_chars 相同
 
@@ -62,7 +62,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `single_code_complete` | 布尔 | — | `true` | 精确匹配空码补全：无候选时从更长编码取首选 |
 | `z_key_repeat` | 布尔 | — | `false`（预置为 `true`） | z 键重复输入 |
 | `z_key_action` | 字符串 | `""` / `none` / `temp_pinyin` / `temp_english` / `mix:<实例id>` / `special:<方案id>` | `""` <Since v="0.114" /> | z 键的附加功能：进临时拼音 / 临时英文 / 融合模式 / 特殊模式；`""` 与 `none` = 不启用，z 作正常码元。与 `z_key_repeat` 正交：重复输入先手，继续打字母才轮到本项。动词语义同 [`key_actions`](/docs/guides/config/keys#key-actions)，字母键让位规则也一致（z 是活码时先当编码） |
-| `short_code_yield_level` | 整数 | `0` / `2` / `3` | `3` <Since v="0.117" /> | [出简让全](/docs/settings/schema/codetable#short-code-yield)：有简码的字在更长编码上把首选让给词组。值 = 对哪几级简码生效 |
+| `short_code_yield_level` | 整数 | `0` / `2` / `3` | `0` <Since v="0.117" /> | [出简让全](/docs/settings/schema/codetable#short-code-yield)：有简码的字在更长编码上把首选让给词组。值 = 对哪几级简码生效。**这里是全局基线，出厂关**——「短码首选就是简码」只对五笔这类前缀式简码成立，故改由方案自己在 `[engine.codetable]` 里声明（内置 `wubi86` 写的是 `3`）。0.118 的全局出厂值曾是 `3` |
 | `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
 | `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
 
