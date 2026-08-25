@@ -61,6 +61,7 @@ max_code_length = 4             # 最大码长（0 = 回退 4）
 base_sort = "weight"            # 基础排序维度，见下文「排序配置」
 input_chars = ""                # 码元字符集（空 = a-z），见下
 leading_chars = ""              # 可作第一码的字符（空 = 同 input_chars）
+sentence_input = false          # 整句输入（实验性），见下
 
 # 混合引擎（码表优先、拼音兜底）
 [engine.mixed]
@@ -98,6 +99,44 @@ leading_chars = "a-z"   # 数字能作码元，但不能起头
 </Callout>
 
 字符集写错（如 `z-a` 逆序、含空格）不会让方案失灵，会回落默认 `a-z` 并记录告警。
+
+## 整句输入（实验性） <Since v="0.119" /> [#sentence-input]
+
+<Callout type="warn" title="实验性功能，仅供研究，不建议日常使用">
+默认关闭，且**只能在方案文件里手动开启**，设置界面不提供入口。简码歧义下的切分仍会出错（见下文「已知限制」），配置项与行为在后续版本可能变更或移除。
+</Callout>
+
+开启后，码表方案可以像拼音那样**连续输入**：超过码长的一长串编码会被自动切分成若干编码单元并组成句子，不必逐词上屏。
+
+### 手动开启 [#sentence-input-enable]
+
+推荐走[差异化覆盖](#schema-overrides)，只写这一项，方案文件的后续更新仍能透传。在 `%APPDATA%\WindInput\schema_overrides\` 下新建或编辑 `<方案ID>.toml`：
+
+```toml
+# 例：五笔 86 → schema_overrides\wubi86.toml
+[engine.codetable]
+sentence_input = true
+```
+
+也可以直接写进方案文件自己的 `[engine.codetable]` 段。改完**重启输入法**生效。
+
+<Callout type="info" title="为什么没有全局开关">
+一张码表能不能整句，取决于它的编码结构——是否定长、简码体系有多深。这是方案属性而非用户偏好，所以它只在方案文件里声明，没有全局基线可回落。
+</Callout>
+
+### 怎么用 [#sentence-input-usage]
+
+- **只在超过 `max_code_length` 时触发**，码长以内的输入行为分毫不变。
+- 组合区会显示切分结果（如 `aawt'aawt`），据此能看出引擎把编码断在了哪里。
+- 切分不对时用**手动分隔符**划定边界，如 `q'j` 强制断成两个单元。分隔符键沿用[拼音分隔符](/docs/settings/schema/pinyin#拼音分隔符)的设置：出厂 `auto` 会视 `'` 是否已被占作选择键，在 `'` 与反引号之间自动选一个；不确定实际是哪个键时，把它显式设成 `quote` 或 `backtick`。
+
+### 已知限制 [#sentence-input-limits]
+
+- **简码歧义无解** —— 同一串击键既可能是一个二简词、也可能是两个一简字，两者**完全同形**，打分无从区分。这类只能靠手动分隔符指定，是本路线的固有限制而非缺陷。
+- **顶码自动让位** —— 开启后 `top_code_commit` 不再生效。两者抢的是同一个区间（超码长），而顶码是自动上屏，一触发用户就看不到整句候选了。
+- **混输方案下不生效** —— 混输超过码长时走拼音兜底，不经码表主引擎。即便在混输方案里写了 `sentence_input = true` 也不会触发，启动日志会为此告警。
+- **组句质量依赖拼音词库** —— 词频借自拼音词库（`data\schemas\pinyin\`）。词库缺失不会让功能失效，但组句准确度会明显下降。
+- 开启的方案会额外常驻一份简码索引与词频表，首次使用前在后台构建，不占打字。
 
 ## 词库配置
 
@@ -408,7 +447,7 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 `[punct]` / `[candidate]` / `[phrases]` 既可写在方案文件里（作方案作者给的默认），也可写在 `schema_overrides\<方案ID>.toml`（作你自己的覆盖）。设置工具改的是后者。
 </Callout>
 
-## 差异化覆盖（schema_overrides）
+## 差异化覆盖（schema_overrides） [#schema-overrides]
 
 全局引擎配置是所有同类方案的基线；当某个方案需要与全局值不同的行为时，用 `schema_overrides\<方案ID>.toml` 只覆盖个别项，未覆盖项跟随全局值。设置工具的[扩展词库开关](/docs/settings/schema#扩展词库)、双拼布局、[方案级码表配置](/docs/settings/schema#schema-codetable)都写入这个文件。它不会被安装包升级覆盖。
 
