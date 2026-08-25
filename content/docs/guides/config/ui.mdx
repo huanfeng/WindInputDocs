@@ -312,7 +312,52 @@ items = ["mode", "punct", "full_width", "s2t", "settings"]
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
 | `vertical` | 布尔 | — | `false` <Since v="0.115" /> | 纵向排列：竖着摆放工具栏（默认横条）。几何仍取主题 `[toolbar]`：条宽 = `height`、每格高 = `button_width` |
-| `items` | 字符串数组 <Since v="0.119" /> | `mode` / `punct` / `full_width` / `s2t` / `settings` | 全部 | 显示哪几格、按什么顺序——**数组顺序即渲染顺序**。留空 = 全部显示。`s2t` 格还需简繁转换当前开着才出现（本项只决定"允许它出现"）；隐藏 `settings` 不影响使用，右键工具栏任意位置同样能打开菜单。整条工具栏都不想要请用 `visible = false`，不要配成空数组 |
+| `items` | 字符串数组 <Since v="0.119" /> | `mode` / `punct` / `full_width` / `s2t` / `settings` / `custom:<id>` | 全部内置项 | 显示哪几格、按什么顺序——**数组顺序即渲染顺序**。留空 = 全部内置项。`s2t` 格还需简繁转换当前开着才出现（本项只决定"允许它出现"）；隐藏 `settings` 不影响使用，右键工具栏任意位置同样能打开菜单。整条工具栏都不想要请用 `visible = false`，不要配成空数组 |
+
+### 自定义按钮（ui.toolbar.buttons） <Since v="0.119" /> [#toolbar-buttons]
+
+往工具栏加一格自己的按钮，点击执行一个动作——比如加个「符」打开系统字符映射表。
+
+**定义按钮和显示按钮是两步**：`[[ui.toolbar.buttons]]` 只是定义，还要在上面的 `items`
+里写一条 `custom:<id>` 才会显示。这样你可以先定义好几个、按需往工具栏上放。
+
+```toml
+[ui.toolbar]
+items = ["mode", "punct", "full_width", "custom:sym", "settings"]
+
+[[ui.toolbar.buttons]]
+id = "sym"                          # 稳定标识，被 items 里的 custom:sym 引用
+label = "符"                        # 格内文字：一个汉字，或两个字母
+action = 'proc.run("charmap.exe")'  # 点击执行
+enabled = true                      # 关掉即不显示，items 里那条留着记住位置
+```
+
+| 键 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `id` | 字符串 | — | 稳定标识，供 `items` 里的 `custom:<id>` 引用 |
+| `label` | 字符串 | — | 格内文字。**一个汉字或两个字母**，超出自动截断——工具栏各格等宽，一格写多了会破坏整条的节奏 |
+| `action` | 字符串 | — | 点击执行的动作，语法与[短语](/docs/settings/dict/phrases)、命令栏一致 |
+| `enabled` | 布尔 | `true` | 关掉即不显示 |
+
+`action` 可用的写法与短语里完全一样，常用这几种：
+
+| 写法 | 作用 |
+| --- | --- |
+| `open("https://www.zdic.net")` | 打开网址 / 文件 / 程序（等同于双击它） |
+| `proc.run("notepad.exe")` | 启动程序，可带参数与 `cwd=` / `verb="runas"` / `show="min"` |
+| `wind.cli("schema switch wubi86")` | 调用本输入法的命令，如一键切方案 |
+| `key.tap("Ctrl+Shift+P")` | 模拟一次按键组合 |
+
+<Callout type="info" title="两点注意">
+`action` 里含双引号，整体要用**单引号**包起来。
+
+按钮**没有悬停提示**——工具栏目前没有提示气泡机制。选 `label` 时挑个自己一眼认得的字。
+</Callout>
+
+<Callout type="warn" title="导入别人的配置片段时留意这一项">
+自定义按钮能启动程序，而配置片段可以写入这一项。导入来源不明的配置片段前，
+先看一眼预览里有没有 `ui.toolbar.buttons`。
+</Callout>
 
 ## 任务栏图标（ui.langbar） <Since v="0.117" /> [#langbar]
 
