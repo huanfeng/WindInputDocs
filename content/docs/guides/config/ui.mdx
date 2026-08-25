@@ -301,6 +301,8 @@ hide_in_fullscreen = true   # 全屏时自动隐藏
 auto_hide = false           # 无交互超时后自动隐藏
 auto_hide_delay = 5         # 自动隐藏超时（秒）
 vertical = false            # 纵向排列（默认横条）
+# 显示哪几格、按什么顺序（数组顺序即渲染顺序）
+items = ["mode", "punct", "full_width", "s2t", "settings"]
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -310,6 +312,7 @@ vertical = false            # 纵向排列（默认横条）
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
 | `vertical` | 布尔 | — | `false` <Since v="0.115" /> | 纵向排列：竖着摆放工具栏（默认横条）。几何仍取主题 `[toolbar]`：条宽 = `height`、每格高 = `button_width` |
+| `items` | 字符串数组 <Since v="0.119" /> | `mode` / `punct` / `full_width` / `s2t` / `settings` | 全部 | 显示哪几格、按什么顺序——**数组顺序即渲染顺序**。留空 = 全部显示。`s2t` 格还需简繁转换当前开着才出现（本项只决定"允许它出现"）；隐藏 `settings` 不影响使用，右键工具栏任意位置同样能打开菜单。整条工具栏都不想要请用 `visible = false`，不要配成空数组 |
 
 ## 任务栏图标（ui.langbar） <Since v="0.117" /> [#langbar]
 
