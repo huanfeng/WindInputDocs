@@ -23,7 +23,7 @@ import { paymentMethods } from "@/lib/sponsor";
  * 图片保留 loading="lazy"：区块在页面靠下，首屏之外的图仍然不会立刻请求。
  */
 export function SponsorQr() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   // 加载失败的收款码 id。图片是构建期从源站拉进产物的（scripts/fetch-assets.mjs），
   // 源站当时不可达时构建不会失败、只是少了文件——那种构建里这些 img 会 404。
   // 与其留两个破图，不如整块收起，走与「尚未上传」相同的那句说明。
