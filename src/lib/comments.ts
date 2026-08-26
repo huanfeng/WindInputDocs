@@ -28,8 +28,13 @@ export const COMMENTS_ANCHOR = "comments";
  *               应对「这个功能不要了」。
  *
  * 关掉它不影响 Worker 与 D1：数据都在，改回 true 重新部署即恢复。
+ *
+ * 当前为 false —— 站点正在从 Cloudflare 前置到 EdgeOne（部分区域已完全无法访问 CF）。
+ * 评论 API 是叠在 CF zone 上的 Worker 路由，主域解析一旦交给 EdgeOne 就必然失效；
+ * 与其为了迁移期的几周去搭 origin 子域中转，不如趁存量评论还不多先整块下架，
+ * 等留言系统换成外挂实现后再开回来。D1 里的数据一条没动。
  */
-export const commentsEnabled = true;
+export const commentsEnabled = false;
 
 export interface CommentItem {
   id: number;
