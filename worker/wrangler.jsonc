@@ -20,6 +20,16 @@
 	// 前缀路由通吃，新增任何产物都不用再改这里；代价是发布说明与 .sha256 也会
 	// 进 Worker——它们不匹配 ARTIFACTS 规则，不计数、不查镜像，直接 302 回 R2，
 	// 只多一跳和一次调用，相对额度可忽略。
+	//
+	// dl-origin.* 是 EdgeOne 前置后的回源目标：dl.windinput.com 的解析交给
+	// EdgeOne，CF 从第一跳变成第二跳，绑在原域名上的路由就再也匹配不上。
+	// 两组路由**同时保留**——DNS 传播期间两条路都通，用户无感；旧的那组
+	// 也是回滚路径，等新链路稳定几周再决定要不要摘。
+	//
+	// ⚠️ 光加这两条路由不够：dl-origin 还必须在 R2 桶上加同名自定义域作「底座」，
+	// 否则 latest.json 一类不匹配路由的路径会 404。反过来，只加了 R2 自定义域
+	// 而漏掉这两条路由更危险——下载照常成功（R2 直接吐字节流），但不计数、
+	// 不走镜像分流，国内用户从此直连 R2 拉 20MB。验证时认准 302，不是 200。
 	"routes": [
 		{
 			"pattern": "dl.windinput.com/WindInput-*",
@@ -28,14 +38,31 @@
 		{
 			"pattern": "dl.windinput.com/api/*",
 			"zone_name": "windinput.com"
+		},
+		{
+			"pattern": "dl-origin.windinput.com/WindInput-*",
+			"zone_name": "windinput.com"
+		},
+		{
+			"pattern": "dl-origin.windinput.com/api/*",
+			"zone_name": "windinput.com"
 		}
 	],
 	// 安装包字节流的实际出口。必须是**另一个**纯 R2 自定义域：dl.windinput.com 上
 	// 安装包路径已被上面的 Worker 路由占用，302 回自己会打转。
 	//
-	// 这个域名上必须配 Cache Rule（Eligible for cache + Edge TTL），否则 .exe 不在
-	// Cloudflare 默认缓存的扩展名列表里，边缘缓存不会生效——那正是这次改造的主要
-	// 收益来源。验证要用 GET 而非 HEAD：HEAD 请求恒返回 cf-cache-status: DYNAMIC。
+	// ⛔ 这里**不要**跟着上面改成 r2-origin。`dl → dl-origin` 的改名模式有很强的
+	// 误导性，但两者性质相反：`*-origin` 是**回源域名**，只在 EdgeOne 与 CF 的
+	// 机房之间跑；而 302 的 Location 是发给**用户浏览器**的，用户在国内，必须落
+	// 到 EdgeOne 加速的 r2.windinput.com。改成 r2-origin 等于让浏览器直连 CF 拉
+	// 20MB——正是这次迁移要消灭的那条路径。
+	//
+	// 而且这个错误在境外测不出来：两个域名都返回 200，只有国内用户卡住。
+	//
+	// 缓存规则相应地分两层：r2.windinput.com 的缓存配在 EdgeOne，回源域
+	// r2-origin.windinput.com 的 Cache Rule 配在 CF（Eligible for cache + Edge
+	// TTL）——.exe 不在 Cloudflare 默认缓存的扩展名列表里，不配这条规则回源就
+	// 次次穿透到 R2。验证要用 GET 而非 HEAD：HEAD 请求恒返回 DYNAMIC。
 	"vars": {
 		"R2_PUBLIC_BASE": "https://r2.windinput.com"
 	},
