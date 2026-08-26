@@ -1,0 +1,10 @@
+{
+  "version": "0.118.0",
+  "tag": "v0.118.0",
+  "channel": "stable",
+  "exeUrl": "https://dl.windinput.com/WindInput-Setup-0.118.0.exe",
+  "sha256": "657893ea773d5bff4f337edf870ef5f57c53e5d60a3c1fe120712274373e4189",
+  "size": 19860566,
+  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.118.0-Release.md",
+  "publishedAt": "2026-08-22T14:31:02Z"
+}

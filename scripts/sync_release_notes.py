@@ -23,11 +23,25 @@ import re
 import sys
 from datetime import datetime
 
-RELEASES_JSON = os.path.join(
+DATA_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "data",
-    "releases.json",
 )
+RELEASES_JSON = os.path.join(DATA_DIR, "releases.json")
+
+# 在线更新元信息。构建期原样拷进 out/latest.json，对外仍以
+# dl.windinput.com/latest.json 提供（见 scripts/gen-dist-files.mjs）。
+#
+# 从前这个文件由主仓 CI 推到 R2。挪到文档站是因为：它只有几百字节，却让 R2
+# 变成了在线更新的必经之路——而 R2 在部分区域完全不可达时，用户不是「更新慢」
+# 而是「永远收不到新版本」。内容全部来自 GitHub Release JSON（本脚本已有的
+# 输入），不需要任何额外网络请求，那就没有理由让它单独占一条存储链路。
+LATEST_JSON = os.path.join(DATA_DIR, "latest.json")
+
+# 对外的下载域名。安装包仍在 R2（经 EdgeOne 前置），latest.json 与发布说明
+# 改由文档站产出，但**对外 URL 一律保持不变**——老版本客户端里这些地址是
+# 硬编码的，换域名等于把存量用户的在线更新一次性切断。
+DL_BASE = "https://dl.windinput.com"
 
 USER_START = "<!-- user-facing:start -->"
 USER_END = "<!-- user-facing:end -->"
@@ -79,6 +93,91 @@ def main():
 
     changed, written = upsert(entry)
     print(f"{'已更新' if changed else '无变化'}：v{version}（{len(written['notes'])} 条）")
+
+    sync_latest(release, version)
+
+
+def sync_latest(release: dict, version: str) -> None:
+    """把最新版的在线更新元信息写进 data/latest.json。
+
+    只在同步的**确实是最新版**时才写：workflow_dispatch 可以指定任意 tag 补同步
+    某个旧版本的更新说明，那种情况下改 latest.json 会把全体用户的在线更新指回旧版。
+    判据取 upsert 之后的 releases.json 首项——排序规则（正式版压过同号预发布版）
+    只实现在 version_key 一处，这里复用它而不是另写一遍比较。
+    """
+    with open(RELEASES_JSON, encoding="utf-8") as f:
+        newest = json.load(f)[0].get("version")
+    if version != newest:
+        print(f"v{version} 不是最新版（当前 v{newest}），跳过 latest.json。")
+        return
+
+    latest = build_latest(release, version)
+    if latest is None:
+        # 安装包还没传完就触发了 dispatch 时会走到这里。保留旧的 latest.json：
+        # 指向上一个可用版本，远好过写出一个 exeUrl 404 的新文件。
+        print(
+            f"::warning::v{version} 的 Release 里找不到 {setup_name(version)}，"
+            "latest.json 保持不变。安装包上传完成后重跑本工作流即可。",
+            file=sys.stderr,
+        )
+        return
+
+    if os.path.exists(LATEST_JSON):
+        with open(LATEST_JSON, encoding="utf-8") as f:
+            if json.load(f) == latest:
+                print("latest.json 无变化。")
+                return
+
+    with open(LATEST_JSON, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(latest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"已更新 latest.json → v{version}")
+
+
+def setup_name(version: str) -> str:
+    """Windows 安装包文件名。口径与 worker/src/env.ts 的 ARTIFACTS 正则一致。"""
+    return f"WindInput-Setup-{version}.exe"
+
+
+def build_latest(release: dict, version: str) -> dict | None:
+    """从 Release 的 assets 组装 latest.json；找不到 Windows 安装包时返回 None。
+
+    **字段与线上现有的 latest.json 逐字段对齐，一个都不能少、不能改名**——
+    存量客户端按这个结构解析，多写无妨，少写或改名就是解析失败。
+
+    sha256 与 size 直接取 GitHub 给的 asset 元数据：`digest` 字段的值形如
+    `sha256:657893…`，与主仓打包时算出、随 .sha256 文件一同发布的值同源。
+    因此本脚本不需要下载任何 asset，纯从传入的 Release JSON 组装。
+    """
+    want = setup_name(version)
+    asset = next((a for a in release.get("assets", []) if a.get("name") == want), None)
+    if asset is None:
+        return None
+
+    digest = asset.get("digest") or ""
+    sha256 = digest.split(":", 1)[1] if digest.startswith("sha256:") else ""
+
+    return {
+        "version": version,
+        "tag": release.get("tag_name") or f"v{version}",
+        "channel": channel_of(version),
+        "exeUrl": f"{DL_BASE}/{want}",
+        "sha256": sha256,
+        "size": asset.get("size", 0),
+        "releaseNotesUrl": f"{DL_BASE}/WindInput-{version}-Release.md",
+        "publishedAt": release.get("published_at", ""),
+    }
+
+
+def channel_of(version: str) -> str:
+    """发布通道。取自版本号后缀，**不用 Release 的 prerelease 标记**——
+    主仓的正式发布一直带着那个标记（见 sync-changelog.yml 里的说明），
+    按它判断会把每个正式版都标成预发布。"""
+    _, _, pre = version.partition("-")
+    if not pre:
+        return "stable"
+    head = re.split(r"[.\-]", pre)[0].lower()
+    return head if head in ("alpha", "beta", "rc") else "stable"
 
 
 def extract_user_section(body: str) -> str | None:

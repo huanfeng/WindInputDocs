@@ -26,6 +26,10 @@ yarn-error.log*
 .remember/
 .playwright-mcp/
 
+# 构建期拉取的资源（scripts/fetch-assets.mjs）。收款码是个人支付凭证，
+# 进了 git 历史就撤不掉——理由见 src/lib/sponsor.ts
+/public/assets/
+
 # others
 .env*.local
 .vercel

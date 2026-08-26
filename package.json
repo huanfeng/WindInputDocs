@@ -15,7 +15,7 @@
     "node": ">=20.9"
   },
   "scripts": {
-    "build": "next build",
+    "build": "node scripts/fetch-assets.mjs && next build && node scripts/gen-dist-files.mjs",
     "dev": "next dev",
     "start": "serve out",
     "types:check": "next typegen && fumadocs-mdx && tsc --noEmit",

@@ -8,20 +8,34 @@ import {
 import { ChevronDown, QrCode } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { r2Base } from "@/lib/releases";
 import { paymentMethods } from "@/lib/sponsor";
 
 /**
- * 收款码区块。默认折叠，点击才展开——赞助入口不该在页面里迎面扑来，
- * 让读者先看完上面的原则与用途，再自己决定是否点开。
+ * 收款码区块。**默认展开**——赞助页是用户自己点进来的，翻到这里说明他已经决定
+ * 要给了，再设一道「展开」就是白白挡一下。
  *
- * 折叠还有一个实际好处：收款码图片带 loading="lazy"，未展开时不会产生请求。
+ * 早先默认折叠，理由是「赞助入口不该迎面扑来，让读者先看完原则与用途」。那个顾虑
+ * 对**首页或文档页**的赞助入口成立，对赞助页本身不成立：能走到这一页的人已经越过
+ * 了那层筛选。
+ *
+ * 仍然保留可收起：两张竖图在小屏上占掉整屏，读下方的备注说明时收掉更方便。
+ *
+ * 图片保留 loading="lazy"：区块在页面靠下，首屏之外的图仍然不会立刻请求。
  */
 export function SponsorQr() {
   const [open, setOpen] = useState(false);
+  // 加载失败的收款码 id。图片是构建期从源站拉进产物的（scripts/fetch-assets.mjs），
+  // 源站当时不可达时构建不会失败、只是少了文件——那种构建里这些 img 会 404。
+  // 与其留两个破图，不如整块收起，走与「尚未上传」相同的那句说明。
+  const [failed, setFailed] = useState<string[]>([]);
 
-  // 收款码尚未上传（见 lib/sponsor.ts）：给出说明而不是渲染破图
-  if (paymentMethods.length === 0) {
+  const available = paymentMethods.filter((m) => !failed.includes(m.id));
+
+  // 收款码尚未上传，或产物里一张都没有（见 lib/sponsor.ts）：给出说明而不是渲染破图
+  if (
+    paymentMethods.length === 0 ||
+    (failed.length > 0 && available.length === 0)
+  ) {
     return (
       <p className="rounded-lg border border-dashed p-5 text-sm text-fd-muted-foreground">
         赞助渠道正在准备中，稍后开放。
@@ -53,16 +67,21 @@ export function SponsorQr() {
             相近，扫码体验一致。写死正方形会把图压变形。
             图上本就印着「微信支付」「支付宝」，不再另加图注，只保留 alt 供读屏软件 */}
         <div className="flex flex-wrap items-start justify-center gap-6 pt-4">
-          {paymentMethods.map((m) => (
+          {available.map((m) => (
             // 用原生 img 而非 next/image：站点已全局关闭图片优化
-            // （next.config.mjs 的 images.unoptimized），图片又托管在 R2 上，
-            // next/image 在这里只剩尺寸声明的负担，没有收益
+            // （next.config.mjs 的 images.unoptimized），next/image 在这里
+            // 只剩尺寸声明的负担，没有收益
             // biome-ignore lint/performance/noImgElement: 见上方注释
             <img
               key={m.id}
-              src={`${r2Base}/${m.key}`}
+              src={`/${m.key}`}
               alt={`${m.name}收款码`}
               loading="lazy"
+              onError={() =>
+                setFailed((prev) =>
+                  prev.includes(m.id) ? prev : [...prev, m.id],
+                )
+              }
               className="h-80 w-auto rounded-lg border bg-white p-2 sm:h-96 lg:h-112"
             />
           ))}
