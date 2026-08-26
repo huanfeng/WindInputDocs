@@ -1,0 +1,151 @@
+{
+  "$schema": "https://pages.edgeone.ai/schema/edgeone.json",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "out",
+  "redirects": [
+    {
+      "source": "/docs/customize/candidate-comment",
+      "destination": "/docs/settings/appearance/candidate-comment",
+      "statusCode": 301
+    },
+    {
+      "source": "/docs/customize/candidate-comment/",
+      "destination": "/docs/settings/appearance/candidate-comment",
+      "statusCode": 301
+    },
+    {
+      "source": "/docs/",
+      "destination": "/docs",
+      "statusCode": 301
+    },
+    {
+      "source": "/download/",
+      "destination": "/download",
+      "statusCode": 301
+    },
+    {
+      "source": "/sponsor/",
+      "destination": "/sponsor",
+      "statusCode": 301
+    },
+    {
+      "source": "/comments/",
+      "destination": "/comments",
+      "statusCode": 301
+    },
+    {
+      "source": "/whats-new/",
+      "destination": "/whats-new",
+      "statusCode": 301
+    },
+    {
+      "source": "/docs/*/",
+      "destination": "/docs/:splat",
+      "statusCode": 301
+    }
+  ],
+  "headers": [
+    {
+      "source": "/_next/static/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/icon.png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/og/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/api/search",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/api/search/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/assets/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/latest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/WindInput-*-Release.md",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/*",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
+  ]
+}
