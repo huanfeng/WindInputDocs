@@ -312,7 +312,7 @@ items = ["mode", "punct", "full_width", "s2t", "settings"]
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
 | `vertical` | 布尔 | — | `false` <Since v="0.115" /> | 纵向排列：竖着摆放工具栏（默认横条）。几何仍取主题 `[toolbar]`：条宽 = `height`、每格高 = `button_width` |
-| `items` | 字符串数组 <Since v="0.119" /> | `mode` / `punct` / `full_width` / `s2t` / `settings` / `custom:<id>` | 全部内置项 | 显示哪几格、按什么顺序——**数组顺序即渲染顺序**。留空 = 全部内置项。`s2t` 格还需简繁转换当前开着才出现（本项只决定"允许它出现"）；隐藏 `settings` 不影响使用，右键工具栏任意位置同样能打开菜单。整条工具栏都不想要请用 `visible = false`，不要配成空数组 |
+| `items` | 字符串数组 <Since v="0.119" /> | `mode` / `punct` / `full_width` / `s2t` / `settings` / `custom:<id>`，名字前可加 `-` | 全部内置项 | 显示哪几格、按什么顺序——**数组顺序即渲染顺序**。留空 = 全部内置项。名字前加 `-`（如 `"-s2t"`）表示**不显示但记住它排在这个位置**，设置页关掉某格时写的就是这个。`s2t` 格还需简繁转换当前开着才出现（本项只决定"允许它出现"）；隐藏 `settings` 不影响使用，右键工具栏任意位置同样能打开菜单。整条工具栏都不想要请用 `visible = false` |
 
 ### 自定义按钮（ui.toolbar.buttons） <Since v="0.119" /> [#toolbar-buttons]
 
