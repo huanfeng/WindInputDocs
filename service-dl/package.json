@@ -1,0 +1,19 @@
+{
+  "name": "windinput-dl-service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "清风输入法下载计数服务（SQLite + 镜像探活），配合 EdgeOne 边缘函数使用",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "start": "node src/index.mjs",
+    "db:init": "node scripts/init-db.mjs",
+    "db:import": "node scripts/import-d1.mjs",
+    "selftest": "node scripts/selftest.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0"
+  }
+}
