@@ -282,10 +282,12 @@ wind_setting.exe --dict --schema pinyin                      :: 拼音域，子�
 
 ```
 cocr = $CC("重建词库缓存", wind.cli("schema rebuild"))
-cobk = $CC("备份", wind.cli("backup", "create", "D:\我的 备份\wind.zip"))
+cobk = $CC("备份", wind.cli("backup", "create", "D:\\我的 备份\\wind.zip"))
 ```
 
-含空格的参数须用多参形式。注意它是发射后不管的，**命令失败不会有任何提示**。详见[命令直通车](/docs/guides/command-bar#调用命令行windcli)。
+照搬终端里跑通的命令时有两点要改：**每个参数写成独立的字符串**（单参形式会按空白拆散，参数自己含空格就散了），以及**字符串里的 `{` `}` 要写成 `\{` `\}`**（大括号在短语里是内插语法）。路径里的反斜杠同样写成 `\\`。两者写错都不报错——前者是配置没变、后者是候选里干脆没有这条短语。详见[照搬终端命令的两道坎](/docs/guides/command-bar#cli-args)。
+
+注意它是发射后不管的，**命令失败不会有任何提示**。
 
 ## 相关阅读
 
