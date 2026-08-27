@@ -395,9 +395,11 @@ comment_template_horizontal = "" # 同上（横排）
 
 ## 方案级行为 <Since v="0.119" /> [#schema-behavior]
 
-三段可选配置，声明「**切到本方案时**，标点、候选排列、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
+三段可选配置，声明「**切到本方案时**，标点、候选呈现（排列与注释）、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
 
-设置工具位置：**方案 → 选中一个方案 → 本方案行为**（`enabled` 之外的两个短语字段仅配置文件）。
+设置工具位置：**方案 → 选中一个方案 → 方案自定义 → 本方案行为**（`enabled` 之外的两个短语字段仅配置文件）。
+
+注释模板那两项在界面上是**「自定义」勾选框 + 输入框**：不勾 = 跟随全局，勾上填模板 = 本方案改用它，勾上留空 = 本方案不显示注释。这三态与配置文件里的「不写 / 写模板 / 写空串」一一对应。
 
 ```toml
 [punct]
@@ -405,6 +407,9 @@ mode = "follow"        # follow（默认，跟随全局）/ chinese / english
 
 [candidate]
 layout = "follow"      # follow（默认，跟随全局）/ vertical / horizontal
+# 本方案的候选注释模板（不写这两个键 = 跟随全局；写空串 "" = 本方案不显示注释）
+# comment_template_vertical   = "${code_hint}"
+# comment_template_horizontal = ""
 
 [phrases]
 enabled = true                # 本方案是否加载短语
@@ -416,6 +421,8 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | --- | --- | --- | --- | --- |
 | `punct.mode` | 枚举 | `follow` / `chinese` / `english` | `"follow"` | 切到本方案时的标点态。`follow` = 不干预 |
 | `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
+| `candidate.comment_template_vertical` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**竖排**候选的[注释](/docs/settings/appearance/candidate-comment)模板。**不写 = 跟随全局**，写空串 `""` = 本方案不显示注释 |
+| `candidate.comment_template_horizontal` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**横排**候选的注释模板。两个方向各自独立，只配一个、另一个跟随全局是常见用法 |
 | `phrases.enabled` | 布尔 | — | `true` | 本方案是否加载[短语](/docs/settings/dict/phrases)。关掉后不出短语候选，短语也不再占用码位 |
 | `phrases.categories` | 字符串数组 | — | `[]` | **只**加载列出的分类。空数组 = 不施加这项限制（全部加载） |
 | `phrases.exclude_categories` | 字符串数组 | — | `[]` | 在上一项的结果里再**排除**这些分类。空数组 = 不排除 |
