@@ -34,13 +34,13 @@ import { Since } from "@/components/since";
 ```toml
 [keys]
 toggle_mode_keys = ["lshift", "rshift"]  # 中英切换键（键松开时触发）
-commit_on_switch = true                  # 切到英文时是否上屏未完成的组合
+commit_on_switch = true                  # 切到英文、切换方案时是否上屏未完成的组合
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `toggle_mode_keys` | 字符串数组 | `lshift` / `rshift` / `lctrl` / `rctrl` / `capslock` | `["lshift", "rshift"]` | 单击并松开这些修饰键即切换中/英文模式。可多选，空数组=禁用点击切换 |
-| `commit_on_switch` | 布尔 | `true` / `false` | `true` | 从中文切到英文时若有未上屏的组合：`true`=上屏原始编码，`false`=直接丢弃 |
+| `commit_on_switch` | 布尔 | `true` / `false` | `true` | 从中文切到英文、或切换输入方案 <Since v="0.119" /> 时若有未上屏的组合：`true`=上屏原始编码，`false`=直接丢弃 |
 
 `toggle_mode_keys` 可选值对照：
 
