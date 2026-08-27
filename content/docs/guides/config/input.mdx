@@ -179,6 +179,12 @@ custom_enabled = false    # 自定义标点映射总开关
 | `custom_enabled` | 布尔 | — | `false` | 自定义标点映射总开关；关闭时全部走内置默认转换 |
 | `custom_mappings` | 映射表 | — | `{}`（空表） | 四态标点自定义映射：key = 源字符（引号用 `"1`/`"2`/`'1`/`'2` 区分左右），value = `[中文半角, 英文全角, 中文全角, 英文半角]`。默认空表，在设置页表格编辑 |
 
+<Callout type="info" title="这两项可以被方案整份换掉">
+从 0.119 起，方案文件可写 [`[punct.custom_mappings]`](/docs/guides/schemas#punct-mappings-replace) 声明自己的一份表。切到那个方案时，本节的 `custom_mappings` **与 `custom_enabled` 一起**不参与——是整份替换，不是逐行合并。
+
+`follow_mode` / `smart_after_digit` / `smart_list` 没有方案级，恒取本节的值。
+</Callout>
+
 ## 智能符号（input.symbol）
 
 同一标点在时限内连按两次，将前一个删改 / 替换为另一种形态。三个总开关互相独立，各管一种上下文，都默认关。

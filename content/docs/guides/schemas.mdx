@@ -405,6 +405,12 @@ comment_template_horizontal = "" # 同上（横排）
 [punct]
 mode = "follow"        # follow（默认，跟随全局）/ chinese / english
 
+# 本方案专用的标点映射表（不写这一段 = 跟随全局）。列序与全局那份一致：
+# [中文半角, 英文全角, 中文全角, 英文半角]；引号用 "1 / "2（'1 / '2）区分左右形。
+# [punct.custom_mappings]
+# "." = ["。", "．", "。", "."]
+# "," = ["，", "，", "，", ","]
+
 [candidate]
 layout = "follow"      # follow（默认，跟随全局）/ vertical / horizontal
 # 本方案的候选注释模板（不写这两个键 = 跟随全局；写空串 "" = 本方案不显示注释）
@@ -420,6 +426,7 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | 段 · 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `punct.mode` | 枚举 | `follow` / `chinese` / `english` | `"follow"` | 切到本方案时的标点态。`follow` = 不干预 |
+| `punct.custom_mappings` | 表 <Since v="0.119" /> | — | 不写 | 本方案专用的[自定义标点映射](/docs/settings/input/punctuation#自定义标点映射)。**不写 = 跟随全局**，写了则**整份替换**全局那张表，写空表 `{}` = 本方案一条自定义标点都不要。详见[整份替换，不是逐行合并](#punct-mappings-replace) |
 | `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
 | `candidate.comment_template_vertical` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**竖排**候选的[注释](/docs/settings/appearance/candidate-comment)模板。**不写 = 跟随全局**，写空串 `""` = 本方案不显示注释 |
 | `candidate.comment_template_horizontal` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**横排**候选的注释模板。两个方向各自独立，只配一个、另一个跟随全局是常见用法 |
@@ -440,6 +447,31 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 ### 方案期间手动改，仍然算数 [#manual-wins]
 
 方案声明的是**默认值**，不是锁。在英文方案期间按 `toggle_punct`（中/英标点切换）改成中文标点，它在本次停留期间一直有效，不会被方案意图顶回去；切走再切回来，重新按方案声明落地。
+
+### 自定义标点：整份替换，不是逐行合并 <Since v="0.119" /> [#punct-mappings-replace]
+
+`punct.custom_mappings` 一旦写了，全局 `input.punct.custom_mappings` 就**整份不参与**——包括全局的 `custom_enabled` 总开关也一并被换掉。
+
+这有两条容易踩的推论：
+
+- **全局总开关关着，声明了本段的方案照样出自定义符号。**那个开关管的是全局那张表。
+- **本段里没写的行，走的是内置默认转换**（`.` → `。` 这些），**不是**全局表里的值。想保留全局的某几行，得把它们抄到本段里。
+
+三态与注释模板同构，由「这个键在不在」区分：
+
+| 写法 | 含义 |
+| --- | --- |
+| 不写 `[punct.custom_mappings]` | 跟随全局（含全局的总开关） |
+| 写了并列出若干行 | 本方案只认这几行，其余走内置默认 |
+| 写了但一行都没有（`custom_mappings = {}`） | 本方案**一条自定义标点都不要** |
+
+<Callout type="info" title="`schema_overrides` 里这一段也是整份替换">
+其它段写进 `schema_overrides\<方案ID>.toml` 时是**逐键合并**（方案文件写了 A、你写了 B，结果两者都在）。`custom_mappings` 是例外：你那份整个盖掉方案作者那份。
+
+这是为了让「**删掉方案作者写的某一行**」成为可能——逐键合并里没有「删除」的写法，删掉的行会从方案文件里再冒出来。设置工具改这一节时也是整表回写的。
+</Callout>
+
+哪些源字符可配、四列分别对应什么状态，与全局那份完全一致，见[自定义标点映射](/docs/settings/input/punctuation#自定义标点映射)。
 
 ### 短语分类 [#phrase-categories]
 
