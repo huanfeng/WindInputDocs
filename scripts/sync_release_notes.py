@@ -38,6 +38,14 @@ RELEASES_JSON = os.path.join(DATA_DIR, "releases.json")
 # 输入），不需要任何额外网络请求，那就没有理由让它单独占一条存储链路。
 LATEST_JSON = os.path.join(DATA_DIR, "latest.json")
 
+# macOS 的那一份。**两平台合不成一个文件**：版本号、大小、sha256 都是每平台各一份，
+# 而在野的老 Windows 客户端只认顶层的那组字段，改不动（详见 wind-setting 的
+# update::Artifact 注释）。
+#
+# 缺了它的后果不是 404 而是更坏的形态：文档站对未匹配路径**返回 200 加首页 HTML**
+# （静态托管的 SPA 回落），mac 客户端会把 47KB 的 HTML 当 JSON 解析。
+LATEST_MAC_JSON = os.path.join(DATA_DIR, "latest-mac.json")
+
 # 对外的下载域名。安装包仍在 R2（经 EdgeOne 前置），latest.json 与发布说明
 # 改由文档站产出，但**对外 URL 一律保持不变**——老版本客户端里这些地址是
 # 硬编码的，换域名等于把存量用户的在线更新一次性切断。
@@ -98,7 +106,7 @@ def main():
 
 
 def sync_latest(release: dict, version: str) -> None:
-    """把最新版的在线更新元信息写进 data/latest.json。
+    """把最新版的在线更新元信息写进 data/latest.json 与 data/latest-mac.json。
 
     只在同步的**确实是最新版**时才写：workflow_dispatch 可以指定任意 tag 补同步
     某个旧版本的更新说明，那种情况下改 latest.json 会把全体用户的在线更新指回旧版。
@@ -111,27 +119,42 @@ def sync_latest(release: dict, version: str) -> None:
         print(f"v{version} 不是最新版（当前 v{newest}），跳过 latest.json。")
         return
 
-    latest = build_latest(release, version)
+    # 两平台各写各的文件、各用各的 URL 键。一方缺包不影响另一方 —— macOS 与
+    # Windows 是两条独立构建流水线，一边慢一步不该拖住另一边发版。
+    for path, asset_name, url_key in (
+        (LATEST_JSON, setup_name(version), "exeUrl"),
+        (LATEST_MAC_JSON, pkg_name(version), "pkgUrl"),
+    ):
+        write_latest(release, version, path, asset_name, url_key)
+
+
+def write_latest(
+    release: dict, version: str, path: str, asset_name: str, url_key: str
+) -> None:
+    """组装并写入单个平台的元数据文件。内容无变化时不落盘（避免无意义的 diff）。"""
+    name = os.path.basename(path)
+
+    latest = build_latest(release, version, asset_name, url_key)
     if latest is None:
-        # 安装包还没传完就触发了 dispatch 时会走到这里。保留旧的 latest.json：
-        # 指向上一个可用版本，远好过写出一个 exeUrl 404 的新文件。
+        # 安装包还没传完就触发了 dispatch 时会走到这里。保留旧文件：指向上一个
+        # 可用版本，远好过写出一个下载地址 404 的新文件。
         print(
-            f"::warning::v{version} 的 Release 里找不到 {setup_name(version)}，"
-            "latest.json 保持不变。安装包上传完成后重跑本工作流即可。",
+            f"::warning::v{version} 的 Release 里找不到 {asset_name}，"
+            f"{name} 保持不变。安装包上传完成后重跑本工作流即可。",
             file=sys.stderr,
         )
         return
 
-    if os.path.exists(LATEST_JSON):
-        with open(LATEST_JSON, encoding="utf-8") as f:
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
             if json.load(f) == latest:
-                print("latest.json 无变化。")
+                print(f"{name} 无变化。")
                 return
 
-    with open(LATEST_JSON, "w", encoding="utf-8", newline="\n") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(latest, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    print(f"已更新 latest.json → v{version}")
+    print(f"已更新 {name} → v{version}")
 
 
 def setup_name(version: str) -> str:
@@ -139,29 +162,43 @@ def setup_name(version: str) -> str:
     return f"WindInput-Setup-{version}.exe"
 
 
-def build_latest(release: dict, version: str) -> dict | None:
-    """从 Release 的 assets 组装 latest.json；找不到 Windows 安装包时返回 None。
+def pkg_name(version: str) -> str:
+    """macOS 安装包文件名。口径取自线上 latest-mac.json 的实际 pkgUrl。"""
+    return f"WindInput-{version}-macOS.pkg"
+
+
+def build_latest(
+    release: dict, version: str, asset_name: str, url_key: str
+) -> dict | None:
+    """从 Release 的 assets 组装某一平台的元数据；找不到对应安装包时返回 None。
 
     **字段与线上现有的 latest.json 逐字段对齐，一个都不能少、不能改名**——
     存量客户端按这个结构解析，多写无妨，少写或改名就是解析失败。
+
+    `url_key` 是下载地址的键名：Windows 用 `exeUrl`，macOS 用 `pkgUrl`。两平台
+    **故意不共用一个键**——共用的话，「mac 客户端读到了 Windows 的元数据」这类
+    串档会静默通过，用户最后下到一个装不上的文件；各用各的键，串档在客户端的
+    解析阶段就被挡住，报错还能点名缺的是哪个字段。
 
     sha256 与 size 直接取 GitHub 给的 asset 元数据：`digest` 字段的值形如
     `sha256:657893…`，与主仓打包时算出、随 .sha256 文件一同发布的值同源。
     因此本脚本不需要下载任何 asset，纯从传入的 Release JSON 组装。
     """
-    want = setup_name(version)
-    asset = next((a for a in release.get("assets", []) if a.get("name") == want), None)
+    asset = next(
+        (a for a in release.get("assets", []) if a.get("name") == asset_name), None
+    )
     if asset is None:
         return None
 
     digest = asset.get("digest") or ""
     sha256 = digest.split(":", 1)[1] if digest.startswith("sha256:") else ""
 
+    # 键的插入顺序即输出顺序（Python 3.7+），与线上现有文件保持一致
     return {
         "version": version,
         "tag": release.get("tag_name") or f"v{version}",
         "channel": channel_of(version),
-        "exeUrl": f"{DL_BASE}/{want}",
+        url_key: f"{DL_BASE}/{asset_name}",
         "sha256": sha256,
         "size": asset.get("size", 0),
         "releaseNotesUrl": f"{DL_BASE}/WindInput-{version}-Release.md",

@@ -31,6 +31,16 @@ function readJson(name) {
   return JSON.parse(readFileSync(join(DATA, name), "utf8"));
 }
 
+/** 读不到文件返回 null；**只吞 ENOENT** —— JSON 语法错误是真故障，必须炸出来。 */
+function tryReadJson(name) {
+  try {
+    return readJson(name);
+  } catch (e) {
+    if (e.code === "ENOENT") return null;
+    throw e;
+  }
+}
+
 /**
  * notes 数组 → 发布说明 Markdown。
  *
@@ -71,6 +81,28 @@ function main() {
     `${JSON.stringify(latest, null, 2)}\n`,
   );
 
+  // macOS 那一份。两平台合不成一个文件：版本号、大小、sha256 各一份，且下载地址
+  // 的键名不同（exeUrl / pkgUrl）——客户端靠键名区分，读错平台会在解析阶段就报错
+  // 而不是下到装不上的包。
+  //
+  // 与上面不同，**缺失时警告而不中断**：mac 与 Windows 是两条独立构建流水线，
+  // mac 包晚一步很正常，不该让整个文档站停更。此时 mac 客户端仍能从
+  // dl.windinput.com 取到 R2 上的那份，缺的是备份源而非唯一来源。
+  const mac = tryReadJson("latest-mac.json");
+  if (mac) {
+    writeFileSync(
+      join(OUT, "latest-mac.json"),
+      `${JSON.stringify(mac, null, 2)}\n`,
+    );
+  } else {
+    // 用 ::warning:: 前缀，GitHub Actions 会把它渲染成构建摘要里的警告条目 ——
+    // 埋在几百行日志里的一句 console.log 没人会看见。
+    console.warn(
+      "::warning::data/latest-mac.json 不存在，本次构建不产出 macOS 更新元数据。" +
+        "若 mac 版已发布，检查 sync_release_notes.py 是否跑过。",
+    );
+  }
+
   // 全版本都生成：EdgeOne 的重写规则是 WindInput-*-Release.md 一条通配，
   // 只产出最新版会让历史地址 404。每份几 KB，全量也不过几十 KB。
   const releases = readJson("releases.json");
@@ -82,7 +114,9 @@ function main() {
   }
 
   console.log(
-    `分发文件已生成：latest.json（v${latest.version}）+ ${releases.length} 份发布说明`,
+    `分发文件已生成：latest.json（v${latest.version}）` +
+      `${mac ? ` + latest-mac.json（v${mac.version}）` : ""}` +
+      ` + ${releases.length} 份发布说明`,
   );
 }
 
