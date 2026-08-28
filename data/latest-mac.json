@@ -1,0 +1,10 @@
+{
+  "version": "0.119.0",
+  "tag": "v0.119.0",
+  "channel": "stable",
+  "pkgUrl": "https://dl.windinput.com/WindInput-0.119.0-macOS.pkg",
+  "sha256": "f08fccbd37cfaab56036bbcaed9825f937cf53a387cd14bb1286b22d7ccbfa7b",
+  "size": 32797702,
+  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.119.0-Release.md",
+  "publishedAt": "2026-08-27T09:30:28Z"
+}
