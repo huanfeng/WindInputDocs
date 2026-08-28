@@ -220,15 +220,18 @@ export function FlarumComments({ pageId }: { pageId: string }) {
       ) : (
         <div className="mt-6 rounded-md border bg-fd-card px-4 py-3 text-sm">
           <span className="text-fd-muted-foreground">
-            发表评论需要先登录社区。
+            发表评论需要先登录社区，登录后回到本页刷新即可。
           </span>{" "}
+          {/* 新标签页打开：登录后跳不回来（Flarum 没有可用的 return 机制，
+              见 lib/flarum.ts 的 loginUrl），至少别把用户正在读的文档页顶掉。
+              登录完切回这个标签刷新即可发言。 */}
           <a
-            href={loginUrl(
-              typeof window === "undefined" ? "" : window.location.href,
-            )}
+            href={loginUrl()}
+            target="_blank"
+            rel="noreferrer"
             className="font-medium text-fd-primary hover:underline"
           >
-            登录或注册 →
+            去社区登录 →
           </a>
         </div>
       )}

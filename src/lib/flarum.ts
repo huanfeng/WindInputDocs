@@ -259,14 +259,22 @@ export async function postComment(
 }
 
 /**
- * 登录地址。带 return 参数，登录后跳回原文档页。
+ * 登录入口：论坛首页。
  *
- * Flarum 的登录是个模态框而非独立页面，但 /login 路由会打开首页并弹出它，
- * 效果等价，且不需要在文档站里重实现一遍登录表单（那要处理密码、二步验证、
- * 第三方登录，全是不该复制的东西）。
+ * ⚠️ 这里**不能**指向 `/login`。原先那样写是基于一个错误的假设——以为它会打开
+ * 首页并弹出登录框。实测 `GET /login` 返回 **405 Method Not Allowed**：
+ * Flarum core 确实注册了这个路径，但它只接受 POST，那是登录表单的提交端点，
+ * 不是给人访问的页面。`/register` 同理。
+ *
+ * Flarum 的登录是个模态框，没有独立页面，也没有能从 URL 触发它的机制
+ * （试过 `/?login`、`/auth/login`、`/u/login`，要么 404 要么就是普通首页）。
+ * 所以只能把人送到首页，由他自己点右上角的登录。
+ *
+ * 也因此没有 return 参数可带——跳不回来。这是目前的取舍：在文档站里重实现
+ * 一遍登录表单要处理密码、二步验证、第三方登录，那些都不该复制一份。
  */
-export function loginUrl(returnTo: string): string {
-  return `${FLARUM_BASE}/login?return=${encodeURIComponent(returnTo)}`;
+export function loginUrl(): string {
+  return `${FLARUM_BASE}/`;
 }
 
 export function discussionUrl(discussionId: number): string {
