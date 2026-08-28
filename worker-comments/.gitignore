@@ -6,3 +6,6 @@ worker-configuration.d.ts
 
 # 本地开发密钥，绝不入库（模板见 .dev.vars.example）
 .dev.vars
+
+# D1 导出：含评论正文与 ip_hash 等用户数据，不进版本库
+backup/
