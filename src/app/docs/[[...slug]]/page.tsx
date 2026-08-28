@@ -9,10 +9,9 @@ import {
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Comments } from "@/components/comments";
 import { DocsVersion } from "@/components/docs-version";
+import { FlarumComments } from "@/components/flarum-comments";
 import { getMDXComponents } from "@/components/mdx";
-import { commentsEnabled } from "@/lib/comments";
 import { gitConfig } from "@/lib/shared";
 import { getUnreleasedAnchors } from "@/lib/since-index";
 import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
@@ -56,10 +55,13 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
           })}
         />
       </DocsBody>
-      {/* 评论区。pageId 用 page.url（如 /docs/start/concepts）作页面标识——
-          改文档路径时记得一并迁移 comments.page_id，否则旧评论会成为孤儿。
-          commentsEnabled 是构建期总开关，关掉后整个功能不进产物（见 lib/comments.ts）。 */}
-      {commentsEnabled && <Comments pageId={page.url} />}
+      {/* 评论区。后端是 forum.windinput.com 的 Flarum，与论坛共享登录态。
+          pageId 用 page.url（如 /docs/start/concepts）作页面标识，经
+          data/doc-discussions.json 映射到具体主题——新增文档后要跑一次
+          scripts/sync-doc-discussions.mjs 建主题，否则该页不显示评论区。
+          改文档路径等于换了 pageId，映射会失配、旧评论成为孤儿，
+          此时应手工把映射表里的旧键改名而不是重新同步。 */}
+      <FlarumComments pageId={page.url} />
     </DocsPage>
   );
 }
