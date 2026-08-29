@@ -13,12 +13,14 @@ import { Since } from "@/components/since";
 [stats]
 enabled = true
 track_english = true
+speed_factor = 0.85
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `true` | 是否统计输入字数、按键数等数据 |
 | `track_english` | 布尔 | — | `true` | 是否把英文输入计入统计 |
+| `speed_factor` | 小数 <Since v="0.119" /> | — | `0.85` | 打字速度**显示值**的修正系数，不影响任何字数统计。出厂取 < 1 是经验折价：打错后退格重打，字符被计两遍而耗时只算一遍，速度恒偏高。填 ≥ 1 只会让显示值重新偏离真实手速。暂无设置界面入口，需要时改配置文件 |
 
 ## `[compat]` 顶级域已移除 <Since v="0.113" /> [#host-compat]
 
