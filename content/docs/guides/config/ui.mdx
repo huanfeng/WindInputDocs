@@ -177,11 +177,13 @@ fast_first_show_fallback_ms = 25    # fast 档等不到坐标时的兜底超时
 
 首显策略本身（`fast` / `wait` / `instant`）是**逐应用**规则，写在 `compat.toml` 而非这里，见[应用兼容性规则](/docs/guides/compat#候选窗首显策略)。
 
-## 字体（ui.font）
+## 字体（ui.font） [#ui-font]
 
 ```toml
 [ui.font]
 family = ""                # 字体族名
+fallback = []              # 缺字时按序接续的回退字体
+scripts = {}               # 按文字类别单独指派字体
 path = ""                  # 字体文件路径
 render_mode = "directwrite" # 文本渲染后端
 ```
@@ -189,8 +191,32 @@ render_mode = "directwrite" # 文本渲染后端
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `family` | 字符串 | — | `""` | 候选窗字体族名；留空 = 使用系统 / 主题默认字体 |
+| `fallback` | 字符串数组 <Since v="0.120" /> | — | `[]` | `family` 里缺某个字时，按顺序往后找的字体。最终链 = `[family]` + `fallback` |
+| `scripts` | 表 <Since v="0.120" /> | — | `{}` | 按**文字类别**单独指派字体，键取 `latin` / `greek` / `cyrillic` / `cjk` / `emoji` / `digits` / `punct`，值是该类自己的字体链。见[回退链与按类别指派](#font-fallback-scripts) |
 | `path` | 字符串 | — | `""` | 字体文件路径（加载非系统安装的字体文件时使用）；留空 = 按 `family` 从系统查找 |
 | `render_mode` | 枚举 | `directwrite` / `gdi` | `"directwrite"` | 文本渲染后端：`directwrite`（默认，抗锯齿更佳）/ `gdi`（兼容旧渲染） |
+
+### 回退链与按类别指派 <Since v="0.120" /> [#font-fallback-scripts]
+
+两者回答的是不同的问题，可以同时用：
+
+- `fallback` 答「**这个字谁都没有怎么办**」——只有主字体缺字才轮到它，按顺序找到第一个有的为止。
+- `scripts` 答「**这一类字就该用它**」——不管主字体有没有，该类文字直接用指定的字体。
+
+```toml
+[ui.font]
+family = "微软雅黑"
+fallback = ["Segoe UI Emoji"]     # 雅黑没有的字，去这里找
+
+[ui.font.scripts]
+latin = ["Cascadia Code"]         # 拉丁字母一律用等宽，不管雅黑有没有
+```
+
+一句中英混排是**按类别切段**排版的，不是逐字换字体：空格、标点、组合记号这类中性字符
+**继承上下文**——否则一句话会被切成十几段，段与段的边界还会丢掉字距。
+
+类别名写错不报错，只是被忽略（日志里留一条 warn）。设置界面的「按文字类别指定字体」
+会把七个类别**预填**好，在现成的行上改比手写安全，见[外观设置 · 字体](/docs/settings/appearance#font-and-count)。
 
 ## 主题（ui.theme）
 

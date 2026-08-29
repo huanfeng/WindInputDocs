@@ -398,7 +398,7 @@ comment_template_horizontal = "" # 同上（横排）
 
 ## 方案级行为 <Since v="0.119" /> [#schema-behavior]
 
-三段可选配置，声明「**切到本方案时**，标点、候选呈现（排列与注释）、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
+三段可选配置，声明「**切到本方案时**，标点、候选呈现（排列、文字排列、字体与注释）、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
 
 设置工具位置：**方案 → 选中一个方案 → 方案自定义 → 本方案行为**（`enabled` 之外的两个短语字段仅配置文件）。
 
@@ -416,6 +416,8 @@ mode = "follow"        # follow（默认，跟随全局）/ chinese / english
 
 [candidate]
 layout = "follow"      # follow（默认，跟随全局）/ vertical / horizontal
+text_orientation = "normal"   # 横排时文字怎么排：normal / rotated / upright
+# font_family = "Noto Sans Mongolian"   # 只改候选文字的字体（不写 = 跟随全局）
 # 本方案的候选注释模板（不写这两个键 = 跟随全局；写空串 "" = 本方案不显示注释）
 # comment_template_vertical   = "${code_hint}"
 # comment_template_horizontal = ""
@@ -431,6 +433,8 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | `punct.mode` | 枚举 | `follow` / `chinese` / `english` | `"follow"` | 切到本方案时的标点态。`follow` = 不干预 |
 | `punct.custom_mappings` | 表 <Since v="0.119" /> | — | 不写 | 本方案专用的[自定义标点映射](/docs/settings/input/punctuation#自定义标点映射)。**不写 = 跟随全局**，写了则**整份替换**全局那张表，写空表 `{}` = 本方案一条自定义标点都不要。详见[整份替换，不是逐行合并](#punct-mappings-replace) |
 | `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
+| `candidate.text_orientation` | 枚举 <Since v="0.120" /> | `normal` / `rotated` / `upright` | `"normal"` | **横排时**文字怎么排：`normal` 照常水平、`rotated` 整项顺时针转 90°、`upright` 逐字直立下行（对联式）。竖排时不生效，详见[横排时文字排列](#text-orientation) |
+| `candidate.font_family` | 字符串 <Since v="0.120" /> | — | 不写 | 本方案候选**文字**的字体；不写 = 用[全局字体](/docs/guides/config/ui#ui-font)。只作用于候选词本身，序号、编码栏、注释不跟着换 |
 | `candidate.comment_template_vertical` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**竖排**候选的[注释](/docs/settings/appearance/candidate-comment)模板。**不写 = 跟随全局**，写空串 `""` = 本方案不显示注释 |
 | `candidate.comment_template_horizontal` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**横排**候选的注释模板。两个方向各自独立，只配一个、另一个跟随全局是常见用法 |
 | `phrases.enabled` | 布尔 | — | `true` | 本方案是否加载[短语](/docs/settings/dict/phrases)。关掉后不出短语候选，短语也不再占用码位 |
@@ -450,6 +454,26 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 ### 方案期间手动改，仍然算数 [#manual-wins]
 
 方案声明的是**默认值**，不是锁。在英文方案期间按 `toggle_punct`（中/英标点切换）改成中文标点，它在本次停留期间一直有效，不会被方案意图顶回去；切走再切回来，重新按方案声明落地。
+
+### 横排时文字排列 <Since v="0.120" /> [#text-orientation]
+
+`candidate.layout` 与 `candidate.text_orientation` 是**两根独立的轴**：
+
+| 轴 | 谁说了算 | 回答的问题 |
+| --- | --- | --- |
+| `layout`（横 / 竖） | 用户——全局设置、临时模式、方案都能改 | 候选**摆**成一行还是一列 |
+| `text_orientation` | 方案 | 这套**文字**本身怎么写 |
+
+蒙古文这类纵向书写的文字用 `rotated`：整项顺时针转 90°，而候选摆位仍走横排那一套——
+所以横排的注释模板、窗口宽度下限这些配置照常生效，不必为它再配一遍。
+`upright` 则是「字不转、逐字往下走」，像中文对联。
+
+因为是两根轴，**切换候选排列不会丢掉方案的声明**：在蒙古文方案里把候选切成竖排、
+再切回横排，旋转还在。
+
+<Callout type="info" title="竖排时不生效">
+`layout` 为 `vertical` 时 `text_orientation` 不起作用——已经竖着排的候选再转 90°，就又成了横排。
+</Callout>
 
 ### 自定义标点：整份替换，不是逐行合并 <Since v="0.119" /> [#punct-mappings-replace]
 
