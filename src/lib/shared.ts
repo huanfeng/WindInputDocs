@@ -23,6 +23,14 @@ export const gitConfig = {
 export const releasesUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}/releases`;
 export const githubUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}`;
 
+/**
+ * 社区论坛。这里是这个地址的**单一来源** —— lib/flarum.ts 的 FLARUM_BASE 引用它。
+ *
+ * 放在这个纯常量模块而不是反过来，是因为顶栏的论坛入口每页都渲染，不该为了一个
+ * URL 就把整个评论数据层（含 doc-discussions.json 与一堆 fetch 逻辑）拉进 chunk。
+ */
+export const forumUrl = "https://forum.windinput.com";
+
 // 顶栏导航项。纯数据，供自定义顶栏与文档侧栏共用。
 export const navLinks: LinkItemType[] = [
   { text: "主页", url: "/", active: "url" },

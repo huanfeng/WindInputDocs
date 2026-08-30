@@ -15,8 +15,10 @@
 // 换句话说：登录态是**共享**的 —— 用户在论坛登录过，文档页就能直接发言，不需要二次登录。
 
 import discussionMap from "@/../data/doc-discussions.json";
+import { forumUrl } from "./shared";
 
-export const FLARUM_BASE = "https://forum.windinput.com";
+/** 论坛根地址。单一来源在 lib/shared.ts，那边还被顶栏的社区入口用着。 */
+export const FLARUM_BASE = forumUrl;
 
 /** 「文档反馈」板块的 tag id。同步脚本创建主题时挂在这个板块下。 */
 export const DOCS_TAG_ID = 14;

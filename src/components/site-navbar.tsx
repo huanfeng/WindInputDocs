@@ -20,14 +20,20 @@ import {
   SearchTrigger,
 } from "fumadocs-ui/layouts/shared/slots/search-trigger";
 import { ThemeSwitch } from "fumadocs-ui/layouts/shared/slots/theme-switch";
-import { ArrowUpRight, Menu, MessageSquare, PanelLeft } from "lucide-react";
+import {
+  ArrowUpRight,
+  Menu,
+  MessageSquare,
+  MessagesSquare,
+  PanelLeft,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { type ComponentProps, useState } from "react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/cn";
 import { commentsEnabled } from "@/lib/comments";
-import { appName, githubUrl, navLinks } from "@/lib/shared";
+import { appName, forumUrl, githubUrl, navLinks } from "@/lib/shared";
 
 /**
  * 站点顶栏。主页布局与文档布局都通过 `slots.header` 使用同一个组件，
@@ -124,6 +130,7 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
 
             <div className="ms-auto flex min-w-0 items-center gap-2">
               {commentsEnabled && <CommentsLink pathname={pathname} />}
+              <ForumLink />
               <FullSearchTrigger
                 hideIfDisabled
                 className="w-full max-w-[240px] min-w-0 rounded-full ps-2.5 max-md:hidden"
@@ -234,6 +241,41 @@ function CommentsLink({ pathname }: { pathname: string }) {
     >
       <MessageSquare className="size-4 shrink-0" aria-hidden />
       <span className="text-sm max-md:hidden">留言</span>
+    </Link>
+  );
+}
+
+/**
+ * 社区论坛入口。占的是留言入口那个位置 —— 留言随主域迁到 EdgeOne 时整块下架
+ * （lib/comments.ts 的 commentsEnabled 为 false），右侧这一格就空了出来。
+ *
+ * 两者短期内不会同时出现：真要恢复留言，得先决定它和论坛的分工，那时再排版。
+ *
+ * 为什么不写进 navLinks —— 那里已经有主题编辑器和主题市场两个兄弟站，看着像是
+ * 论坛的天然去处。但 navLinks 会被左侧主导航、主页移动端折叠菜单和文档侧栏抽屉
+ * 三处共用，而左侧已经八项，再加一项就要挤换行了。放右边还有一层用意：论坛是
+ * 「有问题找人」的入口，和搜索挨着比夹在一串页面链接里更容易被想起来。
+ *
+ * 和 CommentsLink 一样**不跟随** ThemeSwitch / GitHub 图标的 `max-md:hidden` ——
+ * 它不在 navLinks 里，移动端菜单自然没有它，只能在顶栏退化成纯图标继续留着，
+ * 否则小屏上就彻底没有入口了。
+ */
+function ForumLink() {
+  return (
+    <Link
+      href={forumUrl}
+      external
+      title="清风输入法社区"
+      className={cn(
+        buttonVariants({ color: "ghost", size: "icon-sm" }),
+        "shrink-0 gap-1.5 text-fd-muted-foreground transition-colors",
+        "hover:text-fd-accent-foreground",
+        // 桌面端带文字，图标按钮的方形尺寸要放开；移动端只留图标。
+        "md:w-auto md:px-2.5",
+      )}
+    >
+      <MessagesSquare className="size-4 shrink-0" aria-hidden />
+      <span className="text-sm max-md:hidden">社区</span>
     </Link>
   );
 }
