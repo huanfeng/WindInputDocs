@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { type FriendLink, friendLinks } from "@/lib/friend-links";
 
 /**
@@ -24,7 +25,21 @@ export function FriendLinks() {
           </p>
         </div>
 
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {/*
+          列数跟着条数走，而不是一律铺三列。
+
+          三列网格只有一条友链时，卡片孤零零占住左上角、右边空掉三分之二 ——
+          看着像是漏加载了什么。宁可让它保持一张卡片该有的宽度靠左放着：
+          留白是排版，空列是事故。两条同理，撑满三列会让每张卡片被拉得过宽。
+        */}
+        <ul
+          className={cn(
+            "grid grid-cols-1 gap-3",
+            friendLinks.length === 1 && "max-w-sm",
+            friendLinks.length === 2 && "max-w-2xl sm:grid-cols-2",
+            friendLinks.length >= 3 && "sm:grid-cols-2 lg:grid-cols-3",
+          )}
+        >
           {friendLinks.map((link) => (
             <li key={link.url}>
               <FriendCard link={link} />

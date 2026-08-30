@@ -34,5 +34,9 @@ export interface FriendLink {
 }
 
 export const friendLinks: FriendLink[] = [
-  // 还没有友链。往这里加即可，主页会自动出现该区块。
+  {
+    name: "小鹤音形",
+    url: "https://flypy.cc/",
+    desc: "音形结合的输入方案：双拼加双形，字词四码定长。",
+  },
 ];
