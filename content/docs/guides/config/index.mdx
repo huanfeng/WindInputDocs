@@ -60,14 +60,19 @@ import { Since } from "@/components/since";
 
 ### 确认覆盖是否生效
 
-覆盖没有任何界面提示，但**每一次生效的覆盖都会记进日志**。打开 `%LOCALAPPDATA%\WindInput\logs\` 下的最新日志，搜索 `用户覆盖生效`：
+覆盖没有任何界面提示，但**每一次生效的覆盖都会记进日志**。打开 `%LOCALAPPDATA%\WindInput\logs\` 下的最新日志，搜索 `覆盖生效`：
 
 ```text
-用户覆盖生效[data]: system.phrases.toml → C:\Users\你\AppData\Roaming\WindInput\system.phrases.toml
-用户覆盖生效[dict]: wubi86/wubi86_jidian.dict.yaml → ...
+覆盖生效[user][data]: system.phrases.toml → C:\Users\你\AppData\Roaming\WindInput\system.phrases.toml
+覆盖生效[user][dict]: wubi86/wubi86_jidian.dict.yaml → ...
 ```
 
-方括号里是资源类别（`schema` 方案 / `dict` 词库 / `resource` 方案资源 / `shuangpin` 双拼布局 / `theme` 主题 / `data` 数据根文件）。默认日志级别即可看到，无需调级别。
+两个方括号分别是**来源层**与**资源类别**：
+
+- 来源层：`user` 你自己放的 / `custom` 定制版自带的（见[制作定制版](/docs/guides/custom-edition)）。出厂自带、无人覆盖的文件不打点。
+- 资源类别：`schema` 方案 / `dict` 词库 / `resource` 方案资源 / `shuangpin` 双拼布局 / `theme` 主题 / `data` 数据根文件。
+
+默认日志级别即可看到，无需调级别。
 
 日志里**没有**对应记录，说明你的文件没被认到——常见原因是路径层级或文件名不对（必须与 `data\` 下的相对路径完全一致），或者放进了 `%LOCALAPPDATA%` 而不是 `%APPDATA%`。
 
@@ -146,6 +151,8 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 3. **用户配置** — `%APPDATA%\WindInput\config.toml`
 
 三层深合并：表递归合并（高层键覆盖 / 新增低层同名键），标量与数组由高层整体覆盖。保存时按 diff 只写与默认不同的字段。
+
+如果你装的是[定制版](/docs/guides/custom-edition)，第 2 层与第 3 层之间还夹着一层定制配置（安装目录 `data_custom\config.toml`）。它会改变你看到的「出厂默认」，但改不动你自己设过的项。
 
 <Callout type="info" title="本参考页的默认值以系统预置为准">
 下面各域参考页标注的"默认值"，取自随程序分发的 `data\config.toml`（第 2 层）。少数字段的代码内置默认值（第 1 层）与之不同，会在对应条目上注明——你实际拿到的是系统预置值。

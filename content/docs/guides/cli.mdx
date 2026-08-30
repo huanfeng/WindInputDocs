@@ -33,7 +33,7 @@ start /wait wind_input schema rebuild
 
 | 子命令 | 是否需要服务在线 |
 | --- | --- |
-| `config list` / `describe` / `get` / `export` | **不需要**，纯本地 |
+| `config list` / `describe` / `get` / `export` / `check` | **不需要**，纯本地 |
 | `config set` / `import` | 优先在线（热重载）；**服务未运行时降级为直写配置文件**，下次启动生效 |
 | `schema` / `dict` / `phrase` / `backup` | **需要** |
 | `restart` | 均可 |
@@ -65,6 +65,7 @@ wind_input <子命令> help        :: 各子命令详细用法
 | `config set <键> <值>` | 设置单个键 |
 | `config export` | 导出完整配置为 TOML 到 stdout |
 | `config import <文件.toml>` | 批量导入 |
+| `config check [--custom <目录>] [--data <目录>]` <Since v="0.120" /> | 体检[定制版数据层](/docs/guides/custom-edition)，打包前自查 |
 
 ```bat
 wind_input config list ui.candidate
@@ -73,6 +74,7 @@ wind_input config get ui.theme.name
 wind_input config set ui.candidate.per_page 9
 wind_input config export > my-config.toml
 wind_input config import my-config.toml
+wind_input config check --custom D:\build\data_custom
 ```
 
 在线成功时提示「已应用 N 项（已热重载）」；离线时提示「已写入 N 项（core 未运行，下次启动生效）」。
