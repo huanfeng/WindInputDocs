@@ -11,6 +11,7 @@ import Link from "next/link";
 // 从 src/ 静态导入而非放 public/：产物会带内容 hash（/_next/static/media/…），
 // 换图即换 URL，不会被 CDN 的长缓存挡住旧版本。尺寸也由导入对象自带。
 import screenshotCandidates from "@/assets/screenshot-candidates.png";
+import { FriendLinks } from "@/components/friend-links";
 import { TipTicker } from "@/components/tip-ticker";
 
 const features = [
@@ -162,6 +163,10 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* 友情链接。排在支持项目之后——它是页面上唯一指向站外的区块，
+          放在最末不会把读者从正文里拽走。友链为空时这一块整个不渲染。 */}
+      <FriendLinks />
     </main>
   );
 }
