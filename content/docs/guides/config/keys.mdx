@@ -95,8 +95,8 @@ toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
 `key_actions` 里 `special:` / `mix:` / `temp_pinyin` 那批动词进的是**临时模式**——打完一段自动退回原方案。`switch_schema:` 与 `toggle_schema:` 是**换方案**：前者切过去就完了，后者再按一次回到你原来那个方案。要「临时打几个字符就回来」用临时模式，要「切过去待一会儿」用换方案。
 </Callout>
 
-<Callout type="warn" title="switch_schema 只能写在全局">
-方案文件的 `[key_actions]` 按**活跃方案**查表。单向切走之后，目标方案没有这条绑定，那个键就再也按不动了。方案级要绑切换请用 `toggle_schema:`——它的回程由运行时来源兜底，不要求目标方案配一个对称的键。
+<Callout type="warn" title="方案级的单向切换没有回程">
+方案文件的 `[key_actions]` 按**活跃方案**查表。写在那里的 `switch_schema:` 切过去之后，那个键在目标方案里不再做事（也不会转而执行全局同名绑定），回程得另配一个键。想让同一个键管来回，用 `toggle_schema:`——它的回程由运行时来源兜底，不要求目标方案配一个对称的键。
 </Callout>
 
 ### 按键功能表（key_actions）<Since v="0.115" /> [#key-actions]
@@ -121,7 +121,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `mix:<实例id>` | 进指定融合模式（`mix:quick_mix` = 内置[快捷输入](/docs/settings/input/quick-input)） |
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
-| `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**（原 `keys.schema_hotkeys` 的语义；只能写在全局那份表里） |
+| `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**（原 `keys.schema_hotkeys` 的语义）。写在方案级时切过去就没有回程了，见下方提示 |
 | `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
 | `none` | 显式什么都不做，用于在方案级覆盖里**关掉**某个全局绑定 |
 
@@ -163,6 +163,12 @@ backslash = "none"      # 本方案关掉全局配的 \ 引导键
 **字母键只能按方案配**，不能写进全局表：字母天然是编码键，能不能借用取决于这张码表里它是不是死码。全局表里配字母就成了无条件抢键，那个字母在所有方案里都打不出编码了。
 
 要在某个方案里**关掉**一个全局绑定，写显式的 `"none"`。覆盖是深合并，只能新增或改写——从覆盖文件里删掉一行是删不掉全局那条的。
+
+<Callout type="warn" title="英文状态下这份表整表不生效">
+切到**英文状态**（半角英文，非英文方案）后，当前方案的 `[key_actions]` 连同它的 `z` 引导键一起不再参与查表，按键一律按全局那份表执行。那时方案本身已经不参与输入（编码、标点、候选都不工作），它的按键表也就跟着退场。
+
+所以「在英文状态下按某个键切回某个方案」这类需求要配在**全局**表里。反过来，如果你依赖某个方案级绑定在英文状态下也生效，需要在全局表里补一份。
+</Callout>
 
 <Callout type="warn" title="字母键让位给编码，所以别用 z 进特殊模式">
 绑了功能的字母键，若在当前码表里**是活码**（这个字母开头有真实编码或短语），按下时会**让位给正常输入**，不进模式。这是刻意的：编码优先。
