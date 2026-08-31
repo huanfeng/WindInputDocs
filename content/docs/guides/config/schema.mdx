@@ -190,7 +190,7 @@ enabled = false          # 自动造词总开关
 
 ## 拼音引擎（schema.pinyin）
 
-所有拼音类方案（全拼 / 双拼 / 混输拼音子方案 / 临时拼音反查）共用，无方案级 override。
+所有拼音类方案（全拼 / 双拼 / 混输拼音子方案 / 临时拼音反查）共用。除 `separator` 外无方案级 override——方案文件的 `[pinyin] separator` 会盖过这里的值，不写则回落到这里。出厂就靠它让全拼与双拼分头处置反引号：全拼拿它当分隔符，双拼拿它进辅助码。
 
 ```toml
 [schema.pinyin]
