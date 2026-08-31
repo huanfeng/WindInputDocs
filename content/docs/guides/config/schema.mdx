@@ -203,7 +203,7 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 | --- | --- | --- | --- | --- |
 | `show_code_hint` | 布尔 | — | `true` | 显示编码提示 |
 | `use_smart_compose` | 布尔 | — | `true` | 智能组词 |
-| `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = `'` 未被占作选择键时用 `'`、否则用反引号；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼方案下不生效 |
+| `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = 自动挑一个**空闲**的符号键（未被选词键、也未被本方案 `[key_actions]` 占用）：先看 `'`，再看反引号，都不空闲就不启用；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼同样支持，但 `auto` 下不会占键（`'` 是选词键、反引号归辅助码），要用得显式配 `quote` |
 
 ## 双拼（schema.pinyin.shuangpin）
 
