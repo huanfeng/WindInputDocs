@@ -50,10 +50,12 @@ export default {
   async scheduled(_event, env, ctx): Promise<void> {
     ctx.waitUntil(
       checkAllMirrors(env).then((outcomes) => {
-        // 输出到 Workers 日志（observability 已开），下线事件在这里留痕
+        // 输出到 Workers 日志（observability 已开），下线/恢复/删除事件在这里留痕
         for (const o of outcomes) {
           if (!o.ok) console.warn(`镜像探活失败 ${o.key}：${o.status}`);
           if (o.disabled) console.error(`镜像已自动下线 ${o.key}`);
+          if (o.recovered) console.log(`镜像已自动恢复 ${o.key}`);
+          if (o.deleted) console.warn(`非最新版本镜像已失效，自动删除 ${o.key}`);
         }
       }),
     );

@@ -17,30 +17,12 @@
  *
  * 默认不启用，需显式设 GATEWAY_ENABLED=1。
  */
+import { parseArtifact } from "./artifacts.mjs";
 import { bumpCount } from "./stats.mjs";
 import { enabledMirrors } from "./mirrors.mjs";
 
 const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE ?? "https://r2.windinput.com";
 const DOCS_BASE = process.env.DOCS_BASE ?? "https://windinput.com";
-
-/**
- * 安装包命名口径。与 worker/src/env.ts 的 ARTIFACTS、edge/gateway.js 的同名常量
- * 三处一致——**加平台要三处一起加**。分散是部署形态决定的（一份跑在边缘、一份
- * 跑在这里、一份是待退役的 Worker），不是遗漏。
- */
-const ARTIFACTS = [
-  { re: /^WindInput-Setup-(.+)\.exe$/i, platform: "windows" },
-  { re: /^WindInput-Portable-(.+)\.zip$/i, platform: "windows-portable" },
-  { re: /^WindInput-(.+)-macOS\.pkg$/i, platform: "macos" },
-];
-
-function parseArtifact(key) {
-  for (const { re, platform } of ARTIFACTS) {
-    const m = re.exec(key);
-    if (m) return { version: m[1], platform };
-  }
-  return null;
-}
 
 /**
  * 是否算作「一次下载的起点」。口径与 Worker 版完全一致：无 Range（浏览器点击、

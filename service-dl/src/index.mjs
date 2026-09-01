@@ -196,6 +196,8 @@ const probeTimer = setInterval(
     for (const o of outcomes) {
       if (!o.ok) console.warn(`镜像探活失败 ${o.key}：${o.status}`);
       if (o.disabled) console.error(`镜像已自动下线 ${o.key}`);
+      if (o.recovered) console.log(`镜像已自动恢复 ${o.key}`);
+      if (o.deleted) console.warn(`非最新版本镜像已失效，自动删除 ${o.key}`);
     }
   },
   PROBE_INTERVAL_MIN * 60 * 1000,

@@ -15,7 +15,13 @@
  *    放在境外边缘节点上跑既慢又测不准」——这正是登记校验被留在 scripts/mirror.mjs
  *    的原因。服务跑在香港 VPS 上，到国内网盘的链路比 CF 边缘接近真实用户得多，
  *    探活结果第一次称得上可信。
+ *
+ * 3. **探活范围与「最新版本自动恢复」搬自 worker/src/mirrors.ts 的同名逻辑**——
+ *    旧版本下线不再探（需要人 `pnpm mirror on` 手动确认），最新版本持续探、
+ *    成功就自动重新启用；最新版本判定同样不引入配置项，直接从 mirrors 表
+ *    自己的 key 里取最大版本号。
  */
+import { parseArtifact } from "./artifacts.mjs";
 
 const FETCH_TIMEOUT_MS = 12_000;
 const PROBE_MAX_HOPS = 5;
@@ -45,29 +51,76 @@ export async function enabledMirrors(db) {
 // ── 定时探活 ────────────────────────────────────────────────────────────
 
 /**
- * 对所有启用中的镜像跑一次可用性检查，连续失败达阈值则自动下线回落 R2。
+ * 探活范围：启用中的镜像照常探（可能因失败下线）；已停用的镜像默认不再探——
+ * 「下线不自动恢复」是刻意设计，见 checkOne 顶部。唯一例外是**最新版本**：
+ * 它的下载最集中，网盘抖动一次就要等人工巡检才能恢复，等不起。
  *
- * 只查 enabled 的行：已下线的镜像不会自动恢复——恢复应当是人确认网盘那边真的
- * 修好之后的显式动作（`pnpm mirror on <版本>`），自动来回切换只会让问题更难追。
+ * 「最新版本」不新增配置项——那只会重蹈这次的覆辙（需要人在每次发版时记得
+ * 同步一个数字，忘了就是这次的下线好几天没人发现）。改从 mirrors 表自己的
+ * key 推：所有已登记对象名解析出的版本号取最大值，谁登记了新版本的镜像，
+ * 「最新」就自动跟着往前挪一格，不需要另一处手动维护。与 worker/src/mirrors.ts
+ * 的同名逻辑保持一致。
  */
 export async function checkAllMirrors(db) {
   let rows;
   try {
-    const { results } = await db
-      .prepare("SELECT * FROM mirrors WHERE enabled = 1")
-      .all();
+    const { results } = await db.prepare("SELECT * FROM mirrors").all();
     rows = results ?? [];
   } catch (e) {
     console.error("探活取表失败：", e?.message ?? e);
     return [];
   }
 
+  const latest = latestVersion(rows);
+  const targets = rows.filter(
+    (r) => r.enabled === 1 || parseArtifact(r.key)?.version === latest,
+  );
+
   const outcomes = [];
-  for (const row of rows) outcomes.push(await checkOne(db, row));
+  for (const row of targets) {
+    outcomes.push(await checkOne(db, row, parseArtifact(row.key)?.version === latest));
+  }
   return outcomes;
 }
 
-async function checkOne(db, row) {
+/** 已登记镜像里版本号最大的那个（数字段逐段比较）。表空则 null。 */
+function latestVersion(rows) {
+  let best = null;
+  for (const row of rows) {
+    const v = parseArtifact(row.key)?.version;
+    if (v && (best === null || compareVersions(v, best) > 0)) best = v;
+  }
+  return best;
+}
+
+/** 数字段逐段比较，如 `0.119.0` vs `0.13.1-alpha`；预发布后缀视为比同号正式版低。 */
+function compareVersions(a, b) {
+  const parse = (v) => {
+    const [core, pre] = v.split("-", 2);
+    return { nums: core.split(".").map(Number), pre: pre ?? null };
+  };
+  const pa = parse(a);
+  const pb = parse(b);
+  const len = Math.max(pa.nums.length, pb.nums.length);
+  for (let i = 0; i < len; i++) {
+    const diff = (pa.nums[i] ?? 0) - (pb.nums[i] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  if (pa.pre === pb.pre) return 0;
+  if (pa.pre === null) return 1; // 正式版 > 预发布
+  if (pb.pre === null) return -1;
+  return pa.pre < pb.pre ? -1 : 1;
+}
+
+/**
+ * 恢复应当是人确认网盘那边真的修好之后的显式动作（`pnpm mirror on <对象名>`），
+ * 自动来回切换只会让问题更难追——这条不变量对**非最新版本**依然成立：
+ * 它们下线之后不会被探活碰到（见 checkAllMirrors 的 targets 过滤），需要人手动处理。
+ *
+ * 最新版本是这条不变量刻意开的口子：它一直在被探，失败达阈值只是「关」，
+ * 一旦下次探活成功就自动「开」回来，不等人巡检——发布初期这几分钟等不起。
+ */
+async function checkOne(db, row, isLatest) {
   const now = new Date().toISOString();
   let ok = false;
   let status;
@@ -86,26 +139,41 @@ async function checkOne(db, row) {
     status = `请求失败：${e instanceof Error ? e.message : String(e)}`;
   }
 
+  const wasEnabled = row.enabled === 1;
+  const recovered = ok && !wasEnabled;
   const failCount = ok ? 0 : row.fail_count + 1;
-  const disable = !ok && failCount >= FAIL_THRESHOLD;
+  const hitsThreshold = wasEnabled && !ok && failCount >= FAIL_THRESHOLD;
+
+  // 非最新版本一旦触发下线阈值，直接删行而不是停用——旧版本失效是预期状态，
+  // 不会再有人巡检，留一条停用记录只会让 mirror ls 越滚越长。最新版本走不到
+  // 这个分支（isLatest 时下面保留该行，好让它继续被探、能自动恢复）。
+  if (hitsThreshold && !isLatest) {
+    await db.prepare("DELETE FROM mirrors WHERE key = ?1").bind(row.key).run();
+    return { key: row.key, ok, status, disabled: false, recovered: false, deleted: true };
+  }
+
+  const nextEnabled = ok ? 1 : hitsThreshold ? 0 : row.enabled;
 
   await db
     .prepare(
       `UPDATE mirrors
-          SET fail_count = ?2, last_check = ?3, last_status = ?4,
-              enabled = CASE WHEN ?5 = 1 THEN 0 ELSE enabled END
+          SET fail_count = ?2, last_check = ?3, last_status = ?4, enabled = ?5
         WHERE key = ?1`,
     )
     .bind(
       row.key,
       failCount,
       now,
-      disable ? `${status}（连续 ${failCount} 次失败，已自动下线）` : status,
-      disable ? 1 : 0,
+      recovered
+        ? "ok（探活恢复，已自动重新启用）"
+        : hitsThreshold
+          ? `${status}（连续 ${failCount} 次失败，已自动下线）`
+          : status,
+      nextEnabled,
     )
     .run();
 
-  return { key: row.key, ok, status, disabled: disable };
+  return { key: row.key, ok, status, disabled: hitsThreshold, recovered, deleted: false };
 }
 
 /**
