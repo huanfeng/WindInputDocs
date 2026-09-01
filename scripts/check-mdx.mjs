@@ -13,8 +13,10 @@
  *
  * 3. **未发布版本的 `<Since>` 只能标在能整块藏住的位置**。未发布内容由
  *    src/lib/remark-unreleased.ts 在构建期打标记、CSS 藏起来，能藏的单位是小节标题、
- *    表格行、列表项。写在普通段落中间的标注藏不掉——抽掉它会把句子拆散，留着又会把
- *    还没发布的功能直接摆给读者。这类只能改写句子，或挪进列表项。
+ *    表格行、列表项，外加正文开头独立成行的整页标注（整页那档还要连侧栏、站点地图、
+ *    搜索、llms.txt 一起摘，见 src/lib/source.ts）。写在普通段落中间的标注藏不掉——
+ *    抽掉它会把句子拆散，留着又会把还没发布的功能直接摆给读者。这类只能改写句子，
+ *    或挪进列表项。
  *
  * 检查前会把 frontmatter、围栏代码块、行内代码、MDX 注释统一遮蔽成空格，
  * 因此行号与列号保持与原文一致。
@@ -116,6 +118,8 @@ const unreleasedProblems = [];
 const HEADING_RE = /^#{1,6}\s+(.+)$/;
 const SINCE_RE = /<Since\s+v="[^"]*"\s*\/>/;
 const SINCE_VERSION_RE = /<Since\s+v="([\d.]+)"\s*\/>/g;
+/** 整页标注：正文开头独占一行的 `<Since>`，见 src/lib/unreleased.ts 的 pageSinceVersion。 */
+const PAGE_SINCE_RE = /^<Since\s+v="[\d.]+"\s*\/>$/;
 /** 行尾的显式锚点声明，如 `[#top-protect]`。 */
 const ANCHOR_RE = /\[#[^\]]+\]\s*$/;
 /** 能被整块藏住的位置：表格行、列表项（标题另行判断）。 */
@@ -143,6 +147,8 @@ for (const root of ROOTS) {
     const source = readFileSync(file, "utf8");
     const masked = mask(source);
     const lines = source.split("\n");
+    // 第一个标题之前是「整页」的地盘，往下才是各小节自己的
+    let beforeFirstHeading = true;
 
     masked.split("\n").forEach((line, index) => {
       const trimmed = line.trim();
@@ -157,7 +163,11 @@ for (const root of ROOTS) {
 
       // 未发布标注只有落在能整块藏住的位置才不会泄露
       const hideable =
-        heading || TABLE_ROW_RE.test(trimmed) || LIST_ITEM_RE.test(trimmed);
+        heading ||
+        (beforeFirstHeading && PAGE_SINCE_RE.test(trimmed)) ||
+        TABLE_ROW_RE.test(trimmed) ||
+        LIST_ITEM_RE.test(trimmed);
+      if (heading) beforeFirstHeading = false;
       if (!hideable) {
         SINCE_VERSION_RE.lastIndex = 0;
         for (const m of trimmed.matchAll(SINCE_VERSION_RE)) {
@@ -231,8 +241,9 @@ if (unreleasedProblems.length > 0) {
   console.error(
     `\n共 ${unreleasedProblems.length} 处。已发布的最新版本是 v${currentVersion}，` +
       `更高版本的内容会被构建期标记 + CSS 藏起来，但能藏的单位是**小节标题、表格行、\n` +
-      `列表项**——段落中间的标注抽掉会把句子拆散，只能原样显示，等于把还没发布的功能\n` +
-      `直接摆给读者。请改写句子把它拆出来，或挪进列表项 / 单独小节。`,
+      `列表项，以及正文开头独占一行的整页标注**——段落中间的标注抽掉会把句子拆散，\n` +
+      `只能原样显示，等于把还没发布的功能直接摆给读者。\n` +
+      `请改写句子把它拆出来，或挪进列表项 / 单独小节；整页都是新功能则标在正文开头。`,
   );
 }
 process.exit(1);

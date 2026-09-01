@@ -9,6 +9,8 @@
 import { isUnreleased } from "./releases";
 
 const SINCE_RE = /<Since\s+v="([\d.]+)"\s*\/>/;
+/** 整页标注：`<Since>` 独占一行，行内不带别的东西。 */
+const PAGE_SINCE_RE = /^<Since\s+v="([\d.]+)"\s*\/>$/;
 const HEADING_RE = /^(#{1,6})\s+/;
 const FENCE_RE = /^([ \t]*)(`{3,}|~{3,})/;
 const TABLE_ROW_RE = /^\|/;
@@ -18,6 +20,41 @@ const LIST_ITEM_RE = /^[-*+]\s/;
 function marksUnreleased(line: string): boolean {
   const m = SINCE_RE.exec(line);
   return m ? isUnreleased(m[1]) : false;
+}
+
+/** 页首「整页都是新功能」那行标注的版本，没有则 null。
+ *
+ * 按 AGENTS.md 的约定，整页新增时 `<Since>` 独立成行写在正文开头，小节新增则挂在
+ * 标题末尾。位置之差不只是排版：整页未发布要藏的不止正文，还有侧栏条目、右侧目录、
+ * 搜索索引与导给模型的纯文本——正文藏了而入口还在，读者点进去只会看到一片空白。
+ * 那几处各自在别的模块里，都以这个函数为判据（见 lib/source.ts 的 unreleasedPages）。
+ *
+ * 扫描止于第一个标题：再往下是小节的地盘，那里的标注只管它自己那一节。
+ * 传进来的文本带不带 frontmatter 都行——两种调用方都有（源码 / 编译后的 processed）。 */
+export function pageSinceVersion(markdown: string): string | null {
+  const lines = markdown.split("\n");
+  let inFrontmatter = lines[0]?.trim() === "---";
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+
+    if (inFrontmatter) {
+      if (i > 0 && trimmed === "---") inFrontmatter = false;
+      continue;
+    }
+
+    if (HEADING_RE.test(trimmed)) return null;
+    const m = PAGE_SINCE_RE.exec(trimmed);
+    if (m) return m[1];
+  }
+
+  return null;
+}
+
+/** 这一页是不是整页都还没发布。按 url 查请用 lib/source.ts 的 isUnreleasedPage。 */
+export function isUnreleasedPageText(markdown: string): boolean {
+  const version = pageSinceVersion(markdown);
+  return version ? isUnreleased(version) : false;
 }
 
 /**
