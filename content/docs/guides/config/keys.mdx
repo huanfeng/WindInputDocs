@@ -123,7 +123,9 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
 | `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**（原 `keys.schema_hotkeys` 的语义）。写在方案级时切过去就没有回程了，见下方提示 |
 | `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
-| `none` | 显式什么都不做，用于在方案级覆盖里**关掉**某个全局绑定 |
+| `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
+| `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |
+| `none` | 显式什么都不做。**这是关掉低层预置绑定的唯一手段**：本表逐键深合并，在设置页删掉一行压不住随程序分发的 `data\config.toml`（或定制版 `data_custom\config.toml`）里写的同一个键——只有显式写 `none` 才是「本层表态：这个键别干活」。方案级覆盖里关掉某个全局绑定同理 |
 
 写错的动词会被**整条丢弃**并在日志里告警，不会静默变成别的功能。
 
@@ -240,6 +242,7 @@ tab = "none"              # 本方案关掉全局配的 Tab
 ```toml
 [keys]
 toggle_toolbar = 'ctrl+shift+\'       # 显示/隐藏工具栏
+softkeyboard = "ctrl+shift+k"         # 显示/隐藏软键盘
 open_settings = "ctrl+shift+]"        # 打开设置工具
 add_word = "ctrl+equal"               # 就地加词（从当前组合造词）
 open_add_word_dialog = "ctrl+shift+equal" # 打开加词小窗
@@ -249,6 +252,7 @@ activate_ime = "ctrl+shift+["         # 切换到本输入法（系统级）
 | 键 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `toggle_toolbar` | 热键字符串 | `ctrl+shift+\` | 显示/隐藏常驻工具栏 |
+| `softkeyboard` <Since v="0.120" /> | 热键字符串 | `ctrl+shift+k` | 显示/隐藏[软键盘](/docs/guides/soft-keyboard)面板。**清空即禁用**（面板仍可从工具栏与主菜单打开）。想给某一个面配直通车用 `key_actions` 的 `softkeyboard:<面id>` |
 | `open_settings` | 热键字符串 | `ctrl+shift+]` | 打开设置工具窗口 |
 | `add_word` | 热键字符串 | `ctrl+equal` | 就地加词，仅中文模式生效。该键额外走系统级全局拦截，规避 QQNT / Tabby 等宿主的加速键双处理 |
 | `open_add_word_dialog` | 热键字符串 | `ctrl+shift+equal` | 打开独立加词小窗，仅中文模式生效，同样走全局拦截 |
