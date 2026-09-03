@@ -9,6 +9,8 @@ import { Since } from "@/components/since";
 
 配置分两处：**方案文件**的 `[overlay]` 段声明「本方案可被临时叠加进入」并描述进入期间的表现；**引导键与直达热键**写在 `config.toml` 的 `[keys].key_actions`。方案文件与词库要自己准备。
 
+- 只想打冷僻汉字、emoji 或各类符号的，**不必自建**——用[生僻字模式](/docs/guides/rare-char-mode) <Since v="0.120" />，它直接拿当前方案的编码来打，绑个键就能用。
+
 <Callout type="warn" title="特殊模式默认为空">
 安装后没有任何可用的特殊模式——包括「快符」。它不是开箱即用的功能，而是一套让你自建小码表的机制：需要一个带 `[overlay]` 段的方案文件（连同码表词库），以及指向它的引导键。唯一预置的引导键模式是 `;` 触发的「快捷」混输模式，见[快捷输入](/docs/settings/input/quick-input)。
 

@@ -6,6 +6,7 @@
     "frequency",
     "schemas",
     "special-modes",
+    "rare-char-mode",
     "import-export",
     "custom-edition",
     "compat",
