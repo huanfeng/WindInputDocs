@@ -77,7 +77,7 @@ import { Since } from "@/components/since";
 
 日志里**没有**对应记录，说明你的文件没被认到——常见原因是路径层级或文件名不对（必须与 `data\` 下的相对路径完全一致），或者放进了 `%LOCALAPPDATA%` 而不是 `%APPDATA%`。
 
-### 生效时机与撤销
+### 生效时机与撤销 [#apply-timing]
 
 放置或修改覆盖文件后**需要重启输入法**（`system.phrases.toml`、`system.quick.toml`、`pinyin_map.txt`、`common_chars.txt` 必须重启服务；方案、词库、主题也可在设置工具里刷新 / 重建缓存）。程序不监视这些文件的变化。
 
