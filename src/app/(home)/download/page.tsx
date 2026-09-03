@@ -20,12 +20,11 @@ const latest = releases[0];
 
 export const metadata: Metadata = {
   title: "下载",
-  description:
-    "下载清风输入法 Windows / macOS 安装包（Cloudflare R2 国内直连）",
+  description: "下载清风输入法 Windows / macOS 安装包",
 };
 
-// download 可选：Windows 安装版的直链已在页首的主按钮给出，卡片里不重复；
-// macOS 包在页首没有位置，故由卡片自带下载入口。
+// download 可选：Windows / macOS 的直链已在页首的按钮给出，卡片里不重复；
+// 便携模式由安装包释放，没有独立下载包，故卡片不带下载入口。
 interface Edition {
   icon: LucideIcon;
   title: string;
@@ -46,16 +45,6 @@ const editions: Edition[] = [
     ],
   },
   {
-    icon: HardDrive,
-    title: "便携模式",
-    badge: "由安装包释放",
-    points: [
-      "不单独提供下载包：运行安装包，选择便携解压模式释放到任意目录",
-      "由启动器 wind_portable.exe 注册组件与开机启动",
-      "用户数据固定在程序目录下的 userdata",
-    ],
-  },
-  {
     icon: Apple,
     title: "macOS 版",
     badge: "macOS 12+",
@@ -66,6 +55,16 @@ const editions: Edition[] = [
       "没有工具栏（改用菜单栏指示器），菜单由系统渲染、不受主题控制",
     ],
     download: { url: macDownloadUrl, label: macFileName },
+  },
+  {
+    icon: HardDrive,
+    title: "便携模式",
+    badge: "由安装包释放",
+    points: [
+      "不单独提供下载包：运行安装包，选择便携解压模式释放到任意目录",
+      "由启动器 wind_portable.exe 注册组件与开机启动",
+      "用户数据固定在程序目录下的 userdata",
+    ],
   },
 ];
 
@@ -88,6 +87,12 @@ export default function DownloadPage() {
           >
             下载 {setupFileName}
           </a>
+          <a
+            href={macDownloadUrl}
+            className="rounded-full border px-6 py-2.5 font-medium transition-colors hover:bg-fd-accent"
+          >
+            下载 macOS 版
+          </a>
           <Link
             href="/docs/start/installation"
             className="rounded-full border px-6 py-2.5 font-medium transition-colors hover:bg-fd-accent"
@@ -95,13 +100,6 @@ export default function DownloadPage() {
             安装指引
           </Link>
         </div>
-        <p className="mt-4 text-sm text-fd-muted-foreground">
-          Cloudflare R2 全球 CDN，国内直连 · 备用渠道：
-          <a href={releasesUrl} className="text-fd-primary hover:underline">
-            GitHub Releases
-          </a>
-          （国内访问较慢）
-        </p>
         <DownloadStats />
       </div>
 
@@ -199,6 +197,13 @@ export default function DownloadPage() {
               更新记录
             </Link>
             。
+          </li>
+          <li>
+            直连下载较慢或访问受限时，也可从{" "}
+            <a href={releasesUrl} className="text-fd-primary hover:underline">
+              GitHub Releases
+            </a>{" "}
+            获取安装包。
           </li>
         </ul>
       </div>
