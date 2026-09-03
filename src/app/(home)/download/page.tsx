@@ -23,14 +23,13 @@ export const metadata: Metadata = {
   description: "下载清风输入法 Windows / macOS 安装包",
 };
 
-// download 可选：Windows / macOS 的直链已在页首的按钮给出，卡片里不重复；
-// 便携模式由安装包释放，没有独立下载包，故卡片不带下载入口。
+// 卡片只回答「三种形态有什么区别」，不带任何下载入口——直链统一由页首的两个按钮
+// 给出。同一个包若在两处各出现一次，读者会怀疑它们是不是不同的东西。
 interface Edition {
   icon: LucideIcon;
   title: string;
   badge?: string;
   points: string[];
-  download?: { url: string; label: string };
 }
 
 const editions: Edition[] = [
@@ -54,7 +53,6 @@ const editions: Edition[] = [
       "标点配对、命令直通车按键合成需授权「辅助功能」",
       "没有工具栏（改用菜单栏指示器），菜单由系统渲染、不受主题控制",
     ],
-    download: { url: macDownloadUrl, label: macFileName },
   },
   {
     icon: HardDrive,
@@ -80,22 +78,32 @@ export default function DownloadPage() {
           </code>
           {" · "}Windows 10 / 11（64 位） · macOS 12+
         </p>
+        {/* 两个平台按钮同构：主文字给平台，小字给完整文件名（含版本号）。
+            文件名用等宽字体——两侧长度恰好相同，按钮宽度自然对齐，不必钉死宽度。 */}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a
             href={setupDownloadUrl}
-            className="rounded-full bg-fd-primary px-6 py-2.5 font-medium text-fd-primary-foreground transition-opacity hover:opacity-90"
+            className="rounded-2xl bg-fd-primary px-6 py-3 text-fd-primary-foreground transition-opacity hover:opacity-90"
           >
-            下载 {setupFileName}
+            <span className="block font-medium">下载 Windows 版</span>
+            <span className="mt-0.5 block font-mono text-xs text-fd-primary-foreground/75">
+              {setupFileName}
+            </span>
           </a>
           <a
             href={macDownloadUrl}
-            className="rounded-full border px-6 py-2.5 font-medium transition-colors hover:bg-fd-accent"
+            className="rounded-2xl border px-6 py-3 transition-colors hover:bg-fd-accent"
           >
-            下载 macOS 版
+            <span className="block font-medium">下载 macOS 版</span>
+            <span className="mt-0.5 block font-mono text-xs text-fd-muted-foreground">
+              {macFileName}
+            </span>
           </a>
+        </div>
+        <div className="mt-4 flex justify-center">
           <Link
             href="/docs/start/installation"
-            className="rounded-full border px-6 py-2.5 font-medium transition-colors hover:bg-fd-accent"
+            className="rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-fd-accent"
           >
             安装指引
           </Link>
@@ -150,14 +158,6 @@ export default function DownloadPage() {
                 <li key={p}>{p}</li>
               ))}
             </ul>
-            {e.download && (
-              <a
-                href={e.download.url}
-                className="mt-4 inline-block break-all rounded-full border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-fd-accent"
-              >
-                下载 {e.download.label}
-              </a>
-            )}
           </div>
         ))}
       </div>
