@@ -10,7 +10,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SponsorQr } from "@/components/sponsor-qr";
-import { githubUrl } from "@/lib/shared";
+import { forumUrl, githubUrl } from "@/lib/shared";
 import { contactEmail, qqGroup } from "@/lib/sponsor";
 
 export const metadata: Metadata = {
@@ -18,8 +18,6 @@ export const metadata: Metadata = {
   description:
     "清风输入法开源免费。你可以通过 Star、反馈、贡献码表与主题来支持它，也可以选择赞助——赞助为自愿赠与，不产生任何特权。",
 };
-
-const issuesUrl = `${githubUrl}/issues`;
 
 // 这些方式排在赞助之前：它们对项目的价值本就不低于资金，而且能让每位读者都找到
 // 自己的位置，整页不至于只剩「要钱」一个意图。
@@ -34,9 +32,9 @@ const supportWays = [
   {
     icon: Bug,
     title: "反馈问题与建议",
-    body: "一份写清了复现步骤与环境的 Issue，往往比十句「有 bug」更有价值。",
-    href: issuesUrl,
-    action: "提交 Issue",
+    body: "一份写清了复现步骤与环境的帖子，往往比十句「有 bug」更有价值。",
+    href: forumUrl,
+    action: "去社区反馈",
   },
   {
     icon: Palette,
@@ -53,7 +51,7 @@ const supportWays = [
   {
     icon: MessageCircle,
     title: "帮忙答疑",
-    body: "在 QQ 群或 Issue 区回答别人的问题，能省下大量本该用于开发的时间。",
+    body: "在 QQ 群或社区论坛里回答别人的问题，能省下大量本该用于开发的时间。",
     href: qqGroup.url,
     action: "加入 QQ 群",
   },
@@ -88,7 +86,7 @@ const principles = [
   },
   {
     title: "不产生特权",
-    body: "赞助不会提升 Issue 的处理优先级，不承诺定制开发，也不承诺任何功能的开发时间表。项目路线图始终由维护者依据项目愿景与社区需求决定。",
+    body: "赞助不会提升问题的处理优先级，不承诺定制开发，也不承诺任何功能的开发时间表。项目路线图始终由维护者依据项目愿景与社区需求决定。",
   },
   {
     title: "不让渡权益",
@@ -218,8 +216,8 @@ export default function SponsorPage() {
           <li className="flex items-center gap-2">
             <Bug className="size-4 shrink-0" aria-hidden />
             问题与功能建议：
-            <Link href={issuesUrl} className="text-fd-primary hover:underline">
-              GitHub Issue
+            <Link href={forumUrl} className="text-fd-primary hover:underline">
+              社区论坛
             </Link>
           </li>
           <li className="flex items-center gap-2">
