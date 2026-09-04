@@ -2,29 +2,7 @@
 
 import { EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
-
-/** URL 参数与 localStorage 键，两处必须与 previewBootstrap 里的字面量一致。 */
-const PARAM = "preview";
-const STORAGE_KEY = "wi-preview";
-
-/**
- * 预览模式的开关脚本，注入到 `<head>` 里同步执行。
- *
- * 必须同步、且必须在 body 之前：晚一步执行，未发布的内容就会先渲染出来再被藏掉，
- * 闪那一下等于没藏。所以这里是一段裸字符串而不是 React 组件——组件最早也要等到
- * 水合，来不及。
- *
- * `?preview=1` 开启并记住，`?preview=0` 关闭并忘掉；开过之后不带参数也保持开启，
- * 免得每次翻页都要重新加参数。
- */
-export const previewBootstrap = `
-try {
-  var p = new URLSearchParams(location.search).get("${PARAM}");
-  if (p === "1" || p === "0") localStorage.setItem("${STORAGE_KEY}", p);
-  if (localStorage.getItem("${STORAGE_KEY}") === "1")
-    document.documentElement.setAttribute("data-preview", "1");
-} catch (e) {}
-`;
+import { PREVIEW_ATTR, PREVIEW_KEY } from "@/lib/bootstrap";
 
 /**
  * 预览模式的浮标。
@@ -41,18 +19,18 @@ export function PreviewBanner() {
   // 读的是 bootstrap 脚本在 <html> 上留下的标记，而不是再读一次 localStorage：
   // 那段脚本是唯一的判定处，两边各判一次迟早会出现只有一边认账的状态。
   useEffect(() => {
-    setActive(document.documentElement.hasAttribute("data-preview"));
+    setActive(document.documentElement.hasAttribute(PREVIEW_ATTR));
   }, []);
 
   if (!active) return null;
 
   const exit = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, "0");
+      localStorage.setItem(PREVIEW_KEY, "0");
     } catch {
       // 隐私模式下写不进去，退出仍然生效到本次会话结束
     }
-    document.documentElement.removeAttribute("data-preview");
+    document.documentElement.removeAttribute(PREVIEW_ATTR);
     setActive(false);
   };
 

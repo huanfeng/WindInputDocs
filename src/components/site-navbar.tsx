@@ -31,6 +31,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { type ComponentProps, useState } from "react";
 import logo from "@/assets/logo.png";
+import { SiteNotice } from "@/components/site-notice";
 import { cn } from "@/lib/cn";
 import { commentsEnabled } from "@/lib/comments";
 import { appName, forumUrl, githubUrl, navLinks } from "@/lib/shared";
@@ -129,6 +130,7 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
             </nav>
 
             <div className="ms-auto flex min-w-0 items-center gap-2">
+              <SiteNotice />
               {commentsEnabled && <CommentsLink pathname={pathname} />}
               <ForumLink />
               <FullSearchTrigger
