@@ -34,9 +34,15 @@
   contain: inline-size;
 }
 
-/* 全站公告胶囊（src/components/site-notice.tsx）。关闭状态由 <head> 里的
-   noticeBootstrap 同步写在 <html> 上，这里直接藏掉——交给 React 判断会先渲染
-   再摘掉，关过它的人每翻一页都得再看它闪一次。 */
+/* 全站公告胶囊（src/components/site-notice.tsx）的两个状态。都由 <head> 里的
+   noticeBootstrap 同步写在 <html> 上，这里直接按标记藏——交给 React 判断会先
+   渲染再摘掉，每翻一页都得重闪一次。
+
+   已读（点进过论坛）只摘掉未读红点，入口留着还能再点；不感兴趣（点 ×）才整枚消失。 */
+[data-notice-seen] #site-notice [data-notice-dot] {
+  display: none;
+}
+
 [data-notice-dismissed] #site-notice {
   display: none;
 }
