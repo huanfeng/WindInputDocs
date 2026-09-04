@@ -19,14 +19,9 @@ export const PREVIEW_PARAM = "preview";
 export const PREVIEW_KEY = "wi-preview";
 export const PREVIEW_ATTR = "data-preview";
 
-/**
- * 全站公告的两个状态，各自一个 localStorage 键（存的是公告 id）与 `<html>` 标记。
- * 「读过」和「不想再看见」是两件事，合成一个键的话，点进论坛扫一眼回来入口就没了。
- */
+/** 全站公告的已读状态：localStorage 键（存的是公告 id）与写在 `<html>` 上的标记 */
 export const NOTICE_SEEN_KEY = "wi-notice-seen";
 export const NOTICE_SEEN_ATTR = "data-notice-seen";
-export const NOTICE_KEY = "wi-notice";
-export const NOTICE_ATTR = "data-notice-dismissed";
 
 /**
  * 预览模式的开关。必须同步、且必须在 body 之前：晚一步执行，未发布的内容就会
@@ -47,20 +42,15 @@ try {
 `;
 
 /**
- * 全站公告的已读与关闭状态，同样必须早于首帧：静态导出的每一页 HTML 里都带着
- * 那枚胶囊连同它的未读红点，等水合后再摘掉，每翻一页都要重闪一次。
+ * 全站公告的已读状态，同样必须早于首帧：静态导出的每一页 HTML 里都带着那枚胶囊
+ * 连同它的未读红点，等水合后再摘掉，每翻一页都要重闪一次。
  *
- * 比对的是公告 id 而不是 `true`：换公告时连 id 一起换，比对自然不相等，胶囊与
- * 红点对所有人重新出现。没有公告时整段为空串。
- *
- * 刻意不用变量存那个 id：这段脚本裸跑在全局作用域里，一个 `var` 就是一个 window
- * 属性。宁可把字面量写两遍。
+ * 比对的是公告 id 而不是 `true`：换公告时连 id 一起换，比对自然不相等，红点对
+ * 所有人重新亮起。没有公告时整段为空串。
  */
 export const noticeBootstrap = siteNotice
   ? `
 try {
-  if (localStorage.getItem("${NOTICE_KEY}") === ${JSON.stringify(siteNotice.id)})
-    document.documentElement.setAttribute("${NOTICE_ATTR}", "1");
   if (localStorage.getItem("${NOTICE_SEEN_KEY}") === ${JSON.stringify(siteNotice.id)})
     document.documentElement.setAttribute("${NOTICE_SEEN_ATTR}", "1");
 } catch (e) {}
