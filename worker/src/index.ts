@@ -25,13 +25,13 @@ import { handleDownload } from "./download";
 import type { Env } from "./env";
 import { GITHUB_SYNC_CRON, syncGithubDownloads } from "./github";
 import { checkAllMirrors } from "./mirrors";
-import { handleStats } from "./stats";
+import { DETAIL_PATH, handleStats, STATS_PATH } from "./stats";
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === "/api/stats") {
+    if (url.pathname === STATS_PATH || url.pathname === DETAIL_PATH) {
       return handleStats(request, env, ctx);
     }
 

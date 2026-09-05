@@ -81,6 +81,9 @@ export const macDownloadUrl = `${r2Base}/${macFileName}`;
 // Worker 未部署时前端静默降级。
 export const statsUrl = `${r2Base}/api/stats`;
 
-// 明细档：额外返回版本 × 平台 × 来源的原始行，供下载页的统计面板展开时拉取。
+// 明细档：额外返回版本 × 平台的原始行，供下载页的统计面板展开时拉取。
 // 与精简档分开是因为明细有百来行，而绝大多数访问只看一眼徽章，不该为面板付流量。
-export const statsDetailUrl = `${statsUrl}?detail=1`;
+//
+// 用**路径**而不是 ?detail=1 参数：dl.windinput.com 的解析在 EdgeOne，它默认
+// 「忽略参数缓存」，带参数的请求会命中精简档那条缓存，面板永远等不到数据。
+export const statsDetailUrl = `${statsUrl}/detail`;
