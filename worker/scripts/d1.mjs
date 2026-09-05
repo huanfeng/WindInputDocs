@@ -24,69 +24,15 @@ const ROOT = join(HERE, "..");
 const WRANGLER = join(ROOT, "node_modules", "wrangler", "bin", "wrangler.js");
 const DB = "windinput-downloads";
 
-// 迁移到自建服务（../service-dl）后的数据后端。两个变量都设了就走 HTTP，
-// 否则维持原样走 wrangler + D1 —— 迁移期两条路都要能用，好做双写对账。
-const SERVICE_URL = process.env.DL_SERVICE_URL;
-const SERVICE_TOKEN = process.env.DL_SERVICE_TOKEN;
-
-/**
- * 子进程里跑的取数脚本。
- *
- * 存在的唯一理由是**把异步 fetch 变回同步调用**：runSql 是同步函数，
- * mirror.mjs 的全部数据访问都建立在这个契约上（`const d1 = (sql) => runSql(sql)`）。
- * 改成 async 要给那 521 行里的每个调用点加 await，而它们此刻是对的、在生产上跑着。
- * 花一次进程启动的代价换零改动，对一个人工触发的运维脚本来说很划算。
- */
-const FETCH_SCRIPT = `
-let input = "";
-process.stdin.on("data", (c) => { input += c; });
-process.stdin.on("end", async () => {
-  const { url, token, sql } = JSON.parse(input);
-  try {
-    const res = await fetch(url + "/admin/sql", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-auth-token": token },
-      body: JSON.stringify({ sql }),
-    });
-    const text = await res.text();
-    if (!res.ok) { process.stderr.write("服务返回 " + res.status + "：" + text); process.exit(1); }
-    process.stdout.write(text);
-  } catch (e) {
-    process.stderr.write("请求失败：" + (e && e.message ? e.message : String(e)));
-    process.exit(1);
-  }
-});
-`;
-
-/** 走自建服务执行 SQL，返回值形状与 wrangler --json 分支完全一致。 */
-function runSqlRemote(sql) {
-  if (!SERVICE_TOKEN) {
-    throw new Error("设了 DL_SERVICE_URL 却没设 DL_SERVICE_TOKEN，服务会拒绝请求");
-  }
-  const out = execFileSync(process.execPath, ["-e", FETCH_SCRIPT], {
-    input: JSON.stringify({
-      url: SERVICE_URL.replace(/\/+$/, ""),
-      token: SERVICE_TOKEN,
-      sql,
-    }),
-    encoding: "utf8",
-    stdio: ["pipe", "pipe", "inherit"],
-  });
-  const parsed = JSON.parse(out);
-  return parsed[parsed.length - 1]?.results ?? [];
-}
-
 /**
  * 执行一条（或多条）SQL，返回最后一条语句的结果行。
  * 参数不经 shell，URL 等含特殊字符的值可以直接传。
  *
- * 后端由 DL_SERVICE_URL 决定：设了走自建服务，没设走 wrangler + D1。
- * 调用方（mirror.mjs）对此无感知 —— 这正是把切换点收在这里的目的。
+ * 保持**同步**是个契约，不是疏忽：mirror.mjs 的全部数据访问建立在
+ * `const d1 = (sql) => runSql(sql)` 这一行上。改成 async 要给那 521 行里的
+ * 每个调用点加 await，而它们此刻是对的、在生产上跑着。
  */
 export function runSql(sql, { remote = true } = {}) {
-  // 自建服务只有一个库，没有 --local/--remote 之分，remote 参数在这条路径上无意义
-  if (SERVICE_URL) return runSqlRemote(sql);
-
   const out = execFileSync(
     process.execPath,
     [

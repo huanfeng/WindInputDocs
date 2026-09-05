@@ -19,7 +19,6 @@
       "!.remember",
       "!worker",
       "!worker-comments",
-      "!service-dl",
       "!data/releases.json"
     ]
   },
