@@ -77,5 +77,10 @@ export const macFileName = `WindInput-${currentVersion}-macOS.pkg`;
 export const macDownloadUrl = `${r2Base}/${macFileName}`;
 
 // 下载计数接口，由 worker/（绑定 dl.windinput.com 的下载网关 Worker）提供。
-// 返回 { total: number, versions: { version, count }[] }。Worker 未部署时前端静默降级。
+// 数字是「站内 + GitHub Releases」合并后的口径（GitHub 侧由 Cron 每小时同步）。
+// Worker 未部署时前端静默降级。
 export const statsUrl = `${r2Base}/api/stats`;
+
+// 明细档：额外返回版本 × 平台 × 来源的原始行，供下载页的统计面板展开时拉取。
+// 与精简档分开是因为明细有百来行，而绝大多数访问只看一眼徽章，不该为面板付流量。
+export const statsDetailUrl = `${statsUrl}?detail=1`;
