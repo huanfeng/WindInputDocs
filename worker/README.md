@@ -3,8 +3,9 @@
 给 `dl.windinput.com` 的安装包下载加上**下载计数**与**线路分流**。
 
 - `GET /WindInput-*` —— 是安装包则计数 +1，然后 **302** 到实际出口：已登记镜像 → 国内网盘直链；否则 → R2 公共域。
-- `GET /api/stats` —— 返回 `{ total, versions, platforms, sources }`，供文档站下载页展示。数据落 D1，读走边缘缓存（≤5 分钟延迟）。
+- `GET /api/stats` —— 下载量统计，供文档站下载页展示。数据落 D1，读走边缘缓存（≤5 分钟延迟）。带 `?detail=1` 另给版本 × 平台的明细行。
 - Cron（每 10 分钟）—— 探活镜像，连续 2 次失败自动下线回落 R2。
+- Cron（每小时 :17）—— 同步 GitHub Releases 的下载量，与站内计数合并对外。
 
 对外的下载 URL 与文件名**始终不变**，文档站与 `latest.json` 无需改动。
 
@@ -105,6 +106,40 @@ pnpm mirror add 'https://www.senluopan.com/f/vQa5UP/WindInput-Setup-0.118.0.exe'
 
 计数双写：`downloads` 记总量（前端徽章数据源，含历史数据），`download_events` 按 `source`（`mirror` / `r2`）记渠道，用于评估分流效果。两条语句走 D1 `batch`；若 `download_events` 尚未建表，降级为只写 `downloads`。
 
+## 合并 GitHub 的下载量
+
+安装包有两条分发路径，各自计数：文档站下载按钮走本 Worker（实时递增），GitHub Releases 由 GitHub 自己计数。只报站内会系统性低估——**便携版尤其明显，它只发布在 GitHub 上**，R2 上没有这个文件，站内计数恒为 0。
+
+所以每小时 `:17` 拉一次 `GET /repos/<owner>/<repo>/releases`，写进 `github_downloads` 表，`/api/stats` 对外给的是两者合并后的数字。
+
+**两张表不能合并成一张**，因为写语义相反：
+
+| | 写法 | 语义 |
+|---|---|---|
+| `downloads` | `count = count + 1` | 每次下载递增，实时 |
+| `github_downloads` | `count = ?3` | 整行覆盖，GitHub 给的是至今累计的**绝对值快照** |
+
+把快照喂进递增路径，每小时翻一倍；把递增改成覆盖，站内实时计数被抹掉。无论选哪条更新路径，都有一半数据是错的。
+
+由此带来两个性质，展示时已如实标注，别当成 bug：
+
+- **首次同步会让总量一次性跳升**——拉回来的是从第一个版本至今的历史全量，不是从今天起的新增。
+- **GitHub 侧最多滞后一小时**，站内是实时的，合并数的更新节奏是混的。
+
+版本口径不需要归一化：同步解析的是**资产文件名**（`WindInput-Setup-0.120.1.exe`）而不是 tag（`v0.120.1`），而资产名与 R2 对象名同源于主仓 CI，直接复用 `parseArtifact()` 即可与站内计数逐字对齐。主仓新增产物类型时，`env.ts` 的 `ARTIFACTS` 加一行，同步自动跟上。
+
+同步只 UPSERT 抓到的行、**从不 DELETE**：API 失败最多让数据陈旧，不会丢数——所以失败时什么都不做就是正确的降级。
+
+### GITHUB_TOKEN（可选但建议配）
+
+匿名调 GitHub API 限额是 60 次/小时**按来源 IP** 计，而 Worker 的出站 IP 是 Cloudflare 共享地址，额度可能被同出口的其他人用光，表现为偶发 403。
+
+```bash
+wrangler secret put GITHUB_TOKEN   # 提到 5000 次/小时，按 token 计
+```
+
+读公开仓库不需要任何 scope，空权限的 fine-grained token 就够。不配也能跑。
+
 ## 首次部署
 
 前置：本机已 `wrangler login`，且拥有目标 Cloudflare 账号的 R2/D1/Workers 权限。
@@ -151,7 +186,8 @@ wrangler d1 create windinput-downloads   # 首次；把 database_id 填进 wrang
 # 已有生产数据的库先迁移（downloads 主键 version → (version, platform)），只跑一次。
 # 执行前会自动把 downloads 全表导出到 .backups/ —— D1 没有快照，出事只能靠它。
 pnpm db:migrate:remote
-pnpm db:init:remote                      # 建表（含 mirrors / download_events）
+pnpm db:init:remote                      # 建表（含 mirrors / download_events / github_downloads）
+                                         # 全是 IF NOT EXISTS，加表后重跑即可，不动已有数据
 
 pnpm deploy
 ```
@@ -185,8 +221,8 @@ curl -sI https://dl.windinput.com/latest.json                  # 由 R2 直接�
 
 | 资源 | 免费额度 | 消耗来源 |
 |---|---|---|
-| Worker 请求 | 10 万 / 天 | 浏览器下载 1 次 / 在线更新 5 次 + stats + Cron 144 次/天 |
-| D1 写行 | 10 万 / 天 | 每次下载 2 行（总量 + 渠道） |
+| Worker 请求 | 10 万 / 天 | 浏览器下载 1 次 / 在线更新 5 次 + stats + Cron 168 次/天（探活 144 + GitHub 同步 24） |
+| D1 写行 | 10 万 / 天 | 每次下载 2 行（总量 + 渠道）；GitHub 同步每小时覆盖约 35 行 |
 | D1 读行 | 500 万 / 天 | stats 读 N 行；镜像映射读走 60 秒边缘缓存 |
 | R2 Class B（读） | 1000 万 / 月 | 边缘缓存命中后不回源，实际远低于下载数 |
 | 出站带宽 | R2 出站免费 | 0 计费 |

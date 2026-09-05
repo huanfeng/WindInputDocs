@@ -64,12 +64,27 @@
 	// TTL）——.exe 不在 Cloudflare 默认缓存的扩展名列表里，不配这条规则回源就
 	// 次次穿透到 R2。验证要用 GET 而非 HEAD：HEAD 请求恒返回 DYNAMIC。
 	"vars": {
-		"R2_PUBLIC_BASE": "https://r2.windinput.com"
+		"R2_PUBLIC_BASE": "https://r2.windinput.com",
+		// 同步 GitHub Releases 下载量的目标仓库。安装包也从这里分发（便携版**只**
+		// 在这里有），不合并进来就会系统性低估。
+		//
+		// GITHUB_TOKEN 是可选的 secret（`wrangler secret put GITHUB_TOKEN`），不是
+		// 变量：匿名调 GitHub API 限额 60 次/小时按**来源 IP** 计，而 Worker 的出站
+		// IP 是 Cloudflare 共享地址，额度可能被同出口的其他人用光。配上就变成 5000
+		// 次/小时按 token 计；读公开仓库不需要任何 scope。不配也能跑，只是会偶发
+		// 失败——同步是覆盖写，失败即维持上次数据。
+		"GITHUB_REPO": "huanfeng/WindInput"
 	},
-	// 镜像探活：连续 2 次失败自动下线回落 R2。10 分钟一次，一天 144 次调用，
-	// 相对免费额度可忽略。
+	// 两条 Cron，src/index.ts 的 scheduled 按 event.cron 分派：
+	//
+	//   每 10 分钟  镜像探活，连续 2 次失败自动下线回落 R2
+	//   每小时 :17  同步 GitHub Releases 下载量
+	//
+	// 同步那条**必须与 src/github.ts 的 GITHUB_SYNC_CRON 逐字相同**，对不上不会
+	// 报错，只是永远走不到同步分支——表达式是字符串比较，没有归一化。
+	// 挑 :17 而不是 :00 是为了与探活的整点触发错开，顺带避开整点的 API 高峰。
 	"triggers": {
-		"crons": ["*/10 * * * *"]
+		"crons": ["*/10 * * * *", "17 * * * *"]
 	},
 	// database_id 由 `wrangler d1 create windinput-downloads` 输出后填入。
 	"d1_databases": [

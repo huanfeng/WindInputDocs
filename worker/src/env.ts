@@ -2,6 +2,16 @@ export interface Env {
   DB: D1Database;
   /** R2 公共域（纯 R2 自定义域，配了 Cache Rule 的那个），不含结尾斜杠 */
   R2_PUBLIC_BASE: string;
+  /** 主仓 `owner/repo`，Cron 同步 GitHub Releases 下载量用。未配则跳过同步。 */
+  GITHUB_REPO?: string;
+  /**
+   * 可选的 GitHub API token（`wrangler secret put GITHUB_TOKEN`）。
+   *
+   * 不配也能跑，但匿名限额是 60 次/小时**按来源 IP**，而 Worker 的出站 IP 是
+   * Cloudflare 共享地址——额度可能被同出口的其他人用光，表现为偶发 403。
+   * 读公开仓库不需要任何 scope，空权限的 fine-grained token 就够。
+   */
+  GITHUB_TOKEN?: string;
 }
 
 export interface Artifact {

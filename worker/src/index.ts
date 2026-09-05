@@ -7,8 +7,10 @@
  * 职责：
  *   1. GET /<安装包>  —— 计数，然后 302 到实际出口：
  *                        已登记镜像 → 国内网盘直链；否则 → R2 公共域（带边缘缓存）。
- *   2. GET /api/stats —— 返回 { total, versions[], sources }，供下载页展示。
- *   3. Cron           —— 定时探活镜像，连续失败自动下线回落 R2。
+ *   2. GET /api/stats —— 下载量统计，供下载页展示。数字是「站内 + GitHub」合并后
+ *                        的口径，带 ?detail=1 时另给版本 × 平台 × 来源的明细。
+ *   3. Cron           —— 探活镜像（连续失败自动下线回落 R2），以及每小时同步一次
+ *                        GitHub Releases 的下载量。
  *
  * 这里**不再代理字节流**。早先用 R2 binding 直读对象再写回响应，看似只是多一跳，
  * 实际代价是绕过了 Cloudflare 边缘缓存（in-Worker 的 R2 API 直连存储），每个用户、
@@ -21,6 +23,7 @@
  */
 import { handleDownload } from "./download";
 import type { Env } from "./env";
+import { GITHUB_SYNC_CRON, syncGithubDownloads } from "./github";
 import { checkAllMirrors } from "./mirrors";
 import { handleStats } from "./stats";
 
@@ -47,7 +50,27 @@ export default {
     });
   },
 
-  async scheduled(_event, env, ctx): Promise<void> {
+  // 两条 Cron 共用这一个入口，按 event.cron 分派（表达式见 wrangler.jsonc）：
+  // 高频那条探活镜像，每小时 :17 分那条同步 GitHub 下载量。合成一个 handler 是
+  // Workers 的既定形状，不是把两件事揉在一起——它们各自 waitUntil，互不牵连。
+  async scheduled(event, env, ctx): Promise<void> {
+    if (event.cron === GITHUB_SYNC_CRON) {
+      ctx.waitUntil(
+        syncGithubDownloads(env).then((outcome) => {
+          if (outcome.ok) {
+            console.log(
+              `GitHub 下载量已同步：${outcome.rows} 行，累计 ${outcome.total}`,
+            );
+          } else {
+            // 覆盖写的好处在这里兑现：同步失败什么都不做就是正确的降级，
+            // 表里维持上一次的数据，统计面板只是显示得旧一点。
+            console.error(`GitHub 下载量同步失败：${outcome.error}`);
+          }
+        }),
+      );
+      return;
+    }
+
     ctx.waitUntil(
       checkAllMirrors(env).then((outcomes) => {
         // 输出到 Workers 日志（observability 已开），下线/恢复/删除事件在这里留痕

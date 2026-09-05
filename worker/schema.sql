@@ -49,3 +49,28 @@ CREATE TABLE IF NOT EXISTS mirrors (
   last_status TEXT,
   updated_at  TEXT
 );
+
+-- GitHub Releases 的下载量镜像，由 Cron 每小时同步一次。
+--
+-- 与自建计数**分表存放**，理由是两侧的写语义根本不同，不是为了归类整齐：
+--
+--   downloads         每次下载 +1，单行原子递增 —— 增量累加
+--   github_downloads  GitHub API 给的是「至今累计」的绝对值 —— 必须整行覆盖
+--
+-- 混进 downloads 会怎样：那张表的 UPSERT 路径是 `count = count + 1`，把快照喂进去
+-- 每小时翻一倍；改成覆盖写，又会把站内的实时计数一并抹掉。两种语义共用一张表，
+-- 无论选哪条更新路径，都有一半的数据是错的。
+--
+-- version / platform 的取值口径与 downloads 完全一致 —— 同步时用同一个
+-- parseArtifact() 解析 GitHub 的**资产文件名**（不是 tag）。资产名与 R2 上的对象名
+-- 同源于主仓 CI（都是 WindInput-Setup-<版本>.exe 这一套），两侧天然对齐，不需要
+-- 任何版本号归一化，也不必处理 tag 上的 `v` 前缀。
+--
+-- 同步只 UPSERT 抓到的行，从不 DELETE：API 半路失败最多让数据陈旧，不会丢数。
+CREATE TABLE IF NOT EXISTS github_downloads (
+  version    TEXT NOT NULL,
+  platform   TEXT NOT NULL,
+  count      INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT,
+  PRIMARY KEY (version, platform)
+);
