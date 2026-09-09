@@ -85,12 +85,6 @@ toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
 
 指向不存在或未启用方案的条目会被安静忽略，不影响其它绑定；目标方案正在后台预热时提示「准备中…」并保持当前方案不变。
 
-<Callout type="warn" title="schema_hotkeys 已废弃，需手改">
-旧写法 `[keys] schema_hotkeys = { wubi86 = "ctrl+shift+w" }` **不再生效，且不会自动迁移**。残留的旧段会在启动日志里告警一次，请改写成上面 `key_actions` 的形式，或在设置工具「方案 → 选中方案 → 设置 → 进入方式」里重配一次。
-
-合并的原因是两处配的本是同一件事、只差单向/往返，却编译进同一张热键表：同一个键两处都配时后者**静默失效**；而旧表不校验键形态，在里面写一个单字符键会让那个字符再也打不出来。
-</Callout>
-
 <Callout type="info" title="与临时模式的区别">
 `key_actions` 里 `special:` / `mix:` / `temp_pinyin` 那批动词进的是**临时模式**——打完一段自动退回原方案。`switch_schema:` 与 `toggle_schema:` 是**换方案**：前者切过去就完了，后者再按一次回到你原来那个方案。要「临时打几个字符就回来」用临时模式，要「切过去待一会儿」用换方案。
 </Callout>
@@ -121,7 +115,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `mix:<实例id>` | 进指定融合模式（`mix:quick_mix` = 内置[快捷输入](/docs/settings/input/quick-input)） |
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
-| `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**（原 `keys.schema_hotkeys` 的语义）。写在方案级时切过去就没有回程了，见下方提示 |
+| `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**。写在方案级时切过去就没有回程了，见下方提示 |
 | `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
 | `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
 | `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |

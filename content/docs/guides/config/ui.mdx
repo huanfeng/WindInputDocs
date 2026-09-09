@@ -44,7 +44,7 @@ comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 | `comment_template_vertical` | 字符串 | — | `"${code_hint\|code}"` | **竖排**候选注释（右侧灰字）模板。语法与变量见[候选注释](/docs/settings/appearance/candidate-comment)；留空 = 不显示 |
 | `comment_template_horizontal` | 字符串 | — | `"${code_hint\|code}"` | **横排**候选注释模板。横排宽度由全部候选共享，放注音/字根易撑宽窗口 |
 | `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽 |
-| `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数。旧键 `comment_max_chars`（横竖共用一份）的值会自动迁移到这两个键 |
+| `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数 |
 
 ### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]
 
@@ -92,10 +92,6 @@ min_rows = 0                       # 竖排候选区最小行数，0 = 关闭
 `min_rows` 与 `min_window_height_vertical` 是两种量法，可同时配、取两者较大者：前者只稳住候选区（翻页栏照常伸缩），后者罩住整个窗口。
 
 单位取 dp 而非字符数：本组量的是窗口而不是文字，窗口尺寸里还有序号列、各级内边距、翻页栏等与字号无关的部分，用字符数换算不出来。dp 随 DPI 自动缩放，高分屏上等比放大。
-
-<Callout type="warn" title="0.117 的两项已被取代">
-`min_width_chars_horizontal` / `min_width_chars_vertical` 把下限打在**每个候选格**上，横排时每格都被撑宽、格间距成倍放大——量错了对象。0.118 起改由上面这组窗口级下限接管；升级后旧键会被忽略（不报错），需按 dp 重新配置。
-</Callout>
 
 ## 候选窗——编码显示（ui.candidate）
 
@@ -414,10 +410,6 @@ badge_alpha = 0.88    # 不透明度的默认值，同时是档位开关（见�
 | `badge` | 枚举 | `none` / `corner` | `none` | 总开关。关掉即**下面全部规则都不画**，不必逐条去关。写错的值一律回落 `none` |
 | `badge_scale` | 小数 | — | `1.0` | 整体大小倍率。单条规则还能用自己的 `scale` 再乘一次 |
 | `badge_alpha` | 小数 | `0`~`1` | `0.88` | 不透明度的**默认值**；单条可用色值末两位覆盖。同时是档位开关，见下 |
-
-- 旧键不再读取 <Since v="0.120" />：这一段改成了「总开关 + 规则表」，`punct_badge`、
-  `full_width_mark`、`colored`、`punct_color_cn`、`full_width_mark_scale` 都不再生效。
-  上一版是标着实验性发出去的，重新配一次即可。
 
 ### 角标规则表 <Since v="0.120" /> [#langbar-badges]
 

@@ -72,7 +72,7 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 
 `Ctrl + Shift + E` 是循环切换，方案多了要按好几次。可以给单个方案绑一个直达热键，按下直接切过去：**选中方案 → 设置 → 按键设置 → 切换到本方案按键**。
 
-两种模式下都生效——切到英文方案之后还得能按键切回来，所以它不像其它快捷键那样限定中文模式。落点是全局 [`keys.key_actions`](/docs/guides/config/keys#schema-hotkeys) 里的 `switch_schema:<方案id>`（旧的 `keys.schema_hotkeys` 已废弃，不再生效也不自动迁移）。
+两种模式下都生效——切到英文方案之后还得能按键切回来，所以它不像其它快捷键那样限定中文模式。落点是全局 [`keys.key_actions`](/docs/guides/config/keys#schema-hotkeys) 里的 `switch_schema:<方案id>`。
 
 **不必先启用**：直达热键可以切到没加入 `available` 的方案。英文方案的典型用法就是这样——不占循环切换的位置，用热键切过去打一段，再切回来。首次切过去时会现加载词库，可能有短暂停顿，之后就缓存住了。
 

@@ -187,10 +187,6 @@ default_weight = 500            # 该库无权重列，整库定档 500
 混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库。详见[混输方案配置](/docs/settings/schema/mixed#no-own-dict)。
 </Callout>
 
-<Callout type="warn" title="weight_spec 尚未接线">
-方案文件里可能出现 `[dictionaries.weight_spec]`（`median` / `max` / `mode` 等）。它**当前不被读取**，仅作为词库权重分布的事实记录供方案作者查阅。跨库权重归一化尚未实现，现阶段用 `default_weight` + `base_order` 手工校准。
-</Callout>
-
 ## 词库文件（.dict.yaml）
 
 词库文件沿用 Rime 的 `.dict.yaml` 外形，但**解析器是本输入法自己的**，与 librime 并不等价。理解下面这几条能避免绝大多数「词库加载了却不生效」的问题。

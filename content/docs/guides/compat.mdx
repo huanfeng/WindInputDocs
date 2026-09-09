@@ -160,23 +160,6 @@ initial_mode = "english"
 `host_render` 手改后需**重启输入法服务**才生效——「重载配置」只刷新那些能即时套用的规则，不重建渲染通道。
 </Callout>
 
-<Callout type="info" title="0.113 起从 config.toml 迁到这里">
-这份白名单在 0.112 及以前是 `config.toml` 的 `compat.host_render_processes`（字符串数组）。0.113 起 `[compat]` 顶级域整体移除，改为本表的 `host_render` 布尔字段。
-
-```toml
-# 旧（0.112 及以前，config.toml）
-[compat]
-host_render_processes = ["SearchHost.exe"]
-
-# 新（0.113 起，compat.toml）
-[[apps]]
-process = "SearchHost.exe"
-host_render = true
-```
-
-改动原因：这份白名单本来就是**按进程名匹配**的规则，与 `caret_use_top`、`initial_mode` 同属一类，却单独躺在另一个文件里，形成了第二个真相源。旧键写在 `config.toml` 里不再有任何效果。
-</Callout>
-
 ## 排查：某个程序里输入法没反应
 
 打开[功能主菜单 → 高级 → 输入诊断 HUD](/docs/settings/menu#输入诊断-hud)，屏幕上会出现一个置顶小浮窗，实时显示当前焦点应用的输入状态与**禁用原因**（密码框抑制、应用禁用输入等）。

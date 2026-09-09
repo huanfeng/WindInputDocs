@@ -247,7 +247,6 @@ zzsx = $AA("数学", "＋－＜＝＞±×÷∈∏∑")
 | `tail(s, n)` | 字符串 s 从第 n 字符起到末尾 |
 | `last()` / `last(n)` | 最近 / 倒数第 n 次上屏文本 |
 | `clip()` | 当前剪贴板文本 |
-| `clip(n)` | 剪贴板历史第 n 条——**尚未实现**，参数被忽略，等同 `clip()` |
 | `app()` / `title()` / `sel()` | 前台进程名 / 窗口标题 / 选中文本——**Windows 上均返回空串**（仅 macOS 上报；其中 `title()` 还需 macOS 的[辅助功能授权](/docs/reference/macos#accessibility)，未授权返回空串） |
 | `date(fmt)` / `date(fmt, offset)` | 日期，[见下](#datetime) |
 | `time()` / `time(fmt)` | 时间，默认 `"HH:mm:ss"`，[见下](#datetime) |
@@ -480,13 +479,6 @@ comask = $CC("[手机号打码]", type(regex(clip(), "(\\d\{3\})\\d\{4\}(\\d\{4\
 cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help(clip())))
 ```
 
-<Callout type="warn" title="以下函数已注册但尚未实现">
-- `t2s(s)` / `s2t(s)` / `pinyin(s)` —— 占位实现，**原样返回输入**，不报错，所以最难发现
-- `ask(prompt)` / `pick(...)` —— 交互式弹窗未实现，**调用即报错**（候选消失或提示执行失败）
-- `clip(n)` 的历史查询 —— 参数被忽略，退化为 `clip()`
-- `proc.shell` 的 `flags` 参数 —— 被忽略，见下
-</Callout>
-
 ### 动作函数（有副作用）
 
 | 函数 | 副作用 |
@@ -494,7 +486,7 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `type(s)` | 经 TSF 上屏文本，不污染剪贴板 |
 | `open(target)` | 打开 URL / 文件 / 程序（http(s) 走浏览器，其他走 ShellExecute） |
 | `proc.run(cmd, ...args, cwd?, verb?, show?)` | 异步启动进程，三个具名参数见下 |
-| `proc.shell(cmdline, flags?, cwd?)` | 执行 shell 命令，flags 见下、`cwd` 见下 |
+| `proc.shell(cmdline, cwd?)` | 执行 shell 命令，`cwd` 见下 |
 | `key.tap(combo)` / `key.seq(...combos)` | 单次按键 / 按键序列 |
 | `key.hold(combo)` / `key.release(combo)` | 按下 / 抬起（须成对使用） |
 | `key.type(text)` | Unicode 直输，绕过键盘布局（走 SendInput，非 TSF）。文本里的换行与制表符会发成回车 / Tab **按键** <Since v="0.118" /> |
@@ -505,22 +497,14 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
 | `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
 | `ime.pair(left, right, jump?)` | **上屏配对符号**：光标落两段之间，可用跳出键越过右段，见下文 |
-| `setting.open(page, args?)` / `setting.web(page, args?)` | 打开设置的指定页（`page` 见下；`args` 为附加命令行参数；`setting.web` 已废弃，等价于 `setting.open`） |
+| `setting.open(page, args?)` | 打开设置的指定页（`page` 见下；`args` 为附加命令行参数） |
 | `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic`，见下 |
 | `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
 | `wind.cli(...)` | **调用命令行子命令**，见下文 |
 
-<Callout type="warn" title="函数名没有简写别名">
-一律写规范全名。旧资料里出现过的 `search(...)`、`run(...)`、`shell(...)`、`dict.addword(...)`、`ime.setting(...)` 这些简写**当前都不可用**：它们不在函数表里，写了等于函数名写错——整条候选静默消失。请分别改成 `web.search` / `proc.run` / `proc.shell` / `dict.add` / `setting.open`。
-</Callout>
-
 `type(s)` 是唯一被特殊对待的名字：它只能作为 `$CC` 的动作**直接**写出来，不能嵌进别的函数里、也不能出现在显示名中，且只接受 1 个参数、不接受具名参数。`help("type")` 也查不到它。别和 `key.type` 搞混——后者是模拟键盘直输，走的是另一条路径。
 
 `web.search(engine, q)` 的 `engine` 不区分大小写、首尾空格会被去掉；`q` 为空时**不会**打开浏览器，而是报错——避免开出一个空搜索页却让人以为命令没执行。`zdic` 走的是汉典的词条页而非搜索参数。
-
-<Callout type="warn" title="proc.shell 的 flags 暂未区分">
-`term` / `pwsh` 等 flag 参数当前**被忽略**，一律走默认 shell（Windows 为 `cmd /C`）。写了不报错，但不会得到可见 console 或 PowerShell。
-</Callout>
 
 ### 工作目录：`cwd=`
 
@@ -606,7 +590,7 @@ cost = $CC("打开设置", setting.open(""))
 codc = $CC("词库管理", setting.open("dict"))
 ```
 
-未知 id 会被设置端忽略并落到默认页。`setting.web(page)` 是等价别名（旧 Web 版设置已废弃）。
+未知 id 会被设置端忽略并落到默认页。
 
 #### 附加参数：`setting.open(page, args)` <Since v="0.113" /> [#setting-open-args]
 
