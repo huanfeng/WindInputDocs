@@ -53,10 +53,9 @@ type = "codetable"      # 引擎类型：pinyin / codetable / mixed
 ```toml
 # 拼音引擎（全拼 / 双拼）
 [engine.pinyin]
-scheme = "full"                      # full（全拼）/ shuangpin（双拼）
-unigram_path = "pinyin/unigram.txt"  # 长句打分用语言模型（可选）
+scheme = "full"        # full（全拼）/ shuangpin（双拼）
 [engine.pinyin.shuangpin]
-layout = "xiaohe"                    # xiaohe / ziranma / mspy / sogou / abc / ziguang
+layout = "xiaohe"      # xiaohe / ziranma / mspy / sogou / abc / ziguang
 
 # 码表引擎（五笔等）
 [engine.codetable]

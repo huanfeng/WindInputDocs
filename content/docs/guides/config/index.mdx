@@ -45,7 +45,6 @@ import { Since } from "@/components/since";
 | `schemas\<方案>\<词库>.dict.yaml` | 词库。也可只放编译好的同名 `.wdat` 而不带源文件 |
 | `schemas\common_chars.txt` | 通用规范汉字表，决定候选过滤（[`filter_mode`](/docs/guides/config/input)）中"常用字"的判定范围 |
 | `schemas\shuangpin\<布局>.toml` | [双拼布局](/docs/settings/schema/pinyin)定义，可改键位映射或新增布局 |
-| `schemas\<方案>\unigram.txt` | 拼音长句打分用的语言模型（由方案的 `unigram_path` 指定） |
 | `schemas\` 下的拆字库与字根字体 | 由方案 `[engine.chaizi]` 的 `db_path` / `font_path` 指定，见[拆字配置](/docs/guides/schemas#拆字配置) |
 | `themes\<主题名>\theme.toml` | [主题](/docs/settings/appearance)。同名目录覆盖内置主题 |
 | `system.phrases.toml` | 系统短语的**初始内容**，见下方说明 |
