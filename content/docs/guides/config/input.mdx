@@ -23,6 +23,7 @@ space_on_empty_behavior = "commit"  # 有编码但无候选时空格的行为
 punct_on_empty_behavior = "clear"   # 有编码但无候选时标点键的行为（出厂即丢弃废码）
 numpad_behavior = "direct"          # 小键盘按键语义
 numpad_half_width = false           # 全角态下小键盘仍出半角
+english_case_cycle_key = ""         # 打英文时切换候选大小写档位的键（留空 = 关）
 # top_commit_mode = "direct_commit" # 内部/实验项，见下方 Callout
 ```
 
@@ -34,6 +35,7 @@ numpad_half_width = false           # 全角态下小键盘仍出半角
 | `punct_on_empty_behavior` <Since v="0.118" /> | 枚举 | `commit` / `clear` / `clear_no_input` | `"clear"` | 有编码但当前无候选时按标点/符号键：`commit` = 上屏「已转换前缀 + 剩余原码」再接标点；`clear` = 丢弃编码，只上屏标点；`clear_no_input`（0.119 起）= 丢弃编码，标点本身也不上屏，整个按键当没按过。移动端出厂为 `commit`。**与 `schema.codetable.punct_commit` 不同**——后者关掉是吞键但编码**留着**继续打，`clear_no_input` 是吞键且**丢弃**编码 |
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `numpad_half_width` <Since v="0.120" /> | 布尔 | — | `false` | 开启后，小键盘的 `0`–`9` 与 `. + - * /` 在**全角状态下仍输出半角原形**，且整条标点流水线一并跳过（自定义标点映射、中文标点、全半角转换三步都不走）。与 `numpad_behavior` **正交**，见[小键盘恒半角](#numpad-half-width) |
+| `english_case_cycle_key` <Since v="0.121" /> | 字符串（隐性枚举） | `""` / `capslock` / `tab` / `enter` / `space` / `escape` | `""` | 打英文时（英文方案或临时英文）临时夺取哪个键，在「跟随输入 → 全大写 → 全小写」三档之间循环，一次组合结束即复位。留空 = 关闭。**键即开关**，没有另一个启用项。Windows 建议 `capslock`，macOS 上 CapsLock 到不了输入法（系统只传锁定态、不传按键），建议 `tab`。⚠️ 被夺取的键在打英文期间用不出原本的语义（`capslock` 的大写锁定、`tab` 的辅助码 / 配对跳出 / 会话动作），其余时候一律照旧；撞车时启动会告警。详见[临时模式 · 切换候选大小写的键](/docs/settings/input/temp-modes#case-cycle-key) |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 
 <Callout type="info" title="智能档不再「打得越全反而越不出」 (0.114)">
@@ -237,6 +239,7 @@ enabled = true                # 临时英文总开关
 show_candidates = true        # 显示英文候选
 raw_candidate = true          # 首候选恒是所打原文
 case_variants = true          # 生成大小写变形候选
+case_follow_input = true      # 候选跟随输入的大小写
 shift_behavior = "temp_english" # Shift 键行为
 trigger_keys = []             # 额外触发键（符号键进入临英）
 allow_symbols = false         # 临英缓冲内允许符号与数字（总开关）
@@ -251,6 +254,7 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | `show_candidates` | 布尔 | — | `true` | 显示英文候选 |
 | `raw_candidate` | 布尔 | — | `true` <Since v="0.119" /> | 把**所打原文**作首候选。默认开 = 保持一直以来的行为。⚠️ 与下面的 `case_variants` 同时关闭且词库无命中时候选会是空的，此时空格上屏缓冲原文 |
 | `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |（[英文方案那侧默认关](/docs/guides/config/schema#english)，两侧各自独立）
+| `case_follow_input` | 布尔 | — | `true` <Since v="0.121" /> | 词库候选跟随你打的大小写，语义同 [`schema.english` 那份](/docs/guides/config/schema#english)。⚠️ 临英由 `Shift + 字母` 进入、缓冲首字母恒大写，开着它临英候选就恒为首字母大写形态；不想要这个观感把它关掉即可 |
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
 | `allow_symbols` | 布尔 | — | `false` | 总开关：符号与数字是否直接进入临英缓冲，而非上屏退出或选词。放行哪些字符由 `symbol_chars` 决定 |
