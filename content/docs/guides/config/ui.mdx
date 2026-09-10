@@ -45,6 +45,7 @@ comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 | `comment_template_horizontal` | 字符串 | — | `"${code_hint\|code}"` | **横排**候选注释模板。横排宽度由全部候选共享，放注音/字根易撑宽窗口 |
 | `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽 |
 | `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数 |
+| `auto_comment_dicts` | 布尔 <Since v="0.121" /> | — | `true` | 词库在 `columns` 中声明 `comment` 列时，自动将该列作为 `${dict}` 的注释源。判据是显式声明；`import_tables` 引入的子表逐一检测。识别结果在[注释词库](#comment-dicts)列表中标「自动」 |
 
 ### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]
 
@@ -60,6 +61,19 @@ schemas = []                        # 限定生效方案 id；留空 = 全部方
 ```
 
 数组顺序即优先级（同一个词多库都有注释时取靠前的）；`schemas` 用来避免无谓开销——一份大英汉词典写 `schemas = ["english"]` 后，中文方案下根本不加载。词库文件格式与完整挂载说明见[候选注释](/docs/settings/appearance/candidate-comment#挂载)。
+
+#### 词库自带注释的记录 <Since v="0.121" /> [#auto-comment-records]
+
+`ui.candidate.auto_comment_dicts` 识别出的条目也记在本表中。这类记录只含三个字段，用于保存它的启停状态与优先级：
+
+```toml
+[[ui.comment_dicts]]
+id = "auto:pinyin/cn_dicts/corrections.dict.yaml"   # 由词库路径生成
+auto = true                                         # 标记为自动识别的记录
+enabled = false                                     # 启停状态
+```
+
+`path` 与 `schemas` 不写入——两者每次启动重新检测，写入即成为过时快照。未在本表中出现的自动条目按检测顺序排在末尾并默认启用；`id` 匹配不到词库时（词库已删除或停用）该记录静默忽略。
 
 ## 候选窗——尺寸稳定（ui.candidate） <Since v="0.118" /> [#candidate-min-size]
 
