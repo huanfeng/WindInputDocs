@@ -70,6 +70,19 @@ cobd = $CC("打开百度", open("https://baidu.com"), {prefix: false})
 
 另外前缀列举本身还受 [`input.phrase.min_prefix`](/docs/guides/config/input) 约束（默认 `2`），
 打得太短不会列。
+
+### 一步失败就别往下跑：`{on_error: "stop"}` <Since v="0.121" /> [#on-error]
+
+动作链默认是「前一步失败，后一步照跑」。想要「前一步成功才做下一步」，在同一个修饰符袋里写 `on_error`：
+
+```
+coim = $CC("导入词库", wind.cli("dict import D:\\words.txt"), ui.toast("导入成功"), {on_error: "stop"})
+```
+
+不写时默认 `continue`，与历史行为一致——**默认不能改成 `stop`**：已有词条依赖「前一步失败后一步照跑」（比如剪贴板被占用时仍要把光标移回去）。
+
+不写 `stop` 的代价是**假成功**：上面那条链里 `wind.cli` 失败了，后面那句「导入成功」照样弹。这个修饰符本就是用来防假成功的，所以**值写错会直接报错**，而不是落回默认——失灵时的表现恰好就是它要防的那件事。
+
 </Callout>
 
 `$AA` 是 `$SS` 的字符串简写：`$AA` 自动按字符拆开，`$SS` 显式列举每个元素，元素既可是字符串（选中上屏），也可是嵌入的 `$CC(...)`（选中执行动作）。输入前缀（如 `zz`）看到组名导航条目，选中后自动补全到完整码进入二级选择；输入完整码（如 `zzbd`）直接展开为成员候选。
@@ -501,6 +514,7 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic`，见下 |
 | `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
 | `wind.cli(...)` | **调用命令行子命令**，见下文 |
+| `ui.toast(text, kind?, color?, pos?, ms?)` <Since v="0.121" /> | **弹一条桌面提示**，见下文 |
 
 `type(s)` 是唯一被特殊对待的名字：它只能作为 `$CC` 的动作**直接**写出来，不能嵌进别的函数里、也不能出现在显示名中，且只接受 1 个参数、不接受具名参数。`help("type")` 也查不到它。别和 `key.type` 搞混——后者是模拟键盘直输，走的是另一条路径。
 
@@ -792,17 +806,69 @@ position = 1
 上面的 `text = '...'` 用的是 TOML 的**单引号**字面串，里面的 `\` 原样保留，写法与设置页输入框、词库文件里完全一致。若改用双引号 `text = "..."`，TOML 自己会先吃掉一层转义，而 `\{` 在 TOML 里是非法转义，整个文件都会读不进去。
 </Callout>
 
-<Callout type="warn" title="发射后不管，错误对你不可见">
-`wind.cli` 启动子进程后不回收输出与退出码。命令失败时**没有任何提示**——短语看起来正常执行了，实际可能什么都没做。
+#### 执行完给出反馈 <Since v="0.121" /> [#cli-feedback]
 
-调试新命令时，请先在终端里手动跑一遍确认无误，再写进短语。
+`wind.cli` 会**等命令跑完，按退出码把结果弹成 toast**：成功文案取 CLI 自己打印的最后一行（「✓ 用户词库: 新增 12 · 更新 3」），失败取 stderr 的首行。三个具名参数管这件事，都不影响命令本身：
+
+| 参数 | 默认 | 说明 |
+| --- | --- | --- |
+| `toast` | `on` | 执行结果提示。`on` = 成败都弹；`off` = 都不弹（此时也不等待）；`error` = 只在失败时弹 |
+| `ok` | 省略 | 成功时的自定文案。省略则用命令自身输出的最后一行，不自造第二套说法 |
+| `wait` | `10000` | 等待命令结束的毫秒上限。`0` = 不等待，此时无结果可报。超时会给一条「命令仍在执行，未能确认结果」的中性提示，迟到的真结果**不再补弹** |
+
+```
+# 导入用户词库，失败时才提示
+coim = $CC("导入词库", wind.cli("dict import D:\\words.txt", toast="error"))
+
+# 服务侧本来就会弹提示的子命令，把这一层关掉，免得撞车
+cort = $CC("重启服务", wind.cli("restart", toast="off"))
+
+# 自定成功文案，并把等待放宽到 30 秒
+corb = $CC("重建缓存", wind.cli("schema rebuild", ok="缓存已重建", wait="30000"))
+```
+
+<Callout type="info" title="哪些子命令该设 toast 为 off">
+服务侧本身就会弹提示的那些（`restart` / `config set`）。撞不撞车只有写词条的人当场知道，输入法不去维护一张子命令名单。
 </Callout>
 
 从短语调用时输入法服务必然在线，所以 `schema` / `dict` / `phrase` / `backup` 这些需要在线的子命令都能正常连上。
 
 <Callout type="info" title="改配置优先用 config.set，不要绕 wind.cli">
-`config.set(key, value)` 与 `wind.cli("config set ...")` 效果相同，但前者在进程内直接生效并能拿到错误，后者是发射后不管。改配置一律用 `config.set` / `config.toggle`。
+`config.set(key, value)` 与 `wind.cli("config set ...")` 效果相同，但前者在进程内直接生效、错误就地返回，后者要另起一个进程再把结果读回来。改配置一律用 `config.set` / `config.toggle`；`wind.cli` 留给没有对应短语函数的子命令。
 </Callout>
+
+### 弹一条提示：`ui.toast(...)` <Since v="0.121" /> [#ui-toast]
+
+```
+# 最简形式
+$CC("提示", ui.toast("已完成"))
+
+# 指定类型与位置
+$CC("提示", ui.toast("导入完成", kind="success", pos="top_right", ms="4000"))
+
+# 自定强调色
+$CC("提示", ui.toast("注意", color="#FF8800"))
+```
+
+除文案外**全部具名、与顺序无关**：
+
+| 参数 | 默认 | 取值 |
+| --- | --- | --- |
+| `kind` | `info` | `info` / `success` / `error`，决定强调条颜色 |
+| `color` | 省略 | 自定强调色 `#RRGGBB` 或 `#RRGGBBAA` |
+| `pos` | `bottom_center` | `center` / `top` / `top_center` / `bottom_center` / `top_left` / `top_right` / `bottom_left` / `bottom_right` |
+| `ms` | `2500` | 显示毫秒数 |
+
+底色与文字色仍归主题，不开放到词条——只有强调色可以在这里改。
+
+<Callout type="warn" title="kind 与 color 只能给一个">
+两者都是「强调色」的写法，同时出现只能是写错了。此时会**直接报错**而不是猜一个——静默取一个会让另一个看起来「没生效」。
+
+同理，`pos` 把 `top_right` 写成 `right`、`ms` 写成 `"5秒"`，都会当场报错，不会静默降级。
+</Callout>
+
+外部脚本与计划任务也能弹：命令行 `wind_input ui toast "文案"`，见[命令行工具](/docs/guides/cli)。
+
 
 ### 按键 combo 格式
 

@@ -44,6 +44,7 @@ single_code_complete = true   # 精确匹配空码补全（无候选时从更长
 z_key_repeat = true           # z 键重复输入
 z_key_action = ""             # z 键附加功能：空 = 不启用（方案级参数，见下方 Callout）
 short_code_yield_level = 0    # 出简让全：0 关 / 2 一二级简码 / 3 全部简码（出厂关）
+single_char = false           # 单字输入：候选只出单字，不出词（方案可覆盖）
 input_chars = ""              # 码元字符集：哪些字符可进输入缓冲；空 = a-z
 leading_chars = ""            # 可作第一码的字符（码元字符集的子集）；空 = 与 input_chars 相同
 
@@ -63,6 +64,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `z_key_repeat` | 布尔 | — | `false`（预置为 `true`） | z 键重复输入 |
 | `z_key_action` | 字符串 | `""` / `none` / `temp_pinyin` / `temp_english` / `mix:<实例id>` / `special:<方案id>` | `""` <Since v="0.114" /> | z 键的附加功能：进临时拼音 / 临时英文 / 融合模式 / 特殊模式；`""` 与 `none` = 不启用，z 作正常码元。与 `z_key_repeat` 正交：重复输入先手，继续打字母才轮到本项。动词语义同 [`key_actions`](/docs/guides/config/keys#key-actions)，字母键让位规则也一致（z 是活码时先当编码） |
 | `short_code_yield_level` | 整数 | `0` / `2` / `3` | `0` <Since v="0.117" /> | [出简让全](/docs/settings/schema/codetable#short-code-yield)：有简码的字在更长编码上把首选让给词组。值 = 对哪几级简码生效。**出厂关**——「短码首选就是简码」只对五笔这类前缀式简码成立，对别的码表是破坏，故不预设；内置方案（含 `wubi86`）也不在自己的 `[engine.codetable]` 里声明它。第三方方案作者可以声明，那属于方案定义的一部分。0.118 的全局出厂值曾是 `3` |
+| `single_char` <Since v="0.121" /> | 布尔 | — | `false` | [单字输入](#single-char)：候选只出单字，不出词。**只管码表方案**，拼音另有一份 `schema.pinyin.single_char`，取值互不共享。单个码表方案可在自己的 `[engine.codetable]` 里写同名键覆盖（不写 = 跟随此处） |
 | `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
 | `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
 
@@ -75,6 +77,56 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 
 写法（范围 + 字面）、数字作码元时为何要配 `leading_chars`、以及码元会从选词键手里抢按键的代价，见[方案配置 · 码元字符集](/docs/guides/schemas#input-chars)。
 </Callout>
+
+### 单字输入 <Since v="0.121" /> [#single-char]
+
+开启后候选**只出单字，不出词**。五笔一类的定长码表最用得上：单字恒是全码长，同码的词被滤掉之后「满码唯一即上屏」的成立率大幅提高，可以不看候选窗连续敲；也用于练习拆字、录入人名与古文。
+
+按引擎分成**互不共享的两份**，因为两边的诉求本就不同：
+
+| 落点 | 管谁 | 方案级覆盖 |
+| --- | --- | --- |
+| `schema.codetable.single_char` | 所有码表方案 | 有——方案文件的 `[engine.codetable] single_char`，不写 = 跟随全局 |
+| `schema.pinyin.single_char` | 所有拼音类方案 | 无 |
+
+分成两份之后，「五笔只出单字、拼音照常出词」在**全局层**就表达得了，不必逐方案配。方案级覆盖只给码表：一台机器上常有多张码表、简码体系深浅不同，逐方案配是真实需求；拼音方案通常只有一张。混输方案不必单独写，它跟随自己的主码表方案。
+
+几条边界：
+
+- **「一个字」按字素簇算**，不按码位数——`⚽️` 是 2 个码位但算一个字。
+- **短语、命令、快捷输入的候选不受管辖**，开着也照常显示。它们是用户自己编写的内容，不是词库里的「词」。
+- 与 [`input.filter_mode`](/docs/guides/config/input) 是两回事：那个按字的**常用度**筛，这个按候选**长短**筛，可以同时生效。
+- 英文方案恒不受管辖——英文候选是单词，滤掉就全没了。
+- **临时拼音 / 临时英文 / 快捷输入 / 特殊模式各有各的候选装配路径，当前不走这道过滤**，别照配置表推断临拼会跟着拼音那一档走。
+
+也可以绑热键随时开关，动词是 `single_char`（裸写 = 切换，另有 `:on` / `:off` / `:toggle` / `:follow`），两张按键表通用，见[按键功能表](/docs/guides/config/keys#key-actions)。热键切的是**临时态**，不写配置——重启或切方案后回到这里配的值。
+
+### 英文候选混入（schema.codetable.english_merge） <Since v="0.121" /> [#codetable-english-merge]
+
+码表方案的候选列表里捎带英文词库候选：打 `hello` 直接选到 hello，不必切英文方案或走临时英文。
+
+```toml
+[schema.codetable.english_merge]
+enable = false        # 总开关
+min_length = 3        # 最小触发长度
+block_commit = true   # 有英文候选时否决满码上屏
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enable` | 布尔 | — | `false` | 总开关 |
+| `min_length` | 整数 | — | `3` | 有中文候选时，编码达到此长度才查英文（`0` = 回退 3）。**中文候选为空时不受本项约束**，2 码起就给英文补全——`wi` / `vi` / `hi` 这类不成音节的串因此不再空码 |
+| `block_commit` | 布尔 | — | `true` | 存在英文候选时否决满码自动上屏 / 顶码上屏 / 满码空码清空。**定长码表必须开着**：4 码即满码上屏，关掉的话打 `github` 到第 4 键就被顶出中文，英文永远等不到露面 |
+
+方案可**逐项覆盖**本段：在方案文件的 `[engine.codetable.english_merge]` 里写同名字段，不写即跟随全局（与 `frequency` 同一套三态覆盖）。
+
+<Callout type="info" title="「出候选」和「挡上屏」用的不是同一把尺">
+候选列表里**只收精确整串命中**——打 `githu` 不出 GitHub，想打某个词就敲完它，所以英文天然只剩一两条、不会刷屏。而 `block_commit` 是按**前缀**判的：打到 `gith` 时精确命中还不存在，若它也要求精确，五笔满码会在第 4 键就把中文顶上屏，`github` 永远敲不完。
+</Callout>
+
+英文候选的位次由协调器在**所有排序（含调频）之后**统一定位：插在开头那段连续的中文常用精确解之后、其余候选之前。于是「中文解得好就让位、解不出就上前」是自动的——`hen` 排在 很/恨/狠/痕 之后，`github` 排第 1（中文侧无候选）。代价是**英文不参与词频学习**，换来位次完全确定。
+
+另外，整串恰好是一个英文词时，引擎**新合成**的整句（词库里没有这个词、由智能组句拼出来的，如 `hello` → 「和理论哦」）不得排在它前面；有词库背书的候选不受影响（`data` → 「打他」照旧排在英文之前）。
 
 ## 码表调频（schema.codetable.frequency）
 
@@ -111,7 +163,7 @@ half_life = 0.0          # 热度衰减半衰期（小时），0 = 内置 72 小
 
 ### 英文 [schema.english] <Since v="0.114" /> [#english]
 
-英文是一个**普通的可切换方案**，有自己的配置段，**不再共用码表那套**——此前英文的调频策略挂在 `schema.codetable.frequency` 下，改它会连带改掉五笔的。设置工具位置：**方案 → 全局方案配置 → 英文方案配置**。
+英文是一个**普通的可切换方案**，有自己的配置段，**不再共用码表那套**——此前英文的调频策略挂在 `schema.codetable.frequency` 下，改它会连带改掉五笔的。设置工具位置：**方案 → 英文方案配置**。
 
 ```toml
 [schema.english]
@@ -196,6 +248,7 @@ enabled = false          # 自动造词总开关
 [schema.pinyin]
 show_code_hint = true       # 显示编码提示
 use_smart_compose = true    # 智能组词
+single_char = false         # 单字输入：候选只出单字
 separator = "auto"          # 分隔策略：auto / quote / backtick / none
 ```
 
@@ -203,7 +256,25 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 | --- | --- | --- | --- | --- |
 | `show_code_hint` | 布尔 | — | `true` | 显示编码提示 |
 | `use_smart_compose` | 布尔 | — | `true` | 智能组词 |
+| `single_char` <Since v="0.121" /> | 布尔 | — | `false` | [单字输入](#single-char)：候选只出单字。与码表那份是两件独立的事——拼音没有定长码，开了只是「不出词」，**无方案级覆盖**，写在这里就够了 |
 | `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = 自动挑一个**空闲**的符号键（未被选词键、也未被本方案 `[key_actions]` 占用）：先看 `'`，再看反引号，都不空闲就不启用；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼同样支持，但 `auto` 下不会占键（`'` 是选词键、反引号归辅助码），要用得显式配 `quote` |
+
+### 英文候选混入（schema.pinyin.english_merge） <Since v="0.121" /> [#pinyin-english-merge]
+
+口径同[码表那份](#codetable-english-merge)，但**取值完全独立**——全拼的英文词与拼音串大面积重叠（`hen` / `men` / `she` 既是音节又是英文词），要不要开与码表方案是两个判断。一个总开关只会逼人在「两个都开」和「两个都关」之间二选一。
+
+```toml
+[schema.pinyin.english_merge]
+enable = false
+min_length = 3
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enable` | 布尔 | — | `false` | 总开关 |
+| `min_length` | 整数 | — | `3` | 有中文候选时的最小触发长度（`0` = 回退 3）。中文候选为空时不受约束 |
+
+**本段刻意没有 `block_commit`**：那一项否决的是满码自动上屏与顶码上屏，拼音方案两者都没有——放在这里会是一个恒不生效的开关。拼音侧暂无方案级覆盖。
 
 ## 双拼（schema.pinyin.shuangpin）
 

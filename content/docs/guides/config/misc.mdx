@@ -33,9 +33,30 @@ log_max_files = 10
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `log_level` | 枚举 | `trace` / `debug` / `info` / `warn` / `error` | `info` | 日志级别。留空等同 `info` |
+| `log_level` | 枚举 | `off` <Since v="0.121" /> / `trace` / `debug` / `info` / `warn` / `error` | `info` | 日志级别。留空等同 `info`（那是「没选过」，不是「选了关闭」）。`off` = **完全不记日志**：主日志文件不创建（而不是创建了但为空），启动轨迹文件 `startup_stage.log` 也一并停写 |
 | `log_max_size_mb` | 整数 | — | `10` | 单个日志文件的大小上限（MB），超出后滚动 |
 | `log_max_files` | 整数 | — | `10` | 保留的旧日志文件数上限（不含主文件）。服务每次启动都会滚动一次，故该值约等于"能回溯最近几次运行" |
+
+### 日志文件的序号 <Since v="0.121" /> [#log-numbering]
+
+服务日志**每一份都带序号**，规则只有一句话：**数字越小越新，`.1` 是当前正在写的那一份**。
+
+```
+logs\wind_input.1.log    ← 最新（正在写）
+logs\wind_input.2.log
+logs\wind_input.3.log    ← 更旧
+```
+
+此前当前那份叫 `wind_input.log`（无序号）、历史才带 `.1` / `.2`——收日志时这套行不通：打包整个 `logs` 目录发过来，「没有序号的那个才是最新」完全不是自明的，按名字排序它还排在 `.1` 后面。现在与设置程序的 `wind_setting.1.log … .5.log` 完全一致，两份日志一个规则。
+
+升级时会自动迁移：旧的无序号文件被搬进 `.1`，原有 `.N` 整体后移一位，历史不丢。
+
+<Callout type="info" title="TSF 端日志的开关另有落点">
+宿主进程里的 TSF DLL 在 `DllMain` 里就要读到自己的日志级别，那时 IPC 还没连上，故它不读 `config.toml`，而读日志根目录下的 `tsf_log_config`。设置页「高级 → 日志设置」把三个模块（输入法服务 / TSF 端 / 设置程序）并排列出，各写各的落点。这个文件里的两个键：
+
+- `mode` / `level` —— TSF 端写不写日志、写到什么级别，设置页的「TSF 端日志级别」改的就是它
+- `dump_hotkey` —— `Ctrl+Shift+F12` 的日志导出，**出厂关闭** <Since v="0.121" />。它的拦截排在所有闸门之前，开着就意味着只要本输入法激活，这个键永远到不了宿主——而它在 VS / JetBrains 里是有主的快捷键
+</Callout>
 
 <Callout type="warn" title="修改后需重启">
 `log_level` 改动后需重启输入法服务。排查问题时可临时调到 `debug` 或 `trace`，排查完调回 `info`——低级别日志量大且会拖慢输入。

@@ -37,6 +37,8 @@ start /wait wind_input schema rebuild
 | `config set` / `import` | 优先在线（热重载）；**服务未运行时降级为直写配置文件**，下次启动生效 |
 | `schema` / `dict` / `phrase` / `backup` | **需要** |
 | `restart` | 均可 |
+| `ui` <Since v="0.121" /> | **需要** |
+| `system` <Since v="0.121" /> | 不需要（但要管理员权限） |
 | `help` / `--version` | 不需要 |
 
 需要在线的命令在服务未运行时会明确报错并退出。这是有意的：这些操作会写入单写者数据库或方案覆盖层，离线直写会与运行中的实例冲突。
@@ -178,6 +180,39 @@ wind_input backup restore D:\bak\wind.zip --replace --sections config,phrase
 `inspect` 会打印备份类型、创建时间、平台、版本与条目清单。`restore` 报告已还原项数，有冲突时提示「M 项已存在跳过；用 `--replace` 覆盖」。
 
 还原后部分改动即时刷新，若界面显示异常重启输入法即可。
+
+## ui <Since v="0.121" /> [#ui]
+
+弹一条桌面提示，供计划任务与外部脚本使用（也是短语里 `wind.cli("ui toast …")` 的写法）。
+
+```bat
+wind_input ui toast "备份已完成"
+wind_input ui toast "磁盘快满了" --kind error --pos top_right --ms 5000
+wind_input ui toast "注意" --color #FF8800
+```
+
+| 选项 | 默认 | 取值 |
+| --- | --- | --- |
+| `--kind` | `info` | `info` / `success` / `error` |
+| `--color` | 省略 | `#RRGGBB` 或 `#RRGGBBAA`，给了则压过 `--kind`（两者不能同时给） |
+| `--pos` | `bottom_center` | `center` / `top` / `top_center` / `bottom_center` / `top_left` / `top_right` / `bottom_left` / `bottom_right` |
+| `--ms` | `2500` | 显示毫秒数 |
+
+提示只能由输入法主进程弹出，故本命令**需要服务在线**。短语里的等价写法是 [`ui.toast(...)`](/docs/guides/command-bar#ui-toast)，两者共用同一套校验。
+
+## system <Since v="0.121" /> [#system]
+
+与操作系统集成方式相关的动作，**写 HKLM，必须以管理员权限运行**。
+
+```bat
+wind_input system dota2-compat on       :: 开启 Valve 游戏兼容
+wind_input system dota2-compat off
+wind_input system dota2-compat status   :: 显示当前登记的名称
+```
+
+Dota 2 按输入法在系统里登记的**名称**查一张内置白名单，决定要不要由游戏自己绘制候选；不在表内就取不到候选，还会多出一个左上角的系统 IME 小窗。开启后本输入法登记的名称改为「中文 (简体) - 郑码」——**语言栏、Windows 设置、输入法切换列表里显示的都会是那个名字**，改完需重启游戏才生效。
+
+日常从设置页操作即可（[高级 → 游戏兼容](/docs/settings/advanced#game-compat)），设置程序会以 `runas` 拉起本子命令，你当场看到一次 UAC。本子命令**不读配置**、目标状态由参数显式给出——提权到另一个管理员账户时读配置会读到那个账户的数据。
 
 ## 路径与内部目录变量
 

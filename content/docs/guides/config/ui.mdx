@@ -48,7 +48,7 @@ comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 
 ### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]
 
-供注释模板 `${dict}` 变量查询的**独立注释词库**列表（如英汉释义、Emoji 名称）。`ui.comment_dicts` 是结构体数组（TOML 的 `[[ui.comment_dicts]]` 形态），**出厂为空**——词典多有版权，不随附任何内容，由用户自行放置。设置页入口在**外观 → 候选窗口 → 注释词库**，也可直接写配置：
+供注释模板 `${dict}` 变量查询的**独立注释词库**列表（如英汉释义、Emoji 名称）。`ui.comment_dicts` 是结构体数组（TOML 的 `[[ui.comment_dicts]]` 形态），**出厂为空**——词典多有版权，不随附任何内容，由用户自行放置。设置页入口在**外观 → 候选标注 → 注释词库**，也可直接写配置：
 
 ```toml
 [[ui.comment_dicts]]
@@ -212,7 +212,7 @@ latin = ["Cascadia Code"]         # 拉丁字母一律用等宽，不管雅黑�
 **继承上下文**——否则一句话会被切成十几段，段与段的边界还会丢掉字距。
 
 类别名写错不报错，只是被忽略（日志里留一条 warn）。设置界面的「按文字类别指定字体」
-会把七个类别**预填**好，在现成的行上改比手写安全，见[外观设置 · 字体](/docs/settings/appearance#font-and-count)。
+会把七个类别**预填**好，在现成的行上改比手写安全，见[外观设置 · 字体](/docs/settings/appearance#candidate-font)。
 
 ## 主题（ui.theme）
 

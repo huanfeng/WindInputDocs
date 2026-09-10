@@ -60,6 +60,7 @@ switch_engine = "ctrl+shift+e"    # 循环切换输入方案
 toggle_full_width = "shift+space" # 全角/半角切换
 toggle_punct = "ctrl+."           # 中文/英文标点切换
 toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
+toggle_t2s = "none"               # 繁入简出开关，出厂不绑
 ```
 
 | 键 | 类型 | 默认 | 说明 |
@@ -68,6 +69,7 @@ toggle_s2t = "ctrl+shift+j"       # 简体/繁体输出切换
 | `toggle_full_width` | 热键字符串 | `shift+space` | 切换全角/半角字符输出 |
 | `toggle_punct` | 热键字符串 | `ctrl+.` | 切换中文/英文标点（仅中文模式下生效） |
 | `toggle_s2t` | 热键字符串 | `ctrl+shift+j` | 切换简体/繁体输出（仅中文模式下生效） |
+| `toggle_t2s` <Since v="0.121" /> | 热键字符串 | `"none"` | 开关[繁入简出](/docs/guides/config/input#t2s)（词库是繁体、上屏转简体），仅中文模式下生效。`"none"` = 不绑，要用请自己填一个组合键。与 `toggle_s2t` **互斥**，开一个会自动关掉另一个 |
 
 ### 方案直达热键 [#schema-hotkeys]
 
@@ -116,7 +118,8 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
 | `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**。写在方案级时切过去就没有回程了，见下方提示 |
-| `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
+| `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_t2s` <Since v="0.121" />、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
+| `single_char` <Since v="0.121" /> | 开关[单字输入](/docs/guides/config/schema#single-char)（候选只出单字）。裸写 = 切换；也可写 `single_char:on` / `:off` / `:toggle` 直达，`:follow` 取消临时切换、回到配置里的值。切的是**临时态**，不写配置——重启或切方案后失效 |
 | `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
 | `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |
 | `none` | 显式什么都不做。**这是关掉低层预置绑定的唯一手段**：本表逐键深合并，在设置页删掉一行压不住随程序分发的 `data\config.toml`（或定制版 `data_custom\config.toml`）里写的同一个键——只有显式写 `none` 才是「本层表态：这个键别干活」。方案级覆盖里关掉某个全局绑定同理 |
@@ -197,6 +200,7 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 
 - **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`，以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。两个 N 的取值范围都是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
+- **`single_char`** <Since v="0.121" />：开关[单字输入](/docs/guides/config/schema#single-char)，动词与 `key_actions` 那份完全一样（`single_char:on` / `:off` / `:toggle` / `:follow`）。按下即开关并**就地重出候选**，不会把正在打的码上屏。写在本表意味着「只在打字时管用」——绑在 Tab 上，没打字时 Tab 仍是宿主的制表符。
 - **与翻页共用一个键**：写 `aux_code:page_next` <Since v="0.118" />，**能进辅助码就进、进不去就翻下一页**。于是 `tab = "aux_code:page_next"` 一键两用：第一次按进筛选，之后按继续翻页；辅助码没开、方案没配码表时它就是个纯翻页键，空闲无候选时仍原样交还给应用。这个形态只有本表有——`key_actions` 解析不出翻页键。
 
 本表与下面的 `page_keys` / `highlight_keys` / `select_key_groups` / `select_char_keys` 各自独立保存，**运行时**才合并（本表写了的键优先）——改一处不会动到另一处。出厂默认留在那四项里，这样把它们清成 `[]` 就真的能关掉对应功能。撞键时按消费顺序裁决：以词定字 > 翻页 / 高亮 > 二三候选。
@@ -241,6 +245,7 @@ open_settings = "ctrl+shift+]"        # 打开设置工具
 add_word = "ctrl+equal"               # 就地加词（从当前组合造词）
 open_add_word_dialog = "ctrl+shift+equal" # 打开加词小窗
 activate_ime = "ctrl+shift+["         # 切换到本输入法（系统级）
+take_screenshot = "ctrl+shift+f11"    # 截取输入法自身窗口（取证用）
 ```
 
 | 键 | 类型 | 默认 | 说明 |
@@ -251,15 +256,7 @@ activate_ime = "ctrl+shift+["         # 切换到本输入法（系统级）
 | `add_word` | 热键字符串 | `ctrl+equal` | 就地加词，仅中文模式生效。该键额外走系统级全局拦截，规避 QQNT / Tabby 等宿主的加速键双处理 |
 | `open_add_word_dialog` | 热键字符串 | `ctrl+shift+equal` | 打开独立加词小窗，仅中文模式生效，同样走全局拦截 |
 | `activate_ime` | 热键字符串 | `ctrl+shift+[` | 切换到本输入法。经 Windows `DirectSwitchHotkeys` 注册表交由系统 `ctfmon` 原生处理（per-app 切换），**不经引擎按键分发** |
-
-<Callout type="warn" title="take_screenshot（隐藏字段）">
-`keys.take_screenshot`（默认 `ctrl+shift+f11`）是有效但**未在设置界面暴露**的字段，也不写入随程序分发的 `data\config.toml`——它只有代码默认值。按下时触发截图（`trigger_screenshot`），并可作为全局热键动作。需自定义时只能手动写入 `config.toml`：
-
-```toml
-[keys]
-take_screenshot = "ctrl+shift+f11"  # 隐藏字段，设置界面无对应项
-```
-</Callout>
+| `take_screenshot` | 热键字符串 | `ctrl+shift+f11` | 截取**输入法自己的窗口**——候选窗、工具栏、状态提示、悬停提示、右键菜单，逐个存 PNG 到用户目录 `screenshots`，候选窗那张顺带进剪贴板。这是反馈问题时的取证手段，不是屏幕截图工具。可作全局热键动作。设置页已开放此项 <Since v="0.121" /> |
 
 ## 候选置顶与删除
 
@@ -380,9 +377,10 @@ global_hotkeys = []  # 提升为系统级全局热键的动作名列表
 | `open_settings` | 打开设置 |
 | `take_screenshot` | 截图 |
 | `toggle_s2t` | 简/繁切换 |
+| `toggle_t2s` <Since v="0.121" /> | 繁入简出开关 |
 
 <Callout type="warn" title="不支持的动作会被忽略">
-只有上表 7 个动作可放进 `global_hotkeys`；填写其它名字（含 `add_word` / `activate_ime` 等）会被判为不支持并忽略。其中 `activate_ime` 另有专属系统级通道（`DirectSwitchHotkeys` 注册表），无需也不能列在此处；`add_word` 需要当前组合上下文，不参与全局注册。
+只有上表 8 个动作可放进 `global_hotkeys`；填写其它名字（含 `add_word` / `activate_ime` 等）会被判为不支持并忽略。其中 `activate_ime` 另有专属系统级通道（`DirectSwitchHotkeys` 注册表），无需也不能列在此处；`add_word` 需要当前组合上下文，不参与全局注册。
 </Callout>
 
 ## 无效按键策略（keys.overflow）

@@ -138,7 +138,7 @@ export const tips: Tip[] = [
   {
     id: "inline-code",
     text: "想快速切换嵌入编码模式？输入 `copm` 一键就能来回切。",
-    href: "/docs/settings/appearance#layout-position",
+    href: "/docs/settings/appearance#candidate-layout",
     cta: "编码显示方式",
   },
   {

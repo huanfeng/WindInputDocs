@@ -3,6 +3,8 @@ title: macOS 版
 description: macOS 版的安装与放行、辅助功能授权、与 Windows 版的差异及路径对照
 ---
 
+import { Since } from "@/components/since";
+
 <Callout type="warn" title="装完先做两件事">
   macOS 版**未做苹果签名与公证**，装完还有两道系统关卡要过，两者都不做完就用会觉得「装了没反应」：
 
@@ -70,6 +72,7 @@ description: macOS 版的安装与放行、辅助功能授权、与 Windows 版�
 - **菜单不受主题控制**，见下
 - 全局热键需要[辅助功能授权](#accessibility)
 - [命令直通车](/docs/guides/command-bar)的 `sel()` 变量（前台选中文本）目前仅 macOS 支持
+- [软键盘](/docs/guides/soft-keyboard) <Since v="0.121" />：面板与各个面均已可用；`Caps` 键在 macOS 上画成禁用态——系统不允许输入法改大写锁定状态
 
 ### 没有工具栏，用菜单栏指示器代替 [#no-toolbar]
 

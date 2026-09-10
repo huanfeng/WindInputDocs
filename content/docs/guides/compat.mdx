@@ -54,19 +54,30 @@ caret_use_top = true
 | `initial_mode` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英状态：`english` / `chinese` |
 | `initial_punct` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英标点，取值同上 |
 | `host_render` | 布尔 | `false` | 加入宿主代理渲染白名单，见[下文](#host-render) |
+| `auto_pair` | 布尔 | 不写 = 跟随全局 | 本应用是否启用[符号自动配对](/docs/guides/config/input)。给表格类宿主（Excel / WPS 表格）用：它们在「输入态」下把方向键解释成「确认单元格并移动」，配对后光标退不回两个符号之间 |
+| `smart_method` | 枚举 | 不写 = 跟随全局 | 本应用的[智能符号](/docs/guides/config/input)替换方案：`delete_replace` / `hold_composition`。终端类宿主（Tabby）用后者——它全程不做删改 |
+| `caret_offset_x` / `caret_offset_y` | 整数（dp） | `0` | 光标坐标的**系统性偏移**校正，正 = 右 / 下。单位是 dp 不是物理像素，同一份数值在不同缩放的屏幕上观感一致 |
+| `ignore_host_ime_close` <Since v="0.121" /> | 布尔 | 不写 = 采纳宿主请求 | 忽略本应用「关闭输入法」的请求，见[下文](#ignore-host-ime-close) |
+| `candidate_position_mode` <Since v="0.121" /> | 枚举 | 不写 = 跟随全局 | 本应用的候选窗定位方式：`follow_caret` / `fixed`，见[下文](#per-app-candidate-position) |
+| `candidate_x` / `candidate_y` <Since v="0.121" /> | 整数（物理像素） | `0` | `fixed` 时本应用的候选窗位置。每个应用各记一份，`(0,0)` = 尚未设定 |
+| `composition_start_pair_guard` <Since v="0.121" /> | 布尔 | 不写 = 继承出厂值 | 把「组合起点降级帧 + 紧随的 selection 帧」识别为同一次采样，避免把「组合起点 → 当前插入点」的跨度当成锚点错误。只给已实测存在该交替序列的宿主开（QQNT / VS Code / 飞书已内置） |
+| `pin_anchor_when_start_drifts` <Since v="0.121" /> | 布尔 | `false` | 宿主报的组合起点跟着插入点漂移时，把候选窗锚点钉在首帧起点，见[下文](#pin-anchor) |
 
 `initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
 
 `first_show_mode` 则相反：认不出的值**回落到默认档** `fast`，因为「写了个认不出的值」与「没写」在这里得到同样的行为最不意外。
 
-## 内置的四条规则
+## 内置规则
+
+随程序分发的 `data\compat.toml` 已经为若干宿主预置了规则，装完即生效，不必自己写：
 
 | 进程 | 规则 | 为什么 |
 | --- | --- | --- |
-| `Weixin.exe` | `caret_use_top = true` | 微信的 Qt WebView 输入框，`GetTextExt` 返回的 height 在 1↔20px 间跳变，导致 bottom 漂移约 20px，但 top 始终稳定 |
-| `SearchHost.exe` | `host_render = true` | Win11 开始菜单 / 任务栏搜索 |
-| `searchapp.exe` | `host_render = true` | Win10 任务栏搜索 |
-| `startmenuexperiencehost.exe` | `host_render = true` | Win10 开始菜单输入框 |
+| `Weixin.exe` | `caret_use_top` + `stale_probe_guard` | 微信的 Qt WebView 输入框，`GetTextExt` 返回的 height 在 1↔20px 间跳变，导致 bottom 漂移约 20px，但 top 始终稳定；组合期间上报的矩形还会停在上一次组合的位置 |
+| `SearchHost.exe` / `searchapp.exe` / `startmenuexperiencehost.exe` | `host_render = true` | Win11 / Win10 的开始菜单与任务栏搜索框，候选窗盖不过它们的 Band 层级 |
+| `EXCEL.EXE` / `et.exe` | `first_show_mode = "wait"` | 进单元格时先在编辑栏建临时编辑上下文、约 0.5s 后才切到单元格，`fast` 档的试探坐标会抢在切换前把候选窗显示在编辑栏 |
+| `QQ.exe` / `Code.exe` / `Feishu.exe` <Since v="0.121" /> | `composition_start_pair_guard = true` | 长组合时交替上报组合起点降级帧与当前 selection，跨度不是锚点错误 |
+| `wps.exe` / `WINWORD.EXE` <Since v="0.121" /> | `pin_anchor_when_start_drifts = true` | 长组合内组合起点每帧跟着插入点右移，大偏移逃生阀被这份数据一路骗着重锁 |
 
 ## caret_use_top
 
@@ -148,6 +159,51 @@ initial_mode = "english"
 显式写的 `initial_punct` 优先于 `config.toml` 里 [`input.punct.follow_mode`](/docs/settings/input/punctuation#字符与标点) 的推导——否则你配了它却恰好开着「标点随中英文切换」时会完全无效且没有任何痕迹。
 </Callout>
 
+## 忽略宿主关闭输入法 <Since v="0.121" /> [#ignore-host-ime-close]
+
+有些应用「操作几下就自动变成英文」，回到输入框也不恢复。根因不在输入法：宿主自己在关**全局**中英状态。WinForms 的 `ImeMode.Disable` 与 WPF 的 `IsInputMethodEnabled=False` 内部都是 `ImmSetOpenStatus(false)`，关的是全局开关而不是「本控件不接受输入」，于是点一次按钮就被切成英文。
+
+```toml
+[[apps]]
+process = "SomeDotNetApp.exe"
+comment = "焦点落到按钮上就把 IME 关掉"
+ignore_host_ime_close = true
+```
+
+开启后这类请求不再采纳，中文状态保持不变。只有「宿主主动要关、且你没有按住 Ctrl」这一种情形会被拒绝，所以 `Ctrl+Space` 一律放行，你仍然可以正常切中英。
+
+菜单入口：在目标应用里打开[功能主菜单 → 应用独立配置](/docs/settings/menu#app-config)。
+
+<Callout type="info" title="不做成全局开关">
+「宿主要关输入法」在绝大多数场景下是应当采纳的正当请求（只读控件、真正禁用输入法的窗口）。一律忽略会让那些场景反过来出问题，所以必须逐应用开启。
+</Callout>
+
+## 应用独立的候选窗定位 <Since v="0.121" /> [#per-app-candidate-position]
+
+给光标坐标本就报不准的宿主（自绘控件、坐标系不对、多进程窗口偏移）：把定位方式设成 `fixed`，候选窗不再跟随光标，位置**由你拖一次候选窗设定**，此后固定在那里。
+
+```toml
+[[apps]]
+process = "SomeApp.exe"
+candidate_position_mode = "fixed"
+candidate_x = 800
+candidate_y = 1200
+```
+
+坐标每个应用各记一份，互不影响；`(0, 0)` 表示尚未设定，首次显示落在屏幕默认位置，拖动一次即记住。定位方式在[功能主菜单 → 应用独立配置](/docs/settings/menu#app-config)里选，坐标不进菜单——拖候选窗就是设置动作本身。
+
+## 钉住组合起点 <Since v="0.121" /> [#pin-anchor]
+
+WPS 文字与 Word 在一次长组合里，**每一帧都把组合起点跟着插入点右移**。候选窗的大偏移逃生阀被这份漂移数据一路骗着重锁锚点（实测从真实起点 1830 推到 2591），而删除是逐字的、每步够不到阈值，锚点就永久卡住——表现为「换行后候选窗回不去、删除也回不来」。
+
+`pin_anchor_when_start_drifts = true` 让锚点钉在**首帧**起点，首帧的组合起点是对的。
+
+<Callout type="warn" title="必须逐宿主开启，不要试图改成全局">
+这一条上不同宿主的期望**相反，而它们报出来的数据完全一样**：WPS 文字的一个长组合要钉住；Excel / WPS 表格每输入一个字换一次单元格，候选窗本就该跟着走。光看数据分不出这两种，所以只能逐个应用开——开成全局会弄坏 Excel 的跟随。
+</Callout>
+
+对于能给出**组合范围矩形**的宿主（协议 v3），锚点直接取矩形的左下角，一个公式同时覆盖单行与跨行，本开关和另外两个「猜」的机制都自动让位。拿不到矩形的路径（旧版 DLL、macOS、宿主正在重排期间）仍然走上面这套。
+
 ## 宿主代理渲染 host_render <Since v="0.113" /> [#host-render]
 
 少数宿主运行在受限容器中，或其窗口层级（Band）盖过一切普通窗口，输入法自绘的候选窗被压在下面看不见——Win11 开始菜单 / 任务栏搜索的 `SearchHost.exe` 就是这样。
@@ -171,11 +227,13 @@ initial_mode = "english"
 | 现象 | 原因 |
 | --- | --- |
 | 密码框里打不出中文 | [密码框强制英文](/docs/settings/menu#密码框强制英文)（默认开启，有意为之） |
-| 部分网络游戏里完全没反应 | 游戏不加载未签名的输入法 DLL |
+| 部分网络游戏里完全没反应 | 游戏不加载未签名、或不在系统目录下的输入法 DLL。0.121 起安装包已把 TSF 组件装进系统目录并做代码签名 <Since v="0.121" />，CS2 一类开启 Trusted Mode 的游戏据此放行 |
+| Dota 2 里打得出字但看不到候选 | 游戏按输入法**名称**查一张内置白名单，见[高级设置 · 游戏兼容](/docs/settings/advanced#game-compat) <Since v="0.121" /> |
+| 全屏游戏里候选窗盖不住画面 | 独占全屏下所有浮窗都被抑制 <Since v="0.121" />，改由游戏自己绘制候选（若它支持）；无边框全屏不受影响 |
 | 开始菜单里候选窗鼠标点不动 | 数字签名限制，见[常见问题](/docs/reference/faq) |
 
 ## 相关阅读
 
 - [菜单功能 · 应用独立配置](/docs/settings/menu#app-config) —— 不改文件的设置方式
-- [外观设置](/docs/settings/appearance#候选窗口) —— 候选窗的定位方式与布局
+- [外观设置](/docs/settings/appearance#candidate-window) —— 候选窗的定位方式与布局
 - [配置文件与数据目录](/docs/guides/config) —— `compat.toml` 在目录结构里的位置

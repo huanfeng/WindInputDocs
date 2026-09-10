@@ -1,6 +1,6 @@
 ---
 title: 设置工具总览
-description: 设置工具怎么打开、八个页面分别管什么、保存与恢复机制
+description: 设置工具怎么打开、八个页面分别管什么、二级导航与搜索、保存与恢复机制
 ---
 
 import { Since } from "@/components/since";
@@ -11,14 +11,16 @@ import { Since } from "@/components/since";
 
 ## 八个页面
 
+侧栏顺序是 **方案 / 输入 / 按键 / 外观 / 统计 / 词库 / 高级 / 关于**。「词库」点开的是一个**独立窗口**、主窗停在原页不动，是这一栏里唯一的动作项，所以排在纯切页的那几格之后。
+
 <Cards>
-  <Card title="方案" href="/docs/settings/schema" description="启用与排序输入方案、方案独立设置、四种引擎的全局配置、主方案设置" />
-  <Card title="输入" href="/docs/settings/input" description="字符与标点、智能符号、标点配对、按键行为、简入繁出、快捷输入、临时模式、默认状态" />
+  <Card title="方案" href="/docs/settings/schema" description="启用与排序输入方案、方案独立设置、四张引擎配置卡、主方案设置" />
+  <Card title="输入" href="/docs/settings/input" description="字符与标点、智能符号、标点配对、按键行为、默认状态、临时模式、简繁转换、Emoji、Unicode 输入、联想" />
   <Card title="按键" href="/docs/settings/keys" description="中英文切换键、候选选择与翻页键组、以词定字、功能快捷键与全局热键" />
-  <Card title="外观" href="/docs/settings/appearance" description="主题、候选窗口、悬停提示、状态气泡、模式指示、工具栏、主题导入与编辑器" />
-  <Card title="词库" href="/docs/settings/dict" description="快捷短语与各方案的用户词库、临时词库、词频、候选调整，以及导入导出" />
+  <Card title="外观" href="/docs/settings/appearance" description="主题、候选字体 / 窗口 / 排版 / 标注、候选项提示、状态气泡、模式指示、工具栏、主题导入与编辑器" />
   <Card title="统计" href="/docs/settings/stats" description="输入量、速度、码长、方案占比等统计面板与数据清理" />
-  <Card title="高级" href="/docs/settings/advanced" description="服务日志级别、备份与还原" />
+  <Card title="词库" href="/docs/settings/dict" description="快捷短语与各方案的用户词库、临时词库、词频、候选调整，以及导入导出" />
+  <Card title="高级" href="/docs/settings/advanced" description="系统集成、导入、备份与还原、设置界面、游戏兼容与日志设置" />
   <Card title="关于" href="/docs/settings" description="版本信息与项目链接" />
 </Cards>
 
@@ -45,6 +47,24 @@ import { Since } from "@/components/since";
 | `Ctrl + F` | 焦点回到搜索框；已经打了字的话当场展开结果 |
 | `Esc` | 收起搜索结果浮层 |
 | `Ctrl + W` | 关闭设置窗口（有未保存的改动会先弹确认） |
+
+## 二级导航 <Since v="0.121" /> [#subnav]
+
+左栏与内容区之间多了一条**当前页的分块清单**：点一下滚到那张卡，手动滚动时高亮跟着走。输入页十几张卡、外观页九张，光靠滚是找不到东西的。
+
+分块少于 2 个的页（词库、关于）不显示这一栏。
+
+嫌它占地方可以关掉：**高级 → 设置界面 → 二级导航（实验性）**。
+
+侧栏顺序是 **方案 / 输入 / 按键 / 外观 / 统计 / 词库 / 高级 / 关于**——「词库」点开的是一个独立窗口、主窗停在原页不动，是这一栏里唯一的**动作项**，所以排在纯切页的那几格之后。
+
+<Callout type="info" title="方案页的四台引擎铺回页面了">
+码表 / 拼音 / 混输 / 英文四组全局配置各成一张卡，直接铺在[方案页](/docs/settings/schema#engine-cards)上（此前藏在四个模态对话框里），二级导航里能直接点到这四个名字。每张卡的「恢复默认」在卡片标题行右侧。
+</Callout>
+
+<Callout type="warn" title="`--tab <序号>` 的含义跟着变了">
+侧栏顺序调整后，`--tab` 传的裸下标指向的页面已经不同。它本来就是「按位置」而不是「按名字」的入口——脚本里请改用 `--page <名字>`，那个不受顺序影响。
+</Callout>
 
 ## 保存机制
 
