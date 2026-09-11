@@ -98,6 +98,8 @@ import { Since } from "@/components/since";
 
 ## 日志设置
 
+反馈问题时要交什么、怎么开、发之前注意什么，见[反馈问题时如何提交日志](/docs/reference/report-logs)。
+
 日志级别决定记录多少运行信息。**修改后需重启输入法服务生效**（[功能主菜单](/docs/start/first-input#context-menu) → 重启服务）。
 
 日志设置有**三个模块各自一档**，它们的落点不同（TSF 端的级别要在宿主进程加载 DLL 时就读到，来不及等服务连上），但日志文件都落在同一个目录，所以「打开日志目录」只有一个入口：
@@ -127,7 +129,7 @@ import { Since } from "@/components/since";
 对应配置键是 `debug.log_level`，见[统计与调试](/docs/guides/config/misc#日志调试)。日志文件本身还有两点：
 
 - 目录默认为 `%LOCALAPPDATA%\WindInput\logs\`，三个模块的日志都落在这里，可从[功能主菜单](/docs/settings/menu#高级子菜单)的「高级 → 打开日志目录」直接跳过去
-- **每一份都带序号，`.1` 恒为最新** <Since v="0.121" />，见[日志文件的序号](/docs/guides/config/misc#log-numbering)。反馈问题时把整个 `logs` 目录打包发出来即可
+- **每一份都带序号，`.1` 恒为最新** <Since v="0.121" />，见[日志文件的序号](/docs/guides/config/misc#log-numbering)。反馈问题时把整个 `logs` 目录打包发出来即可，完整流程见[反馈问题时如何提交日志](/docs/reference/report-logs)
 
 ## 导入导出入口一览 [#entries]
 
