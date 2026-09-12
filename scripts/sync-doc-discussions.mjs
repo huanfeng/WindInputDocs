@@ -14,8 +14,8 @@
  *   FLARUM_API_KEY=<key> node scripts/sync-doc-discussions.mjs
  *   FLARUM_API_KEY=<key> node scripts/sync-doc-discussions.mjs --dry-run
  *
- * API key 在服务器的 /opt/flarum/SYNC_API_KEY 里（600）。用 master key 而不是
- * 登录得到的 access token —— 后者随会话过期，CI 里每次都得重新登录并保存管理员密码。
+ * API key 是论坛的 master key，向维护者索取。用 master key 而不是登录得到的
+ * access token —— 后者随会话过期，CI 里每次都得重新登录并保存管理员密码。
  */
 import {
   existsSync,
@@ -128,9 +128,7 @@ async function main() {
     process.exit(1);
   }
   if (!KEY && !DRY) {
-    console.error(
-      "缺少 FLARUM_API_KEY。服务器上的 /opt/flarum/SYNC_API_KEY 里有。",
-    );
+    console.error("缺少 FLARUM_API_KEY。论坛的 master key，向维护者索取。");
     console.error("只想看会建哪些主题，加 --dry-run。");
     process.exit(1);
   }
