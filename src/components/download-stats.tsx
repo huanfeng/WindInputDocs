@@ -37,14 +37,14 @@ const MAX_GAP_MS = 600;
 const HINT_AT = 4;
 const STORAGE_KEY = "windinput:stats-panel";
 
-/** 平台代码 → 展示名。口径与 worker/src/env.ts 的 ARTIFACTS 一致。 */
+/** 平台代码 → 展示名。口径与 WindInputSite 仓 worker/src/env.ts 的 ARTIFACTS 一致。 */
 const PLATFORM_LABEL: Record<string, string> = {
   windows: "安装版",
   "windows-portable": "便携版",
   macos: "macOS",
 };
 
-/** 列顺序。与 worker/src/stats.ts 的 PLATFORM_ORDER 同序，新增平台两处一起加。 */
+/** 列顺序。与 WindInputSite 仓 worker/src/stats.ts 的 PLATFORM_ORDER 同序，两处一起加。 */
 const PLATFORM_ORDER = ["windows", "windows-portable", "macos"];
 
 const SOURCE_LABEL: Record<string, string> = {
