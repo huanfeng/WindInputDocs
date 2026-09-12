@@ -17,8 +17,6 @@
       "!out",
       "!.omc",
       "!.remember",
-      "!worker",
-      "!worker-comments",
       "!data/releases.json"
     ]
   },

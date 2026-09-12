@@ -158,7 +158,7 @@ def write_latest(
 
 
 def setup_name(version: str) -> str:
-    """Windows 安装包文件名。口径与 worker/src/env.ts 的 ARTIFACTS 正则一致。"""
+    """Windows 安装包文件名。口径与 WindInputSite 仓 worker/src/env.ts 的 ARTIFACTS 一致。"""
     return f"WindInput-Setup-{version}.exe"
 
 
