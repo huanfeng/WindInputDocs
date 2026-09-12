@@ -30,11 +30,6 @@
       "statusCode": 301
     },
     {
-      "source": "/comments/",
-      "destination": "/comments",
-      "statusCode": 301
-    },
-    {
       "source": "/whats-new/",
       "destination": "/whats-new",
       "statusCode": 301

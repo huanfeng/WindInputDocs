@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { commentsEnabled } from "@/lib/comments";
 import { siteUrl } from "@/lib/shared";
 import { isUnreleasedPage, source } from "@/lib/source";
 
@@ -15,7 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/download": 0.8,
     "/whats-new": 0.6,
     "/changelog": 0.5,
-    "/comments": 0.5,
     "/sponsor": 0.4,
   };
 
@@ -24,8 +22,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/download",
     "/whats-new",
     "/changelog",
-    // 构建期总开关关掉时这条路由是 404，收录进来会给搜索引擎送死链。
-    ...(commentsEnabled ? ["/comments"] : []),
     "/sponsor",
     // 整页未发布的文档不收录：站点地图是主动递给搜索引擎的，
     // 页面上藏住了却在这里列出来，等于从另一头把它送进索引。

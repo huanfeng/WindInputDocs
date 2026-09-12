@@ -1,7 +1,7 @@
 // 文档页评论的数据层。后端是 forum.windinput.com 上的 Flarum，浏览器直连其 REST API。
 //
-// 为什么不再走 Worker：原先的 worker-comments 挂在 Cloudflare zone 上，主域解析交给
-// EdgeOne 后那条路由必然失效（见 lib/comments.ts 的说明）。改用 Flarum 后没有中间层，
+// 为什么不再走 Worker：原先的自建评论 Worker 挂在 Cloudflare zone 上，主域解析交给
+// EdgeOne 后那条路由必然失效。改用 Flarum 后没有中间层，
 // 文档站是纯静态导出，所有请求由浏览器发出。
 //
 // 跨域能成立靠三件事，缺一不可：
