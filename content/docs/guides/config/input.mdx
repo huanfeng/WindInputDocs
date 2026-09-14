@@ -240,6 +240,7 @@ show_candidates = true        # 显示英文候选
 raw_candidate = true          # 首候选恒是所打原文
 case_variants = true          # 生成大小写变形候选
 case_follow_input = true      # 候选跟随输入的大小写
+commit_space = false          # 上屏后自动加空格（临英自己那份）
 shift_behavior = "temp_english" # Shift 键行为
 trigger_keys = []             # 额外触发键（符号键进入临英）
 allow_symbols = false         # 临英缓冲内允许符号与数字（总开关）
@@ -255,6 +256,7 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | `raw_candidate` | 布尔 | — | `true` <Since v="0.119" /> | 把**所打原文**作首候选。默认开 = 保持一直以来的行为。⚠️ 与下面的 `case_variants` 同时关闭且词库无命中时候选会是空的，此时空格上屏缓冲原文 |
 | `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |（[英文方案那侧默认关](/docs/guides/config/schema#english)，两侧各自独立）
 | `case_follow_input` | 布尔 | — | `true` <Since v="0.121" /> | 词库候选跟随你打的大小写，语义同 [`schema.english` 那份](/docs/guides/config/schema#english)。⚠️ 临英由 `Shift + 字母` 进入、缓冲首字母恒大写，开着它临英候选就恒为首字母大写形态；不想要这个观感把它关掉即可 |
+| `commit_space` | 布尔 | — | `false` <Since v="0.122" /> | 临英选词上屏后补一个空格。与 [`schema.english` 那份](/docs/guides/config/schema#english)**各自独立**：长时打英文连着打词、补空格顺手；中文里插一个英文词，插完往往接中文或标点，补上的还得退格删掉。回车上屏不补 |
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
 | `allow_symbols` | 布尔 | — | `false` | 总开关：符号与数字是否直接进入临英缓冲，而非上屏退出或选词。放行哪些字符由 `symbol_chars` 决定 |
