@@ -23,13 +23,18 @@ export const gitConfig = {
 export const releasesUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}/releases`;
 export const githubUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}`;
 
-/**
- * 社区论坛。这里是这个地址的**单一来源** —— lib/flarum.ts 的 FLARUM_BASE 引用它。
- *
- * 放在这个纯常量模块而不是反过来，是因为顶栏的论坛入口每页都渲染，不该为了一个
- * URL 就把整个评论数据层（含 doc-discussions.json 与一堆 fetch 逻辑）拉进 chunk。
- */
+/** 社区论坛。这里是这个地址的**单一来源**。 */
 export const forumUrl = "https://forum.windinput.com";
+
+/**
+ * 社区的「文档反馈」版块。文档页底部的反馈引导指向它，
+ * 见 components/docs-feedback.tsx。
+ *
+ * cid 11 取自 windinput-bbs 的 settings/_categories-def.js —— 七个版块里的最后一个，
+ * NodeBB 按创建顺序发 cid。NodeBB 认的是 cid，后面那截名字改了也不会让链接失效，
+ * 写出来只是为了这行本身可读。
+ */
+export const docsFeedbackUrl = `${forumUrl}/category/11/文档反馈`;
 
 // 顶栏导航项。纯数据，供自定义顶栏与文档侧栏共用。
 export const navLinks: LinkItemType[] = [
