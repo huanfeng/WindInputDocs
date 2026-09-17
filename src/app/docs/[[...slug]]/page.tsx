@@ -65,7 +65,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
           })}
         />
       </DocsBody>
-      {/* 每页评论已下架，改为引到社区的「文档反馈」版块，理由见组件注释 */}
+      {/* 每页评论已下架，改为引到「文档反馈」版块，理由见组件注释 */}
       <DocsFeedback />
     </>
   );
