@@ -17,7 +17,7 @@ import { Since } from "@/components/since";
 [schema]
 active = "wubi86"                        # 当前激活方案
 available = ["wubi86", "wubi86_pinyin"]  # 可循环切换的方案列表（顺序即切换顺序）
-primary_codetable = ""                   # 主码表方案 ID（拼音反查码源），留空按 available 顺序取第一个码表方案
+primary_codetable = ""                   # 主码表方案 ID（${code_rev} 的码源），留空按 available 顺序取第一个码表方案
 primary_pinyin = ""                      # 主拼音方案 ID（临时拼音目标方案），留空 = 全拼 "pinyin"
 ```
 
@@ -25,7 +25,7 @@ primary_pinyin = ""                      # 主拼音方案 ID（临时拼音目�
 | --- | --- | --- | --- | --- |
 | `active` | 字符串 | — | `"wubi86"` | 当前激活的方案 ID |
 | `available` | 字符串数组 | — | `["wubi86", "wubi86_pinyin"]` | 可循环切换的方案列表，顺序即切换顺序 |
-| `primary_codetable` | 字符串 | — | `""` | 主码表方案 ID，作拼音反查的码源。留空时按 `available` 顺序取第一个码表方案 |
+| `primary_codetable` | 字符串 | — | `""` | 主码表方案 ID，作拼音反查（`${code_rev}`）的码源。留空时按 `available` 顺序取第一个码表方案。注意 `${shuangpin}`（双拼编码）不经过它 |
 | `primary_pinyin` | 字符串 | — | `""` | 主拼音方案 ID，作临时拼音的目标方案。留空 = 全拼（`"pinyin"`） |
 
 ## 码表引擎（schema.codetable）
@@ -58,7 +58,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `auto_commit_at_full` | 布尔 | — | `false` | 满码唯一精确时自动上屏 |
 | `auto_commit_min_len` | 整数 | — | `0` | 自动上屏最短码长；`0` = 等于全码长。隐藏项 |
 | `punct_commit` | 布尔 | — | `true` | 标点触发上屏。关掉是**吞键**——标点本身也不输出，编码留着继续打。想「废码作废、标点照常出」请用 [`input.punct_on_empty_behavior`](/docs/guides/config/input)，两者不是一回事 |
-| `show_code_hint` | 布尔 | — | `true` | 显示编码提示 |
+| `show_code_hint` | 布尔 | — | `true` | 显示编码提示：给**码表前缀候选**标出剩余编码（敲 `si` 时 `sikao` 标 `kao`）。与拼音侧的 [`schema.pinyin.code_hint_source`](#拼音引擎schemapinyin) 是两件事，别弄混 |
 | `single_code_input` | 布尔 | — | `false` | 精确匹配模式，关闭前缀匹配 |
 | `single_code_complete` | 布尔 | — | `true` | 精确匹配空码补全：无候选时从更长编码取首选 |
 | `z_key_repeat` | 布尔 | — | `false`（预置为 `true`） | z 键重复输入 |
@@ -250,7 +250,7 @@ enabled = false          # 自动造词总开关
 
 ```toml
 [schema.pinyin]
-show_code_hint = true       # 显示编码提示
+code_hint_source = "auto"   # 编码提示来源：off / codetable / schema / auto
 use_smart_compose = true    # 智能组词
 single_char = false         # 单字输入：候选只出单字
 separator = "auto"          # 分隔策略：auto / quote / backtick / none
@@ -258,8 +258,22 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `show_code_hint` | 布尔 | — | `true` | 显示编码提示 |
+| `code_hint_source` <Since v="0.122" /> | 字符串 | `off` / `codetable` / `shuangpin` / `auto` | `"auto"` | 候选注释里显示哪种编码，见下方 Callout。0.122 之前是布尔键 `show_code_hint`，升级自动迁移 |
 | `use_smart_compose` | 布尔 | — | `true` | 智能组词 |
+
+<Callout title="`code_hint_source` 的四档">
+它决定**哪一类编码被允许显示**，而具体摆在哪、用什么格式，由[候选注释](/docs/settings/appearance/candidate-comment)模板决定。
+
+| 值 | 放行的变量 |
+| --- | --- |
+| `off` | 都不放行 |
+| `codetable` | `${code_rev}` / `${code_rev_all}`（主码表反查） |
+| `shuangpin` | `${shuangpin}`（双拼编码，全拼方案下也能显示） |
+| `auto`（出厂） | 两者都放行，谁先出由模板的回退链决定 |
+
+从旧版升级时，`show_code_hint = true` 自动迁移为 `codetable`、`false` 为 `off`，行为不变。
+想让双拼码显示出来，改成 `auto` 或 `shuangpin`。
+</Callout>
 | `single_char` <Since v="0.121" /> | 布尔 | — | `false` | [单字输入](#single-char)：候选只出单字。与码表那份是两件独立的事——拼音没有定长码，开了只是「不出词」，**无方案级覆盖**，写在这里就够了 |
 | `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = 自动挑一个**空闲**的符号键（未被选词键、也未被本方案 `[key_actions]` 占用）：先看 `'`，再看反引号，都不空闲就不启用；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼同样支持，但 `auto` 下不会占键（`'` 是选词键、反引号归辅助码），要用得显式配 `quote` |
 

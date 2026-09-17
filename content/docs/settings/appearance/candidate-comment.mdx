@@ -26,7 +26,7 @@ import { Since } from "@/components/since";
 | 编码 + 注音 | `${code_hint\|code}{ (${pinyin})}` |
 | 悬停提示同款（字根 + 编码 + 读音） | `{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}` |
 
-横排注释建议留 `${code_hint|code}` 或干脆留空：横排候选窗的宽度由所有候选共享，放注音或
+横排注释建议留 `${code_hint|code_rev|shuangpin}` 或干脆留空：横排候选窗的宽度由所有候选共享，放注音或
 字根很容易把窗口撑得很宽。
 
 ## 变量
@@ -34,8 +34,9 @@ import { Since } from "@/components/since";
 | 变量 | 内容 | 示例 |
 | --- | --- | --- |
 | `${code_hint}` | 引擎给出的编码提示：形码前缀候选的剩余编码、混输的来源标记 | `kao`、`拼` |
-| `${code}` | 整词在主码表里的实际编码，只取**最长**的全码（仅拼音来源候选） | `wqvb` |
-| `${code_all}` | 同上，但给出**全部码位**（含简码，短的在前） | `q/trn/trnt` |
+| `${code_rev}` <Since v="0.122" /> | 整词在**主码表**里的实际编码，只取**最长**的全码（仅拼音来源候选） | `wqvb` |
+| `${code_rev_all}` | 同上，但给出**全部码位**（含简码，短的在前） | `q/trn/trnt` |
+| `${shuangpin}` <Since v="0.122" /> | 这个候选的**双拼编码**。全拼方案下也能显示（见下） | `nihc` |
 | `${pinyin}` | 带声调注音 | `nǐ hǎo` |
 | `${chaizi}` | 拆字字根，**仅单字候选** | `亻尔` |
 | `${chaizi_code}` | 该字在拆字库里的编码，仅单字候选 | `wq` |
@@ -45,15 +46,52 @@ import { Since } from "@/components/since";
 `${chaizi}` 限单字是有意的：拆字回答的是「这个**字**由哪些字根构成」，词组的字根串既难读、
 又会把候选行推得很宽。确实需要词组字根时用 `${chaizi_all}`。
 
-`${code}` 与 `${code_all}` 都只对拼音来源的候选有值——形码方案下候选的编码就是你自己打的，
-再显示一遍是冗余。
+### `${code_rev}` 和 `${shuangpin}` 的分别
 
-出厂模板用 `${code}`（只给全码）而不是 `${code_all}`：一个字往往有三四个码位，全列出来会把
-候选行推得很宽，横排尤其明显。想一眼看全简码、又用竖排的话再换 `${code_all}`。
+两者回答的是不同的问题：
+
+- `${code_rev}` —— 这个词在**主码表**里怎么打。它去码表词库里**查**反向索引，所以能查到
+  什么完全取决于你配了哪个主码表。
+- `${shuangpin}` —— 这个词的**双拼**怎么敲。它是**算**出来的：拿候选自带的拼音和音节划分，
+  逐个音节过一遍双拼布局。
+
+双拼编码不存在于任何词库里（双拼词库就是全拼词库，双拼只是「全拼 + 一张键盘布局」），
+所以它只能算不能查——这也是为什么它得单列一个变量，而不是让 `${code_rev}` 换个码源了事。
+
+三个变量都只对拼音来源的候选有值——形码方案下候选的编码就是你自己打的，再显示一遍是冗余。
+
+<Callout title="全拼方案下也能看双拼编码">
+`${shuangpin}` **不要求你正在用双拼**。用哪份布局按这个顺序找：
+
+1. 当前方案本身是双拼 → 用它的布局
+2. 否则看「主拼音方案」（`schema.primary_pinyin`）是不是双拼 → 用它的
+3. 否则用方案列表里第一个双拼方案
+4. 一个双拼方案都没装 → 这一项为空
+
+所以全拼用户只要装了双拼方案，候选旁边就能挂着对应的双拼码——想从全拼转双拼时，
+这就是一份跟着你打字走的对照表。
+</Callout>
+
+出厂模板用 `${code_rev}`（只给全码）而不是 `${code_rev_all}`：一个字往往有三四个码位，
+全列出来会把候选行推得很宽，横排尤其明显。想一眼看全简码、又用竖排的话再换 `${code_rev_all}`。
+
+<Callout title="哪些变量能出，还受一个开关管">
+「方案 → 候选行为 → 编码提示来源」决定放行哪一类编码：`codetable` 只放行 `${code_rev}` /
+`${code_rev_all}`，`shuangpin` 只放行 `${shuangpin}`，`auto`（出厂）两者都放行，`off` 都不放行。
+
+开关管「允许哪些来源」，模板管「按什么顺序和格式摆」。所以把来源设成 `codetable` 之后，
+即使模板里写着 `${shuangpin}` 也不会显示——这是按配置办事，不是坏了。
+</Callout>
+
+<Callout type="info" title="旧名 `${code}` / `${code_all}` 仍然有效">
+它们是 `${code_rev}` / `${code_rev_all}` 的别名，会一直保留，老模板不用改。
+新写模板建议用新名字：`code_rev` 的 rev 是 reverse（反查），与「算出来」的 `shuangpin`
+一眼分得开。
+</Callout>
 
 ### 变量参数
 
-`${chaizi_all}` 与 `${code_all}` 支持用冒号指定分隔符：
+`${chaizi_all}` 与 `${code_rev_all}` 支持用冒号指定分隔符：
 
 | 写法 | 结果 |
 | --- | --- |
@@ -61,8 +99,8 @@ import { Since } from "@/components/since";
 | `${chaizi_all:／}` | `亻尔／女子` |
 | `${chaizi_all: · }` | `亻尔 · 女子` |
 | `${chaizi_all:}` | `亻尔女子` |
-| `${code_all}` | `q/trn/trnt` |
-| `${code_all: }` | `q trn trnt` |
+| `${code_rev_all}` | `q/trn/trnt` |
+| `${code_rev_all: }` | `q trn trnt` |
 
 冒号后的内容原样使用，**空格不会被忽略**。
 
@@ -70,8 +108,8 @@ import { Since } from "@/components/since";
 
 ### `${a|b}` 取首个非空
 
-按顺序取第一个有内容的变量。默认模板 `${code_hint|code}` 的意思是：优先用引擎给的编码提示，
-没有就退回主码表反查码。
+按顺序取第一个有内容的变量。默认模板 `${code_hint|code_rev|shuangpin}` 的意思是：优先用
+引擎给的编码提示，没有就退回主码表反查码，再没有（比如你没配主码表）就显示双拼编码。
 
 ### `{ … }` 可选段
 
@@ -81,8 +119,8 @@ import { Since } from "@/components/since";
 
 | 模板 | 拼音有值 | 拼音为空 |
 | --- | --- | --- |
-| `${code} (${pinyin})` | `wqvb (nǐ hǎo)` | `wqvb ()` ← 空括号 |
-| `${code}{ (${pinyin})}` | `wqvb (nǐ hǎo)` | `wqvb` |
+| `${code_rev} (${pinyin})` | `wqvb (nǐ hǎo)` | `wqvb ()` ← 空括号 |
+| `${code_rev}{ (${pinyin})}` | `wqvb (nǐ hǎo)` | `wqvb` |
 
 段内有多个变量时，只要**有一个**非空就保留整段，空的那个连同紧邻的一个空格一起省去：
 
@@ -319,7 +357,7 @@ comment_template_horizontal = ""
 
 ```toml
 [ui.candidate]
-comment_template_vertical = "${code_hint|code}"    # 中文输入时只显示编码提示
+comment_template_vertical = "${code_hint|code_rev}"  # 中文输入时只显示编码提示
 
 [input.temp_english]
 comment_template_vertical = "${dict}"              # 打英文时才查词典
@@ -346,8 +384,14 @@ comment_template_vertical   = "{〔${chaizi}〕}{ ${pinyin}}"
 comment_template_horizontal = "${code_hint}"
 
 # 拼音用户：学五笔，竖排显示该词的五笔编码
-comment_template_vertical   = "{[${code}]}"
-comment_template_horizontal = "${code_hint|code}"
+comment_template_vertical   = "{[${code_rev}]}"
+comment_template_horizontal = "${code_hint|code_rev}"
+
+# 忘了某个字的双拼怎么敲时，候选后面就摆着它的双拼码（全拼方案下同样有效）
+comment_template_vertical   = "${shuangpin}"
+
+# 双拼 + 五笔两种码一起看（需把「编码提示来源」设为 auto）
+comment_template_vertical   = "${code_hint|code_rev}{ [${shuangpin}]}"
 
 # 悬停提示同款信息（字根 + 编码 + 读音），只对单字有完整效果
 comment_template_vertical   = "{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}"
