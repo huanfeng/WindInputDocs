@@ -11,6 +11,11 @@
 /build
 *.tsbuildinfo
 
+# scripts/ 下的 python 脚本（gen-site-favicons.py、sync_release_notes.py）
+# 互相 import 时留下的字节码缓存
+__pycache__/
+*.pyc
+
 # misc
 .DS_Store
 *.pem
