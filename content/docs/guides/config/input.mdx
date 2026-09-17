@@ -18,6 +18,7 @@ import { Since } from "@/components/since";
 ```toml
 [input]
 filter_mode = "smart"               # 候选过滤模式
+rare_phrase = "keep"                # 含生僻字的词组要不要跟着一起过滤
 enter_behavior = "commit"           # 有编码时回车的行为
 space_on_empty_behavior = "commit"  # 有编码但无候选时空格的行为
 punct_on_empty_behavior = "clear"   # 有编码但无候选时标点键的行为（出厂即丢弃废码）
@@ -29,7 +30,8 @@ english_case_cycle_key = ""         # 打英文时切换候选大小写档位的
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `filter_mode` | 枚举 | `gb18030` / `general` / `smart` | `"smart"` | 候选过滤模式：`gb18030` = 不过滤（全集）；`general` = 只保留常用词；`smart` = 智能过滤（同一编码下存在常用词时过滤掉非常用词） |
+| `filter_mode` | 枚举 | `gb18030` / `general` / `smart` | `"smart"` | 候选过滤模式：`gb18030` = 不过滤（全集）；`general` = 只保留常用字；`smart` = 智能过滤（同一编码下存在常用候选时过滤掉非常用的）。⚠️ 自 0.122 起这三档**只裁单字**——含生僻字的词组另由下一行的 `rare_phrase` 决定 |
+| `rare_phrase` <Since v="0.122" /> | 枚举 | `keep` / `filter` | `"keep"` | 含生僻字的**词组**要不要吃 `filter_mode` 那一刀：`keep` = 整词放行，词库收录的词照样打得出来，过滤只作用在单字上；`filter` = 与单字同判，整串每个字都在通用规范汉字表里才留（0.121 及以前的行为）。**与 `filter_mode` 正交**，不是它的第四个档：那个决定「什么算该滤」，本项决定「词要不要吃这一刀」，两者可任意组合。⚠️ `keep` 下，词里含你在候选右键里手动标成生僻的字也照样放行；**单字**被标成生僻仍照滤，两者不相干 |
 | `enter_behavior` | 枚举 | `commit` / `clear` | `"commit"` | 有编码时按回车：`commit` = 上屏「已转换前缀 + 剩余原码」；`clear` = 清空编码、不上屏 |
 | `space_on_empty_behavior` | 枚举 | `commit` / `clear` | `"commit"` | 有编码但当前无候选时按空格：`commit` = 上屏「已转换前缀 + 剩余拼音原码」；`clear` = 清空编码 |
 | `punct_on_empty_behavior` <Since v="0.118" /> | 枚举 | `commit` / `clear` / `clear_no_input` | `"clear"` | 有编码但当前无候选时按标点/符号键：`commit` = 上屏「已转换前缀 + 剩余原码」再接标点；`clear` = 丢弃编码，只上屏标点；`clear_no_input`（0.119 起）= 丢弃编码，标点本身也不上屏，整个按键当没按过。移动端出厂为 `commit`。**与 `schema.codetable.punct_commit` 不同**——后者关掉是吞键但编码**留着**继续打，`clear_no_input` 是吞键且**丢弃**编码 |
