@@ -1,5 +1,3 @@
-import { forumUrl } from "./shared";
-
 /**
  * 全站公告的**唯一数据源**。渲染它的是顶栏右侧那枚小胶囊，
  * 见 components/site-notice.tsx。
@@ -20,9 +18,14 @@ export interface SiteNotice {
   href: string;
 }
 
-export const siteNotice: SiteNotice | null = {
-  id: "game-compat-2026-09",
-  label: "游戏兼容性征集",
-  title: "正在征集游戏里的输入法兼容情况，欢迎到社区反馈",
-  href: `${forumUrl}/d/111`,
-};
+/**
+ * 当前没有在挂的公告。要发一条，照着这个形状填回来即可：
+ *
+ *     export const siteNotice: SiteNotice | null = {
+ *       id: "some-topic-2026-09",
+ *       label: "八个汉字以内",
+ *       title: "悬停提示，把话说完",
+ *       href: "https://example.com/d/1",
+ *     };
+ */
+export const siteNotice: SiteNotice | null = null;
