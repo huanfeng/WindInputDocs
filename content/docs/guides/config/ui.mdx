@@ -149,7 +149,7 @@ pager_in_preedit = false   # 翻页栏并入编码栏行
 | --- | --- | --- | --- | --- |
 | `pager_bar_display` | 枚举 | `""` / `hide` / `auto` / `always` | `""` | 翻页栏显示覆盖：`""` = 跟随主题；`hide` = 不显示；`auto` = 超过 1 页才显示；`always` = 始终显示 |
 | `page_number_display` | 枚举 | `""` / `show` / `hide` | `""` | 页码文字显示覆盖：`""` = 跟随主题；`show` = 显示；`hide` = 隐藏 |
-| `pager_in_preedit` | 布尔 | — | `false` | 翻页栏并入编码栏行、右对齐显示（竖排省一行）；仅"非嵌入编码"（有独立编码栏，即 `candidate_top`）时生效 |
+| `pager_in_preedit` | 布尔 | — | `false` | 翻页栏并入**编码所在行**、右对齐显示（竖排省一行）。两种编码形态落点不同、表现一致：`candidate_top` 并进独立编码栏行的右端，`candidate_inline` <Since v="0.122" /> 并进编码自己那一行。横排下翻页栏本就落在行尾，此项无影响；蒙古文等旋转排版维持底部独立行 |
 
 ## 候选窗——定位（ui.candidate）
 
