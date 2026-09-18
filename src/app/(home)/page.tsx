@@ -12,6 +12,7 @@ import Link from "next/link";
 // 换图即换 URL，不会被 CDN 的长缓存挡住旧版本。尺寸也由导入对象自带。
 import screenshotCandidates from "@/assets/screenshot-candidates.png";
 import { FriendLinks } from "@/components/friend-links";
+import { SiteFooter } from "@/components/site-footer";
 import { TipTicker } from "@/components/tip-ticker";
 
 const features = [
@@ -167,6 +168,9 @@ export default function HomePage() {
       {/* 友情链接。排在支持项目之后——它是页面上唯一指向站外的区块，
           放在最末不会把读者从正文里拽走。友链为空时这一块整个不渲染。 */}
       <FriendLinks />
+
+      {/* 备案号。整页最末，连友链都在它上面 —— 合规标识不参与内容排序 */}
+      <SiteFooter />
     </main>
   );
 }
