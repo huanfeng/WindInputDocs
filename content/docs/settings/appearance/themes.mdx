@@ -13,6 +13,7 @@ import { Since } from "@/components/since";
 | --- | --- |
 | 导入 TOML 主题 | 选择本地 `.toml` 主题文件导入，成功后即可在「主题选择」中使用。也支持从 HTTPS 链接导入 |
 | 导入主题包 <Since v="0.122" /> | 选择本地 `.wtheme` 主题包导入，或直接双击 `.wtheme` 文件。带背景图的主题走这条，见[主题包](#wtheme) |
+| 导出当前主题 <Since v="0.122" /> | 把当前生效的主题打成 `.wtheme` 发给别人，见[主题包](#wtheme) |
 | 打开主题市场 | 前往 [market.windinput.com](https://market.windinput.com) 挑选现成主题 |
 | 主题编辑器 | 见下 |
 
@@ -35,8 +36,10 @@ import { Since } from "@/components/since";
 两条路都会**先弹确认框告诉你包里是什么**（主题名、作者、版本、几个资源文件）再决定装不装——
 主题包多半是从网上下回来的，双击就直接改掉当前外观不合适。撞上同名主题时会问要不要覆盖。
 
-**做一个主题包**：目前只有命令行能打包，见 [`wind_input theme export`](/docs/guides/cli#theme)。
-设置界面里还没有导出按钮。
+**做一个主题包**：在「外观」页的「主题导入」卡里点**导出当前主题**，选个保存位置即可。
+导出的是当前生效的那个主题——想导别的，先在上面的主题选择里切过去。
+
+命令行也能做，且能直接指定要导哪个，见 [`wind_input theme export`](/docs/guides/cli#theme)：
 
 ```bat
 wind_input theme export 我的主题 D:\分享\我的主题.wtheme
