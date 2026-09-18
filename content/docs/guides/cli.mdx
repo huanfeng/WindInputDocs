@@ -122,6 +122,41 @@ wind_input schema rebuild
 
 `schema rebuild` 输出「已清除 N 个缓存文件」，若附带「M 个仍被占用」，再执行一次即可清掉，不影响正确性。
 
+## theme <Since v="0.122" /> [#theme]
+
+列出主题、收发主题包（`.wtheme`）。**需要服务在线。**
+
+| 命令 | 作用 |
+| --- | --- |
+| `theme list` | 列出已安装主题，`*` 标记当前生效 |
+| `theme preview <包路径>` | 只读查看一个 `.wtheme` 里装的是什么，**不导入** |
+| `theme import <包路径>` | 导入主题包 |
+| `theme export <主题id> <输出路径>` | 把已装主题打成 `.wtheme` |
+
+```bat
+wind_input theme list
+wind_input theme preview D:\down\水墨.wtheme
+wind_input theme import D:\down\水墨.wtheme
+wind_input theme import D:\down\水墨.wtheme --force --id my-ink
+wind_input theme export amber D:\分享\amber.wtheme
+```
+
+选项：
+
+| 选项 | 用于 | 作用 |
+| --- | --- | --- |
+| `--force` | `import` | 同 id 已存在时覆盖（默认拒绝并提示） |
+| `--id <主题id>` | `import` | 指定落到哪个目录 id（默认用包里的主题名） |
+| `--force` | `export` | 输出路径已有文件时覆盖（默认拒绝并提示） |
+
+几条值得知道的：
+
+- **内置主题也导得出** —— 改了内置主题的配色想发给别人，不必先手工复制一遍目录
+- **导入的若正是当前生效主题，会即时重新加载** —— 回执里会说明，不用重启
+- **导出失败不会动落点上原有的文件** —— 先写临时文件、自检通过才就位
+- **`preview` 不落任何盘** —— 拿不准来路的包先用它看一眼
+- 主题包的格式与大小限制见[主题包](/docs/settings/appearance/themes#wtheme)
+
 ## dict
 
 导入导出方案的用户数据。**需要服务在线。**
