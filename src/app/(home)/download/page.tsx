@@ -182,7 +182,7 @@ export default function DownloadPage() {
             页。
           </li>
           <li>
-            第三方码表方案（五笔 98、新世纪、虎码等）见社区仓库{" "}
+            第三方码表方案（五笔 98、新世纪、虎码等）见码表仓库{" "}
             <a
               href="https://github.com/huanfeng/WindInputCodeTable"
               className="text-fd-primary hover:underline"

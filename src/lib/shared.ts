@@ -23,18 +23,17 @@ export const gitConfig = {
 export const releasesUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}/releases`;
 export const githubUrl = `https://github.com/${mainRepo.user}/${mainRepo.repo}`;
 
-/** 社区论坛。这里是这个地址的**单一来源**。 */
-export const forumUrl = "https://forum.windinput.com";
+/** 主程序的 issue 列表。程序本身的问题、需求、Bug 都往这里去。 */
+export const issuesUrl = `${githubUrl}/issues`;
 
 /**
- * 社区的「文档反馈」版块。文档页底部的反馈引导指向它，
+ * 文档站仓库的 issue 列表。文档页底部的反馈引导指向它，
  * 见 components/docs-feedback.tsx。
  *
- * cid 11 取自 windinput-bbs 的 settings/_categories-def.js —— 七个版块里的最后一个，
- * NodeBB 按创建顺序发 cid。NodeBB 认的是 cid，后面那截名字改了也不会让链接失效，
- * 写出来只是为了这行本身可读。
+ * 与 issuesUrl 分开：内容写错、链接失效是这个仓的事，混进主程序仓只会让
+ * 两边都得先分拣一遍。读者分不清也不要紧，转个 issue 的成本远低于让人先判断。
  */
-export const docsFeedbackUrl = `${forumUrl}/category/11/文档反馈`;
+export const docsFeedbackUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/issues`;
 
 // 顶栏导航项。纯数据，供自定义顶栏与文档侧栏共用。
 export const navLinks: LinkItemType[] = [

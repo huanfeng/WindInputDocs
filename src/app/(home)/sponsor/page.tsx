@@ -10,7 +10,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SponsorQr } from "@/components/sponsor-qr";
-import { forumUrl, githubUrl } from "@/lib/shared";
+import { githubUrl, issuesUrl } from "@/lib/shared";
 import { contactEmail, qqGroup } from "@/lib/sponsor";
 
 export const metadata: Metadata = {
@@ -32,9 +32,9 @@ const supportWays = [
   {
     icon: Bug,
     title: "反馈问题与建议",
-    body: "一份写清了复现步骤与环境的帖子，往往比十句「有 bug」更有价值。",
-    href: forumUrl,
-    action: "去社区反馈",
+    body: "一份写清了复现步骤与环境的 issue，往往比十句「有 bug」更有价值。",
+    href: issuesUrl,
+    action: "去提 issue",
   },
   {
     icon: Palette,
@@ -51,7 +51,7 @@ const supportWays = [
   {
     icon: MessageCircle,
     title: "帮忙答疑",
-    body: "在 QQ 群或社区论坛里回答别人的问题，能省下大量本该用于开发的时间。",
+    body: "在 QQ 群里回答别人的问题，能省下大量本该用于开发的时间。",
     href: qqGroup.url,
     action: "加入 QQ 群",
   },
@@ -86,7 +86,7 @@ const principles = [
   },
   {
     title: "不产生特权",
-    body: "赞助不会提升问题的处理优先级，不承诺定制开发，也不承诺任何功能的开发时间表。项目路线图始终由维护者依据项目愿景与社区需求决定。",
+    body: "赞助不会提升问题的处理优先级，不承诺定制开发，也不承诺任何功能的开发时间表。项目路线图始终由维护者依据项目愿景与用户需求决定。",
   },
   {
     title: "不让渡权益",
@@ -216,8 +216,8 @@ export default function SponsorPage() {
           <li className="flex items-center gap-2">
             <Bug className="size-4 shrink-0" aria-hidden />
             问题与功能建议：
-            <Link href={forumUrl} className="text-fd-primary hover:underline">
-              社区论坛
+            <Link href={issuesUrl} className="text-fd-primary hover:underline">
+              GitHub Issues
             </Link>
           </li>
           <li className="flex items-center gap-2">
