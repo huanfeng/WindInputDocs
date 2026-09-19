@@ -14,7 +14,7 @@ import { Since } from "@/components/since";
 | 导入 TOML 主题 | 选择本地 `.toml` 主题文件导入，成功后即可在「主题选择」中使用。也支持从 HTTPS 链接导入 |
 | 导入主题包 <Since v="0.122" /> | 选择本地 `.wtheme` 主题包导入，或直接双击 `.wtheme` 文件。带背景图的主题走这条，见[主题包](#wtheme) |
 | 导出当前主题 <Since v="0.122" /> | 把当前生效的主题打成 `.wtheme` 发给别人，见[主题包](#wtheme) |
-| 打开主题市场 | 前往 [market.windinput.com](https://market.windinput.com) 挑选现成主题 |
+| 打开主题市场 | 在浏览器里打开主题市场，挑选现成主题 |
 | 主题编辑器 | 见下 |
 
 <Callout type="info" title="从链接导入会先校验">
@@ -65,7 +65,7 @@ wind_input theme export 我的主题 D:\分享\我的主题.wtheme
 
 ## 主题编辑器 [#theme-editor]
 
-开启后，[Web 版主题编辑器](https://theme.windinput.com)可以直接读写本机主题，边改边看效果——不必反复导出导入文件。
+开启后，Web 版主题编辑器可以直接读写本机主题，边改边看效果——不必反复导出导入文件。
 
 服务仅监听本机回环地址，**不对外网开放**。三档：
 
@@ -82,7 +82,7 @@ wind_input theme export 我的主题 D:\分享\我的主题.wtheme
 把主题文件放入 `%APPDATA%\WindInput\themes\<主题名>\theme.toml`（macOS 为 `~/Library/Application Support/WindInput/themes/<主题名>/theme.toml`），即可在「主题选择」中出现。若主题名与内置主题相同（如 `default`），你这份会**整份替换**内置的那个，见[同结构覆盖机制](/docs/guides/config#同结构覆盖机制)。
 
 <Callout type="info" title="复杂配色建议用编辑器做">
-主题文件为 **TOML 格式（v3）**。最省事的做法是**继承一个内置主题，只覆盖需要改动的部分**；复杂的几何与配色建议直接用[主题编辑器](https://theme.windinput.com)可视化制作。内置主题文件位于安装目录下的 `data\themes\` 文件夹，可作模板。
+主题文件为 **TOML 格式（v3）**。最省事的做法是**继承一个内置主题，只覆盖需要改动的部分**；复杂的几何与配色建议直接用主题编辑器可视化制作。内置主题文件位于安装目录下的 `data\themes\` 文件夹，可作模板。
 </Callout>
 
 ### 快速上手：继承内置主题
