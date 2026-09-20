@@ -22,6 +22,7 @@ rare_phrase = "keep"                # 含生僻字的词组要不要跟着一起
 enter_behavior = "commit"           # 有编码时回车的行为
 space_on_empty_behavior = "commit"  # 有编码但无候选时空格的行为
 punct_on_empty_behavior = "clear"   # 有编码但无候选时标点键的行为（出厂即丢弃废码）
+buffer_symbol_chars = "-"           # 组码中可直接进编码的符号（打 sun-panel 这类英文）
 numpad_behavior = "direct"          # 小键盘按键语义
 numpad_half_width = false           # 全角态下小键盘仍出半角
 english_case_cycle_key = ""         # 打英文时切换候选大小写档位的键（留空 = 关）
@@ -36,6 +37,7 @@ commit_newline = "keep"             # 上屏文本里的换行用什么字符表
 | `enter_behavior` | 枚举 | `commit` / `clear` | `"commit"` | 有编码时按回车：`commit` = 上屏「已转换前缀 + 剩余原码」；`clear` = 清空编码、不上屏 |
 | `space_on_empty_behavior` | 枚举 | `commit` / `clear` | `"commit"` | 有编码但当前无候选时按空格：`commit` = 上屏「已转换前缀 + 剩余拼音原码」；`clear` = 清空编码 |
 | `punct_on_empty_behavior` <Since v="0.118" /> | 枚举 | `commit` / `clear` / `clear_no_input` | `"clear"` | 有编码但当前无候选时按标点/符号键：`commit` = 上屏「已转换前缀 + 剩余原码」再接标点；`clear` = 丢弃编码，只上屏标点；`clear_no_input`（0.119 起）= 丢弃编码，标点本身也不上屏，整个按键当没按过。移动端出厂为 `commit`。**与 `schema.codetable.punct_commit` 不同**——后者关掉是吞键但编码**留着**继续打，`clear_no_input` 是吞键且**丢弃**编码 |
+| `buffer_symbol_chars` <Since v="0.123" /> | 字符串（字面字符集） | 任意字符，逐字符匹配 | `"-"` | **组码中**按这些符号键时，字符直接进入编码而不是上屏或翻页——为的是 `sun-panel`、`e-mail` 这类带连字符的英文。留空 = 关闭。<br />★ **只在该键此刻没有别的功能时才生效**：翻页 / 移高亮 / 取消 / 次选 / 以词定字 / `keys.key_actions` 引导键，占了任一个就自动让位，那些功能一律照旧。唯一的例外是**本次还没翻过页时的「上一页」**——那一格本来按下就没反应（首页无页可翻），让给字符输入零损失；翻过页之后 `-` 恢复翻页身份，与微软拼音一致。<br />⚠️ 只在**组码中**生效（编码区非空）。空闲时这些键照旧出符号，否则任何程序里都打不出减号。<br />⚠️ 编码里混进这类符号后，这一串就不再当作本方案的编码：候选清空、不顶码，按回车 / 空格按 `enter_behavior` / `space_on_empty_behavior` 上屏整串原码。<br />**不是码元**：不参与码长与顶码判定。要让某符号成为真正的码元走 `schema.codetable.input_chars`，那条路会**无条件夺取**该键（本项相反，是让位优先），且拼音方案不吃那个字段 |
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `numpad_half_width` <Since v="0.120" /> | 布尔 | — | `false` | 开启后，小键盘的 `0`–`9` 与 `. + - * /` 在**全角状态下仍输出半角原形**，且整条标点流水线一并跳过（自定义标点映射、中文标点、全半角转换三步都不走）。与 `numpad_behavior` **正交**，见[小键盘恒半角](#numpad-half-width) |
 | `english_case_cycle_key` <Since v="0.121" /> | 字符串（隐性枚举） | `""` / `capslock` / `tab` / `enter` / `space` / `escape` | `""` | 打英文时（英文方案或临时英文）临时夺取哪个键，在「跟随输入 → 全大写 → 全小写」三档之间循环，一次组合结束即复位。留空 = 关闭。**键即开关**，没有另一个启用项。Windows 建议 `capslock`，macOS 上 CapsLock 到不了输入法（系统只传锁定态、不传按键），建议 `tab`。⚠️ 被夺取的键在打英文期间用不出原本的语义（`capslock` 的大写锁定、`tab` 的辅助码 / 配对跳出 / 会话动作），其余时候一律照旧；撞车时启动会告警。详见[临时模式 · 切换候选大小写的键](/docs/settings/input/temp-modes#case-cycle-key) |
