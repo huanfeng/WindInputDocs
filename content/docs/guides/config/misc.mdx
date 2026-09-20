@@ -1,11 +1,11 @@
 ---
 title: 统计与调试
-description: stats / debug 两个小域的配置项——输入统计、日志级别与滚动
+description: stats / debug / system 三个小域的配置项——输入统计、日志级别与滚动、向系统登记的名称
 ---
 
 import { Since } from "@/components/since";
 
-两个体量很小的顶层域：输入统计 `[stats]`、日志调试 `[debug]`。
+三个体量很小的顶层域：输入统计 `[stats]`、日志调试 `[debug]`、系统集成 `[system]`。
 
 ## 输入统计
 
@@ -65,3 +65,20 @@ logs\wind_input.3.log    ← 更旧
 <Callout type="info" title="日志位置">
 日志文件在 `%LOCALAPPDATA%\WindInput\logs\`，见[配置文件与数据目录](/docs/guides/config)。
 </Callout>
+
+## 系统集成（system） [#system]
+
+`[system]` 装的是「**怎样向 Windows 登记自己**」，不是输入行为。共同特点：改动需管理员权限才能落地，且对**已启动**的宿主进程不生效（宿主是启动时读的）。
+
+```toml
+[system]
+dota2_compat = false               # Valve 游戏兼容：改登记名称
+dota2_compat_name = "拼音输入法"    # 开启后要登记的名称
+```
+
+| 键 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `dota2_compat` | 布尔 | `false` | 把本输入法在系统里登记的**名称**改为下一项的值。Dota 2 等起源2 引擎游戏按名称逐字比对一张内置白名单，表内的由游戏自己绘制候选，表外的拿不到候选。⚠️ 开启后语言栏、Windows 设置、输入法切换列表里显示的都是那个名字 |
+| `dota2_compat_name` | 字符串 | `"拼音输入法"` <Since v="0.122" /> | 要登记的名称，0.122 起可自定义 <Since v="0.122" />。⛔ 必须与游戏内表**逐字**一致，差一个字符就不命中且没有任何报错——表现为「开了开关也还是没候选」。⚠️ 留空 = 回到出厂值，不是关闭；关闭请把上一项设为 `false`。长度上限 127 个字符 |
+
+界面入口与取舍见[高级设置 · 游戏兼容](/docs/settings/advanced#game-compat)，命令行见 [`wind_input system dota2-compat`](/docs/guides/cli#system)。

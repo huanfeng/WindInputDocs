@@ -20,7 +20,7 @@ import { Since } from "@/components/since";
   <Card title="外观" href="/docs/settings/appearance" description="主题（含导入导出）、候选字体 / 窗口 / 排版 / 标注、候选项提示、状态气泡、模式指示、工具栏、主题编辑器" />
   <Card title="统计" href="/docs/settings/stats" description="输入量、速度、码长、方案占比等统计面板与数据清理" />
   <Card title="词库" href="/docs/settings/dict" description="快捷短语与各方案的用户词库、临时词库、词频、候选调整，以及导入导出" />
-  <Card title="高级" href="/docs/settings/advanced" description="系统集成、导入、备份与还原、设置界面、游戏兼容与日志设置" />
+  <Card title="高级" href="/docs/settings/advanced" description="系统集成、导入、备份与还原、游戏兼容与日志设置" />
   <Card title="关于" href="/docs/settings" description="版本信息与项目链接" />
 </Cards>
 
@@ -46,7 +46,7 @@ import { Since } from "@/components/since";
 | --- | --- |
 | `Ctrl + F` | 焦点回到搜索框；已经打了字的话当场展开结果 |
 | `Esc` | 收起搜索结果浮层 |
-| `Ctrl + W` | 关闭设置窗口（有未保存的改动会先弹确认） |
+| `Ctrl + W` | 关闭设置窗口（有未保存的改动会先弹确认，确认框里逐条**列出改了哪些项** <Since v="0.122" />，悬停看全文、点一下即复制） |
 
 ## 二级导航 <Since v="0.121" /> [#subnav]
 
@@ -54,7 +54,7 @@ import { Since } from "@/components/since";
 
 分块少于 2 个的页（词库、关于）不显示这一栏。
 
-嫌它占地方可以关掉：**高级 → 设置界面 → 二级导航（实验性）**。
+嫌它占地方可以关掉：底栏的 **☰ 二级导航 / 收起导航** 按钮 <Since v="0.122" />。0.121 里高级页还另有一个同义的开关，同一件事摆两处，已撤掉。
 
 侧栏顺序是 **方案 / 输入 / 按键 / 外观 / 统计 / 词库 / 高级 / 关于**——「词库」点开的是一个独立窗口、主窗停在原页不动，是这一栏里唯一的**动作项**，所以排在纯切页的那几格之后。
 

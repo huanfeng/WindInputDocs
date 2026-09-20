@@ -336,6 +336,7 @@ debug_enabled = false     # 调试提示
 [ui.toolbar]
 visible = true              # 是否显示常驻工具栏
 hide_in_fullscreen = true   # 全屏时自动隐藏
+fullscreen_watch = true     # 主动检测全屏状态
 auto_hide = false           # 无交互超时后自动隐藏
 auto_hide_delay = 5         # 自动隐藏超时（秒）
 vertical = false            # 纵向排列（默认横条）
@@ -347,6 +348,7 @@ items = ["mode", "punct", "full_width", "-s2t", "soft_keyboard", "settings"]
 | --- | --- | --- | --- | --- |
 | `visible` | 布尔 | — | `true` | 是否显示常驻工具栏（启动初值，运行时可经菜单切换） |
 | `hide_in_fullscreen` | 布尔 | — | `true` | 前台应用全屏时自动隐藏工具栏 |
+| `fullscreen_watch` <Since v="0.122" /> | 布尔 | — | `true` | 定期主动查询前台是否全屏。**进出全屏本身不产生任何输入法回调**（在输入框里按 F11、用播放器快捷键全屏），只靠焦点事件的话工具栏该隐没隐；关掉则只在焦点 / 激活事件到达时顺带查一次。仅在 `hide_in_fullscreen = true` 时有意义 |
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
 | `vertical` | 布尔 | — | `false` <Since v="0.115" /> | 纵向排列：竖着摆放工具栏（默认横条）。几何仍取主题 `[toolbar]`：条宽 = `height`、每格高 = `button_width` |

@@ -204,7 +204,9 @@ wind_input phrase reset-system
 | `backup inspect <文件.zip>` | —— |
 | `backup restore <文件.zip>` | `--replace`（缺省为合并）、`--sections a,b,...` |
 
-可还原的域：`config`、`dict`、`temp`、`freq`、`shadow`、`phrase`、`schemas`、`themes`、`state`、`stats`。
+可还原的域：`config`、`dict`、`temp`、`freq`、`shadow`、`phrase`、`common_chars`、`charset`、`completion` <Since v="0.122" />、`schemas`、`themes`、`state`、`stats`。
+
+⚠️ 其中 `common_chars`（逐字常用性覆盖）与 `charset`（字符类）0.121 及以前虽然进了备份包，`--sections` 里写了却会被静默丢弃，0.122 起才真能单独还原。
 
 ```bat
 wind_input backup create D:\bak\wind.zip --stats --state
@@ -241,7 +243,7 @@ wind_input ui toast "注意" --color #FF8800
 
 ```bat
 wind_input system dota2-compat on       :: 开启 Valve 游戏兼容（用默认名称）
-wind_input system dota2-compat on --name "中文 (简体) - 双拼"   :: 指定登记名称
+wind_input system dota2-compat on --name "中文 (简体) - 双拼"   :: 指定登记名称（0.122 起）
 wind_input system dota2-compat off
 wind_input system dota2-compat status   :: 显示当前登记的名称
 ```
