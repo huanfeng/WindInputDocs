@@ -365,9 +365,50 @@ cobk = $CC("备份", wind.cli("backup", "create", "D:\\我的 备份\\wind.zip")
 
 注意它是发射后不管的，**命令失败不会有任何提示**。
 
+## 便携启动器的命令行参数 [#portable-launcher]
+
+[便捷模式](/docs/start/installation#portable)的解压目录下还有一个 `wind_portable.exe`，它是**启动器**：注册输入法组件、登记开机启动、启停服务——安装版由安装程序做的那些事，便携版交给它。双击打开图形界面，带参数则执行一次后退出，适合写进随身盘里的批处理。
+
+它不认上面那些子命令，只认自己这一组（`-start` 与 `--start` 两种写法都可以，大小写不敏感）：
+
+| 参数 | 作用 |
+| --- | --- |
+| `-start` | 注册输入法 + 登记开机启动 + 启动服务，打印 `service started` |
+| `-stop` | 停止服务 + 移除开机启动 + 注销输入法，打印 `service stopped`（此前在运行或已注册）或 `service not running` |
+| `-status` | 查询状态，输出见下 |
+| `-settings` | 打开设置程序 |
+| `-userdata` | 在资源管理器中打开数据目录（解压目录下的 `userdata\`） |
+| `-ui` | 强制走图形界面，即使同时带了上面的动作 |
+
+<Callout type="warn" title="-start 与 -stop 不只是开关进程">
+它们等同于界面上的启动 / 停止按钮：`-start` 在尚未注册时会顺带**注册输入法组件**，`-stop` 则会**注销**它并移除开机启动项。想临时停掉输入法而保留注册，请在图形界面里操作，别用 `-stop`。
+</Callout>
+
+注册与注销需要管理员权限。以普通用户身份执行尚未注册的 `-start` 会弹出 UAC 确认框；要在脚本里静默跑，要么先手动注册一次（此后的 `-start` 只是拉起进程，不再提权），要么整个脚本以管理员身份运行。
+
+### 状态查询的输出 [#portable-status]
+
+```
+service=running
+service=stopped
+service=stopped mode=conflict reason="系统已注册其他位置的清风输入法，为避免覆盖现有注册信息，便携模式已禁用。"
+```
+
+带 `mode=conflict` 表示便携模式在这台机器上用不了，`reason` 给出原因——常见的几种：当前目录就是安装版的目录、便携包被放进了 `Program Files` 这类系统保护目录、系统里已注册了别处的清风输入法、另一个便携版实例正在运行。此时 `-start` / `-stop` 会直接失败并打印同样的原因；`-status` 本身不受影响，任何情况下都能查。
+
+**退出码**：成功 `0`，失败 `1`（错误信息走 stderr）。它没有主程序那个表示用法错误的 `2`——**认不出的参数会被静默忽略**，一个可识别参数都没有时就是双击的效果，打开图形界面。所以 `-strat` 这样的笔误不会报错，只会弹出界面。
+
+它同样是 GUI 子系统程序，shell 不等它跑完就返回提示符，拿输出和串联命令的写法与主程序一致：
+
+```bat
+wind_portable.exe -status > state.txt 2>&1
+start /wait wind_portable.exe -start
+```
+
 ## 相关阅读
 
 - [命令直通车](/docs/guides/command-bar) —— 在短语中执行动作与调用 CLI
 - [配置文件与数据目录](/docs/guides/config) —— `config` 子命令的键路径
 - [备份与还原](/docs/settings/advanced#备份与还原) —— 图形界面的备份操作
 - [输入方案管理](/docs/guides/schemas) —— 方案文件结构与排序配置
+- [安装与卸载](/docs/start/installation#portable) —— 便捷模式与便携启动器
