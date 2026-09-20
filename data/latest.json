@@ -1,10 +1,10 @@
 {
-  "version": "0.121.2",
-  "tag": "v0.121.2",
+  "version": "0.122.0",
+  "tag": "v0.122.0",
   "channel": "stable",
-  "exeUrl": "https://dl.windinput.com/WindInput-Setup-0.121.2.exe",
-  "sha256": "b7c99b00df65061e23b01a4c22df2b64ff550a0854dc8aed530726263c2b21c7",
-  "size": 21357080,
-  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.121.2-Release.md",
-  "publishedAt": "2026-09-13T05:00:06Z"
+  "exeUrl": "https://dl.windinput.com/WindInput-Setup-0.122.0.exe",
+  "sha256": "dd3b8f9bd7e284f88b778fe0a37478556b406fe8d4666762ec6ca0ea89ec540b",
+  "size": 21723040,
+  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.122.0-Release.md",
+  "publishedAt": "2026-09-20T01:52:32Z"
 }
