@@ -393,12 +393,17 @@ userdata/temp_words/<方案>.wdict        type="temp"        meta.schema
 userdata/freq/<方案>.jsonl              type="freq"        meta.schema
 userdata/shadow/<方案>.jsonl            type="shadow"      meta.schema
 userdata/phrases.wdict                 type="phrase"
+userdata/common_chars.jsonl            type="common_chars"
+userdata/completions.jsonl             type="completion"  （0.122 起：邮箱后缀 + 网址历史）
+charsets/<字符类>.yaml                  type="charset"
 userdata/stats.jsonl                   type="stats"       （勾选「包含统计数据」时）
 userdata/stats_meta.json               type="stats_meta"  （同上）
 schemas/<用户方案目录整树>               type="schema_file"
 themes/<用户主题目录整树>                type="theme_file"
 state/state.toml                       type="state"       （勾选「包含界面状态」时）
 ```
+
+[输入补全的学习数据](/docs/settings/dict#completion)（邮箱后缀与网址历史）自 0.122 起<Since v="0.122" />一并进包，两类装在同一个 `completions.jsonl` 里，每行自带类别。
 
 用户数据**逐表导出为文本**而非直接搬数据库文件：词库与短语用 WindDict 格式，词频、候选调整、统计用 JSON Lines（每行一个 JSON 对象）。这样跨版本、跨平台都稳，也避开了 Windows 上数据库文件被占用的麻烦。
 

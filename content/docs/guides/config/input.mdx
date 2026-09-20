@@ -1,6 +1,6 @@
 ---
 title: 输入行为配置
-description: input 域全部配置项——标点、智能符号、自动配对、联想、临时英文/拼音、emoji、Unicode、网址、简繁、命令栏
+description: input 域全部配置项——标点、智能符号、自动配对、联想、临时英文/拼音、emoji、Unicode、网址、邮箱、简繁、命令栏
 ---
 
 import { Since } from "@/components/since";
@@ -25,6 +25,7 @@ punct_on_empty_behavior = "clear"   # 有编码但无候选时标点键的行为
 numpad_behavior = "direct"          # 小键盘按键语义
 numpad_half_width = false           # 全角态下小键盘仍出半角
 english_case_cycle_key = ""         # 打英文时切换候选大小写档位的键（留空 = 关）
+commit_newline = "keep"             # 上屏文本里的换行用什么字符表达
 # top_commit_mode = "direct_commit" # 内部/实验项，见下方 Callout
 ```
 
@@ -38,6 +39,7 @@ english_case_cycle_key = ""         # 打英文时切换候选大小写档位的
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `numpad_half_width` <Since v="0.120" /> | 布尔 | — | `false` | 开启后，小键盘的 `0`–`9` 与 `. + - * /` 在**全角状态下仍输出半角原形**，且整条标点流水线一并跳过（自定义标点映射、中文标点、全半角转换三步都不走）。与 `numpad_behavior` **正交**，见[小键盘恒半角](#numpad-half-width) |
 | `english_case_cycle_key` <Since v="0.121" /> | 字符串（隐性枚举） | `""` / `capslock` / `tab` / `enter` / `space` / `escape` | `""` | 打英文时（英文方案或临时英文）临时夺取哪个键，在「跟随输入 → 全大写 → 全小写」三档之间循环，一次组合结束即复位。留空 = 关闭。**键即开关**，没有另一个启用项。Windows 建议 `capslock`，macOS 上 CapsLock 到不了输入法（系统只传锁定态、不传按键），建议 `tab`。⚠️ 被夺取的键在打英文期间用不出原本的语义（`capslock` 的大写锁定、`tab` 的辅助码 / 配对跳出 / 会话动作），其余时候一律照旧；撞车时启动会告警。详见[临时模式 · 切换候选大小写的键](/docs/settings/input/temp-modes#case-cycle-key) |
+| `commit_newline` <Since v="0.122" /> | 枚举 | `keep` / `cr` / `lf` / `crlf` | `"keep"` | 上屏文本里的**换行用什么字符表达**：`keep` = 原样透传，词条里写什么就上屏什么；`cr` / `lf` / `crlf` = 一律折成该形态。0.121 及以前是无条件折成 `cr`，见[上屏换行的字符样式](#commit-newline)。⚠️ 仅 Windows 生效——macOS 的输入法框架用 LF，不参与本项 |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 
 <Callout type="info" title="智能档不再「打得越全反而越不出」 (0.114)">
@@ -58,6 +60,31 @@ english_case_cycle_key = ""         # 打英文时切换候选大小写档位的
 
 <Callout type="warn" title="只管「按一下直接上屏」的那条路">
 临时英文、网址输入、快捷输入这些**先攒进缓冲、整串再上屏**的模式不受这个开关影响——缓冲里只存字符不存来源，`abc12` 里的 `12` 是不是小键盘打的已经无从分辨。这是能力边界，不是漏接。
+</Callout>
+
+
+### 上屏换行的字符样式 <Since v="0.122" /> [#commit-newline]
+
+词条、短语、命令直通的产物里可以带换行，而「换行」在不同程序的文本模型里不是同一个东西：
+
+| 文本模型 | 换行是什么 | 代表程序 |
+| --- | --- | --- |
+| 富文本 | 段落边界就是 `CR`，`LF` 落进去不构成换行（Word 里渲染成一段类似 Tab 的空白） | Word、WPS 文字、各类 RichEdit 控件 |
+| 纯字节 | 写进去什么就存什么，任何转换都是在改写你的数据 | VS Code、终端、浏览器输入框 |
+
+0.121 及以前一律折成 `CR`，于是在第二类程序里，带换行的短语上屏后行尾被静默改写。0.122 起出厂改为 `keep`（原样透传），富文本程序由**按应用的名单**单独指定：
+
+```toml
+# compat.toml
+[[commit_newline]]
+process = "WINWORD.EXE"
+style = "cr"
+```
+
+出厂名单只有 `WINWORD.EXE`——同一次实测里记事本与 WPS 文字都能正常分段，所以 WPS 刻意不在名单上。写法与 `compat.toml` 其余段一致，见[应用兼容配置](/docs/guides/compat#commit-newline)。
+
+<Callout type="info" title="为什么出厂不是继续转 CR">
+两个方向的漏配代价不对称：名单里漏一个富文本程序，你立刻看得见换行显示不对，加一行即可；反过来默认转换而漏掉一个按字节存储的程序，行尾被改写却看不出来，可能很久之后才发现。可见的失败优于静默的失败。
 </Callout>
 
 
@@ -255,10 +282,11 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `true` | 临时英文总开关 |
 | `show_candidates` | 布尔 | — | `true` | 显示英文候选 |
-| `raw_candidate` | 布尔 | — | `true` <Since v="0.119" /> | 把**所打原文**作首候选。默认开 = 保持一直以来的行为。⚠️ 与下面的 `case_variants` 同时关闭且词库无命中时候选会是空的，此时空格上屏缓冲原文 |
+| `raw_candidate` | 枚举 <Since v="0.122" /> | `always` / `in_dict` / `off` | `"always"` <Since v="0.119" /> | 把**所打原文**作首候选。出厂 `always` = 保持一直以来的行为；三档语义见 [`schema.english` 那份](/docs/guides/config/schema#english)，两侧**各自独立**。⚠️ 本项为 `off`（或 `in_dict` 未命中）且下面的 `case_variants` 也关、词库又无命中时候选会是空的，此时空格上屏缓冲原文 |
 | `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |（[英文方案那侧默认关](/docs/guides/config/schema#english)，两侧各自独立）
 | `case_follow_input` | 布尔 | — | `true` <Since v="0.121" /> | 词库候选跟随你打的大小写，语义同 [`schema.english` 那份](/docs/guides/config/schema#english)。⚠️ 临英由 `Shift + 字母` 进入、缓冲首字母恒大写，开着它临英候选就恒为首字母大写形态；不想要这个观感把它关掉即可 |
 | `commit_space` | 布尔 | — | `false` <Since v="0.122" /> | 临英选词上屏后补一个空格。与 [`schema.english` 那份](/docs/guides/config/schema#english)**各自独立**：长时打英文连着打词、补空格顺手；中文里插一个英文词，插完往往接中文或标点，补上的还得退格删掉。回车上屏不补 |
+| `phrase_seg` <Since v="0.122" /> | 布尔 | — | `false` | 词组分词输入：用 `'` 切开各段，每段只打前缀（`ip'max` → iPhone 15 Pro Max）。语义与 [`schema.english` 那份](/docs/guides/config/schema#phrase-seg)完全一致，开关各一份。⚠️ 开启后 `'` 在临英下不再是第三候选键，用数字键 `3` 代替 |
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `trigger_keys` | 字符串数组 | — | `[]` | 额外触发键（符号键进入临时英文模式，类似临时拼音触发键）；默认空，仅 Shift + 字母触发 |
 | `allow_symbols` | 布尔 | — | `false` | 总开关：符号与数字是否直接进入临英缓冲，而非上屏退出或选词。放行哪些字符由 `symbol_chars` 决定 |
@@ -298,7 +326,7 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 
 ## 模式级候选布局
 
-临时拼音、临时英文、网址输入、快捷输入、引导键特殊模式、快捷加词，各有一个同名的 `candidate_layout`，语义完全一致：
+临时拼音、临时英文、网址输入、邮箱输入、快捷输入、引导键特殊模式、快捷加词，各有一个同名的 `candidate_layout`，语义完全一致：
 
 | 取值 | 含义 |
 | --- | --- |
@@ -315,7 +343,8 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 | 临时拼音 | `input.temp_pinyin.candidate_layout` | `follow` | ✅ 下拉 |
 | 临时英文 | `input.temp_english.candidate_layout` | `follow` | ✅ 下拉 |
 | 快捷输入 | `schema.mix_modes` 中 `quick_mix` 的 `candidate_layout` | `vertical` | ✅ 下拉 |
-| 网址输入 | `input.url.candidate_layout` | `follow` | 暂不显示（该模式当前不产出候选） |
+| 网址输入 | `input.url.candidate_layout` | `follow` | ✅ 下拉 <Since v="0.122" />（开了历史补全才会出候选） |
+| 邮箱输入 <Since v="0.122" /> | `input.email.candidate_layout` | `follow` | ✅ 下拉 |
 | 特殊模式 | 方案文件 `[overlay]` 的 `candidate_layout` | `follow` | ✅ 下拉（方案设置 → 特殊模式），见[引导键特殊模式](/docs/guides/special-modes#候选窗布局) |
 | 快捷加词 | `input.add_word.candidate_layout` | `vertical` | 仅配置文件 |
 | **方案级** <Since v="0.119" /> | 方案文件 `[candidate]` 的 `layout` | `follow` | ✅ 下拉（方案设置 → 本方案行为），见[方案级行为](/docs/guides/schemas#schema-behavior) |
@@ -447,14 +476,58 @@ emoji 候选按表追加、位置由上面几项决定，选它不会改变任�
 [input.url]
 enabled = false                                # 网址模式总开关
 prefixes = ["www.", "http", "https", "ftp."]    # 触发前缀
-candidate_layout = "follow"                     # 候选窗布局（当前无实际效果，见下）
+history_enabled = false                         # 记下上屏过的网址供下次补全
+history_max = 200                               # 历史条数上限
+candidate_layout = "follow"                     # 候选窗布局
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `false` | 网址输入模式总开关 |
 | `prefixes` | 字符串数组 | — | `["www.", "http", "https", "ftp."]` | 触发前缀（恰好匹配即进入网址模式） |
-| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 见[模式级候选布局](#模式级候选布局)。**当前无实际效果**——网址模式不产出候选，候选窗不出现，故设置工具里也不显示这一项 |
+| `history_enabled` <Since v="0.122" /> | 布尔 | — | `false` | 把上屏过的网址记下来，下次打到一半给出补全候选，见[网址与邮箱的补全](#completion) |
+| `history_max` <Since v="0.122" /> | 整数 | — | `200` | 历史条数上限，超出时按「用得少、用得旧」裁掉。`0` = 不限——但补全每按一键查一次库，条数无顶时逐键开销会随使用一直涨 |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 见[模式级候选布局](#模式级候选布局)。`history_enabled` 关着时网址模式不产出候选，这一项也就无从显现 |
+
+<Callout type="warn" title="历史是独立的一档开关">
+网址模式本身只改输入行为，**不产生任何持久数据**；开了历史才开始把你打过的网址原文落盘。两者的隐私量级不同，所以没有合成一个开关。已记下的内容在「词库管理 → 输入补全」里逐条查看与清空。
+</Callout>
+
+## 邮箱输入（input.email） <Since v="0.122" /> [#email]
+
+正常输入下缓冲非空时按 `@` 即进入：`abc` + `@` → 用户名 `abc`，候选给出后缀拼成的完整邮箱，空格或回车上屏。
+
+```toml
+[input.email]
+enabled = false                      # 邮箱模式总开关
+suffixes = ["qq.com", "163.com"]     # 预置后缀（出厂 24 条，此处节略）
+candidate_layout = "follow"          # 候选窗布局
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `false` | 邮箱输入模式总开关 |
+| `suffixes` | 字符串数组 | — | 出厂 24 条常用后缀 | 候选里预置的邮箱后缀。**存 `@` 之后的部分**（`qq.com` 而不是 `@qq.com`）。这是数组不是映射表，在设置里删干净就是真的空表，不会被出厂值合回来 |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 见[模式级候选布局](#模式级候选布局) |
+
+与网址模式的差别在**触发判据**：那边是「已打的字恰好等于某个前缀」，这边是「本键是 `@` 且前面已经打了字」。**空缓冲按 `@` 不会进入**，`@` 照常作标点上屏——否则每次想单独打一个 `@` 都会掉进模式里；这个条件同时也是「用户名从哪来」的答案。
+
+模式内可自由输入表外的后缀，上屏后会被学下来，下次自动出现在候选里，并按使用次数排到预置项前面。后缀学习跟随 `enabled`，没有网址历史那道单独的开关——它只记域名，不记用户名。
+
+### 网址与邮箱的补全 <Since v="0.122" /> [#completion]
+
+两个模式共用同一套候选逻辑：
+
+| | 规则 |
+| --- | --- |
+| 候选来源 | 你用过的网址 / 邮箱后缀（学习数据）+ 邮箱的预置后缀 |
+| 排序 | **学过的一律排在预置后缀之前**，其内部按「用得多 → 用得新」排；冷启动没有学习数据时，邮箱就是 `suffixes` 的书写顺序 |
+| 条数 | 最多 30 条 |
+| 空格 | **有候选就选候选，没候选才上屏原文** |
+| 数字键 | 在这两个模式里是**字符**不是选词序号——否则打不出 `163.com` 和 `abc123@qq.com` |
+| 上屏后 | 网址记原文（需 `history_enabled`），邮箱记 `@` 之后的后缀 |
+
+学到的东西落在一张全局表里，与方案无关，换方案照样补得出来；查看、搜索与清空在「词库管理 → 输入补全」，两类数据各有各的清空按钮。它们也已纳入整机备份，换机器不必重新攒。
 
 ## Unicode 输入（input.unicode） <Since v="0.121" /> [#unicode]
 
@@ -542,6 +615,40 @@ min_prefix = 2  # 触发前缀导航列举的最小输入长度
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `min_prefix` | 整数 | — | `2` | 触发前缀导航列举的最小输入长度 |
+
+## 取坐标用的占位组合区（input.caret） <Since v="0.122" /> [#caret]
+
+造词、临时拼音、引导键特殊模式、生僻字这四个模式**由热键直接进入**，进入那一瞬间还没有任何输入内容，却要立刻显示候选窗或预览窗。为了问出「候选窗该画在哪」，输入法会先发一个只含空格的占位组合区，把取坐标用的范围撑开。
+
+代价是：**你选中着文字再按这些热键时，选中的内容会被那个空格替换掉**（造词 `Ctrl+=` 最常撞上）。这是 TSF 的标准语义，不是某个程序的怪癖。
+
+```toml
+[input.caret]
+add_word_via_composition = false    # 造词：出厂就走了这个出口
+temp_pinyin_via_composition = true  # 临时拼音
+special_via_composition = true      # 引导键特殊模式
+rare_char_via_composition = true    # 生僻字
+```
+
+| 键 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `add_word_via_composition` | 布尔 | `false` | 造词面板 |
+| `temp_pinyin_via_composition` | 布尔 | `true` | 临时拼音 |
+| `special_via_composition` | 布尔 | `true` | 引导键特殊模式 |
+| `rare_char_via_composition` | 布尔 | `true` | 生僻字模式 |
+
+| 取值 | 取坐标 | 选中的文字 |
+| --- | --- | --- |
+| `true` | 用占位组合区，**最准** | 会被吃掉 |
+| `false` | 退到回退链（窗口线程信息 → 系统插入点 → 上次已知位置 → 窗口中心估计） | 原样保留 |
+
+<Callout type="warn" title="为什么不干脆四个都关">
+很多程序的 Win32 取坐标接口给不出正确坐标，**只有基于组合区的那条准**，占位空格正是为兼容它们而存在。一律关掉是拿「吃字」换「候选窗错位」——错位影响的是所有人的日常输入，吃字只在「选中着文字又去按热键」时才发生。所以做成逐模式开关，按你自己的程序实测逐个调。
+
+出厂只关造词：它弹的是预览窗，对坐标精度的敏感度低于候选列表，实测关掉后位置仍然正确。另三个弹的是候选列表，错位的观感与代价更大。
+</Callout>
+
+只对**直达热键**那条进入方式生效。用引导键（`` ` ``、`z` 等）进入时组合区里有真实内容（引导符），那时的组合区是显示所必需的，与「为取坐标插一个占位」不是一回事，本段不参与。
 
 ## 相关阅读
 
