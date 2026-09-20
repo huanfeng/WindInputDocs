@@ -162,10 +162,11 @@ half_life = 0.0          # 热度衰减半衰期（小时），0 = 内置 72 小
 
 ```toml
 [schema.english]
-commit_space = false     # 上屏一个英文词后再补一个空格
-raw_candidate = true     # 首候选恒是所打原文
-case_variants = false    # 大小写变形候选（全小写/首字母大写/全大写）
-case_follow_input = true # 候选跟随输入的大小写（打 Hi 出 Hill）
+commit_space = false      # 上屏一个英文词后再补一个空格
+raw_candidate = "always"  # 首候选是不是所打原文：always / in_dict / off
+case_variants = false     # 大小写变形候选（全小写/首字母大写/全大写）
+case_follow_input = true  # 候选跟随输入的大小写（打 Hi 出 Hill）
+phrase_seg = false        # 词组分词输入：ip'max → iPhone 15 Pro Max
 
 [schema.english.frequency]
 enabled = false          # 英文调频总开关
@@ -178,9 +179,10 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `commit_space` | 布尔 | — | `false` | 上屏一个英文词后自动补一个空格，连续打词不必手动按。生效范围见下 |
-| `raw_candidate` | 布尔 | — | `true` <Since v="0.119" /> | 把**所打原文**作首候选钉在词库词之前。英文「输入即内容」，开着调频时某个词会被顶到首位，届时想上屏原文就只剩回车 |
+| `raw_candidate` | 枚举 <Since v="0.122" /> | `always` / `in_dict` / `off` | `"always"` <Since v="0.119" /> | 把**所打原文**作首候选钉在词库词之前。英文「输入即内容」，开着调频时某个词会被顶到首位，届时想上屏原文就只剩回车。三档的取舍见[首候选给不给原文](#raw-candidate) |
 | `case_variants` | 布尔 | — | `false` <Since v="0.119" /> | 是否补出全小写／首字母大写／全大写三种形态。每条各占一个候选位，英文方案是长时输入场景，故默认关（[临时英文那侧默认开](/docs/guides/config/input#temp-english)） |
 | `case_follow_input` | 布尔 | — | `true` <Since v="0.121" /> | 词库候选跟随你打的大小写：打 `Hi` 出 `Hill`、打 `WoW` 出 `WoWed`。**只跟大写**——输入里的小写位保持词库原文，`China` / `iPhone` / `Hi-Fi` 自带的大写不会被压掉；候选与输入逐位对不上的（短语、命令类）整条保持原样 |
+| `phrase_seg` <Since v="0.122" /> | 布尔 | — | `false` | 词组分词输入，见[词组分词输入](#phrase-seg) |
 | `frequency.enabled` | 布尔 | — | `false` | 英文调频总开关 |
 | `frequency.strategy` | 枚举 | `position` / `top` / `step` | `"position"` | 词频应用策略 |
 | `frequency.promote_prefix` | 枚举 | `none` / `single` / `all` | `"all"` | 前缀补全候选参与位置提升的范围。**仅 `position` 时生效** |
@@ -198,6 +200,42 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 - **候选面那两个键两侧各有一份** <Since v="0.119" />——`raw_candidate` 与 `case_variants` 在 `schema.english` 与 [`input.temp_english`](/docs/guides/config/input#temp-english) 下**各自独立**，互不影响，`case_variants` 的默认值还刻意相反（临英 `true` / 英文方案 `false`）。两个场景不是一回事：临英是「中文里插一个英文词」，首字母大写是刚需；英文方案是长时输入，每条变形都吃掉一个候选位
 
 码表与拼音的记账口径**不受 `code_scope` 影响**：码表恒用输入码，拼音恒用候选码，见[词频与候选排序 · 记账口径](/docs/guides/frequency#记账口径用哪个编码存这条记录)。
+
+### 首候选给不给原文 <Since v="0.122" /> [#raw-candidate]
+
+| 取值 | 行为 |
+| --- | --- |
+| `always`（出厂） | 所打原文恒作首候选，钉在所有词库词之前 |
+| `in_dict` | **仅当所打原文本身就是词库里的词**时才作首候选，否则一条都不产，列表是纯词库候选 |
+| `off` | 不产原文候选，总是走词库补全；想上屏所打原文按回车 |
+
+`in_dict` 补的是另外两档各只满足一半的那个缺口：打 `hel`（词库里没有这个词）时 `always` 会多出一条占位的 `hel`；打 `hell`（词库里有）时 `off` 又让它被用得更多的 `hello` 顶下去。`in_dict` 下这两件事同时成立——不是词库词就不产，是词库词就恒排第一、不受调频影响。
+
+<Callout type="warn" title="判据按字面，区分大小写">
+打 `usa` 时词库里只有 `USA`，`usa` 这个字面不在词库中 ⇒ 不产原文候选，`USA` 成为首选。想上屏小写的 `usa`，按回车走「上屏原码」。
+</Callout>
+
+老配置的 `true` / `false` 仍可读入，等价于 `always` / `off`。⚠️ 命令行写入侧**不再接受布尔**，`config set` 该键时要写三档之一。
+
+### 词组分词输入 <Since v="0.122" /> [#phrase-seg]
+
+用 `'` 把词组切成几段，每段只打前缀：
+
+| 打 | 得到 |
+| --- | --- |
+| `bue'air` | Buenos Aires |
+| `ip'max` | iPhone 15 Pro Max |
+| `ip'pro` | iPhone 15 Pro（**允许跳词**，不必写成 `ip'15'pro`） |
+
+段序必须与词序一致，且**首段锚定第一个词**——否则 `pro` 会命中一切含 Pro 的词组，候选直接爆炸。
+
+作用域是英文方案 + **快捷输入里的英文成员**（后者用的就是英文方案那个引擎，同一份词库同一套规则）；临时英文另有独立的一份开关 [`input.temp_english.phrase_seg`](/docs/guides/config/input#temp-english)。
+
+<Callout type="warn" title="开启后 ' 不再是第三候选键">
+`'` 要被收进缓冲当分词符，所以它在英文方案下不再作第 3 候选的别名。用数字键 `3` 代替。这是所有英文方案用户都会察觉的变化，故默认关。
+</Callout>
+
+**不影响含撇号的词**：查询是合并而非劫持，原路径照查——打 `o'c` 会同时拿到 OS X El Capitan（分词命中）与 `o'clock`（原路径命中）。
 
 ### 首选保护按码长分级 <Since v="0.113" /> [#protect-by-code-len]
 
