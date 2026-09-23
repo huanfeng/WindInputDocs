@@ -17,8 +17,7 @@ import { Since } from "@/components/since";
 
 ```toml
 [ui.candidate]
-font_size = 18                  # 候选文本字号
-font_size_follow_theme = true   # 字号跟随主题
+font_size = 0                   # 候选文本字号（0 = 跟随主题）
 per_page = 7                    # 每页候选数
 per_page_extended = 0           # 扩展档每页候选数
 max_chars = 16                  # 候选文本最大显示字数
@@ -33,8 +32,7 @@ comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `font_size` | 浮点 | — | `18` | 候选文本字号；`0` 亦表示跟随主题 `behavior.font_size`。`font_size_follow_theme` 开启时本值被忽略 |
-| `font_size_follow_theme` | 布尔 | — | `true` | 字号跟随主题：开启时忽略 `font_size`，改用主题 `behavior.font_size` |
+| `font_size` | 浮点 | — | `0` | 候选文本字号：`0` = 跟随主题 `behavior.font_size`；大于 0 = 自定字号，覆盖主题。<Since v="0.123" /> 起旧的 `font_size_follow_theme` 开关已并入本项，升级时自动迁移（开着跟随 → `0`；关了跟随 → 保留原字号）并从配置文件中移除 |
 | `per_page` | 整数 | — | `7` | 每页显示的候选数 |
 | `per_page_extended` | 整数 | — | `0` | 扩展档（临拼 / 快捷 / 短语等 overlay 模式）每页候选数；`0` = 与 `per_page` 相同 |
 | `max_chars` | 整数 | — | `16` | 候选文本最大显示字数，超出截断并加省略号（`0` = 不限）；仅影响显示，上屏用完整原文 |
@@ -205,7 +203,7 @@ render_mode = "directwrite" # 文本渲染后端
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `family` | 字符串 | — | `""` | 候选窗字体族名；留空 = 使用系统 / 主题默认字体 |
+| `family` | 字符串 | — | `""` | 候选窗字体族名。填了就作用于候选窗**全部**文字（候选、序号、编码栏、注释、翻页栏），覆盖主题各节点配的字体；留空 = 跟随主题，主题也没配时用内置默认字体。唯一更优先的是方案里的[候选文字字体](/docs/guides/schemas)，它只管候选词本身 |
 | `fallback` | 字符串数组 <Since v="0.120" /> | — | `[]` | `family` 里缺某个字时，按顺序往后找的字体。最终链 = `[family]` + `fallback` |
 | `scripts` | 表 <Since v="0.120" /> | — | `{}` | 按**文字类别**单独指派字体，键取 `latin` / `greek` / `cyrillic` / `cjk` / `emoji` / `digits` / `punct`，值是该类自己的字体链。见[回退链与按类别指派](#font-fallback-scripts) |
 | `path` | 字符串 | — | `""` | 字体文件路径（加载非系统安装的字体文件时使用）；留空 = 按 `family` 从系统查找 |
