@@ -298,6 +298,8 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | `space_as_input` | 布尔 | — | `false` | 空格是否作为输入字符（而非触发上屏） |
 | `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临英期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局)。英文候选一行放得下，全局竖排时常设 `horizontal` |
 
+- 快捷输入里的英文也读本段的 `raw_candidate`、`case_variants`、`commit_space`、`phrase_seg`：原文与变形排在英文候选之首（仍在拼音之后），补空格只对英文候选与所打原文，见[快捷输入](/docs/settings/input/quick-input#english-like-temp-english) <Since v="0.123" />
+
 ## 大写锁定（input.capslock）
 
 ```toml

@@ -229,7 +229,9 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 
 段序必须与词序一致，且**首段锚定第一个词**——否则 `pro` 会命中一切含 Pro 的词组，候选直接爆炸。
 
-作用域是英文方案 + **快捷输入里的英文成员**（后者用的就是英文方案那个引擎，同一份词库同一套规则）；临时英文另有独立的一份开关 [`input.temp_english.phrase_seg`](/docs/guides/config/input#temp-english)。
+临时英文另有独立的一份开关 [`input.temp_english.phrase_seg`](/docs/guides/config/input#temp-english)。
+
+- 快捷输入里的英文成员改读临时英文那份，本段这份只管英文方案 <Since v="0.123" />
 
 <Callout type="warn" title="开启后 ' 不再是第三候选键">
 `'` 要被收进缓冲当分词符，所以它在英文方案下不再作第 3 候选的别名。用数字键 `3` 代替。这是所有英文方案用户都会察觉的变化，故默认关。
