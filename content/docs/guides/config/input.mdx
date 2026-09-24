@@ -26,6 +26,7 @@ buffer_symbol_chars = "-"           # 组码中可直接进编码的符号（打
 numpad_behavior = "direct"          # 小键盘按键语义
 numpad_half_width = false           # 全角态下小键盘仍出半角
 english_case_cycle_key = ""         # 打英文时切换候选大小写档位的键（留空 = 关）
+alt_commit = "off"                  # Alt+数字 / Alt+空格 上屏候选的拼音或注释（off = 关）
 commit_newline = "keep"             # 上屏文本里的换行用什么字符表达
 # top_commit_mode = "direct_commit" # 内部/实验项，见下方 Callout
 ```
@@ -41,6 +42,7 @@ commit_newline = "keep"             # 上屏文本里的换行用什么字符表
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `numpad_half_width` <Since v="0.120" /> | 布尔 | — | `false` | 开启后，小键盘的 `0`–`9` 与 `. + - * /` 在**全角状态下仍输出半角原形**，且整条标点流水线一并跳过（自定义标点映射、中文标点、全半角转换三步都不走）。与 `numpad_behavior` **正交**，见[小键盘恒半角](#numpad-half-width) |
 | `english_case_cycle_key` <Since v="0.121" /> | 字符串（隐性枚举） | `""` / `capslock` / `tab` / `enter` / `space` / `escape` | `""` | 打英文时（英文方案或临时英文）临时夺取哪个键，在「跟随输入 → 全大写 → 全小写」三档之间循环，一次组合结束即复位。留空 = 关闭。**键即开关**，没有另一个启用项。Windows 建议 `capslock`，macOS 上 CapsLock 到不了输入法（系统只传锁定态、不传按键），建议 `tab`。⚠️ 被夺取的键在打英文期间用不出原本的语义（`capslock` 的大写锁定、`tab` 的辅助码 / 配对跳出 / 会话动作），其余时候一律照旧；撞车时启动会告警。详见[临时模式 · 切换候选大小写的键](/docs/settings/input/temp-modes#case-cycle-key) |
+| `alt_commit` <Since v="0.123" /> | 枚举 | `off` / `pinyin` / `pinyin_plain` / `comment` | `"off"` | 有候选时按 Alt+数字 N 上屏当前页第 N 个候选的**拼音或注释**而非候选字，Alt+空格 取高亮那条。`pinyin` = 带调（`nǐ hǎo`）；`pinyin_plain` = 不带调（`ni hao`）；`comment` = 候选注释段原文（按当前注释模板，不截断）。键不可改，本项同时是开关。只在「中文 + 有候选」时吃键；`keys.key_actions` 里已绑的 Alt 组合优先。没有可上屏的内容时什么都不做，不回落成候选字。详见[设置 · Alt+数字上屏注释/拼音](/docs/settings/input#alt-commit) |
 | `commit_newline` <Since v="0.122" /> | 枚举 | `keep` / `cr` / `lf` / `crlf` | `"keep"` | 上屏文本里的**换行用什么字符表达**：`keep` = 原样透传，词条里写什么就上屏什么；`cr` / `lf` / `crlf` = 一律折成该形态。0.121 及以前是无条件折成 `cr`，见[上屏换行的字符样式](#commit-newline)。⚠️ 仅 Windows 生效——macOS 的输入法框架用 LF，不参与本项 |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 
