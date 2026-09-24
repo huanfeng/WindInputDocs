@@ -353,8 +353,10 @@ debug_enabled = false     # 调试提示
 visible = true              # 是否显示常驻工具栏
 hide_in_fullscreen = true   # 全屏时自动隐藏
 fullscreen_watch = true     # 主动检测全屏状态
+hide_in_english = false     # 英文状态时隐藏
 auto_hide = false           # 无交互超时后自动隐藏
 auto_hide_delay = 5         # 自动隐藏超时（秒）
+auto_hide_hover_reveal = true  # 自动隐藏后，鼠标移到原位即重新显示
 vertical = false            # 纵向排列（默认横条）
 # 显示哪几格、按什么顺序（数组顺序即渲染顺序）
 items = ["mode", "punct", "full_width", "-s2t", "soft_keyboard", "settings"]
@@ -366,7 +368,9 @@ items = ["mode", "punct", "full_width", "-s2t", "soft_keyboard", "settings"]
 | `hide_in_fullscreen` | 布尔 | — | `true` | 前台应用全屏时自动隐藏工具栏 |
 | `fullscreen_watch` <Since v="0.122" /> | 布尔 | — | `true` | 定期主动查询前台是否全屏。**进出全屏本身不产生任何输入法回调**（在输入框里按 F11、用播放器快捷键全屏），只靠焦点事件的话工具栏该隐没隐；关掉则只在焦点 / 激活事件到达时顺带查一次。仅在 `hide_in_fullscreen = true` 时有意义 |
 | `auto_hide` | 布尔 | — | `false` | 自动隐藏：显示后超时无交互则淡出（悬停 / 拖动顺延；默认关） |
+| `hide_in_english` <Since v="0.123" /> | 布尔 | — | `false` | 中英切到**英文**时隐藏工具栏，切回中文即重新显示。临时英文、大写锁定仍算中文状态，不受影响。与全屏隐藏可叠加 |
 | `auto_hide_delay` | 整数 | — | `5` | 自动隐藏超时（秒）；下限 `1` 由协调器钳制 |
+| `auto_hide_hover_reveal` <Since v="0.123" /> | 布尔 | — | `true` | 自动隐藏改为「假隐藏」：淡出后工具栏仍留在原位（几乎透明），鼠标移到那里即重新显示，移开后满 `auto_hide_delay` 秒再淡出。隐藏期间那一小块区域的点击落在工具栏上。关掉则淡出后彻底隐藏，只在切换中英等状态变化时出现。仅在 `auto_hide = true` 时有意义；全屏、英文状态等场合的隐藏仍是彻底隐藏 |
 | `vertical` | 布尔 | — | `false` <Since v="0.115" /> | 纵向排列：竖着摆放工具栏（默认横条）。几何仍取主题 `[toolbar]`：条宽 = `height`、每格高 = `button_width` |
 | `items` | 字符串数组 <Since v="0.119" /> | `mode` / `punct` / `full_width` / `s2t` / `soft_keyboard` <Since v="0.120" /> / `settings` / `custom:<id>`，名字前可加 `-` | `["mode", "punct", "full_width", "-s2t", "soft_keyboard", "settings"]` | 显示哪几格、按什么顺序——**数组顺序即渲染顺序**。留空 = 全部内置项。名字前加 `-`（如 `"-s2t"`）表示**不显示但记住它排在这个位置**，设置页关掉某格时写的就是这个。`s2t` 出厂关着，去掉那个 `-` 就能随时点它开关简入繁出；隐藏 `settings` 不影响使用，右键工具栏任意位置同样能打开菜单。整条工具栏都不想要请用 `visible = false` |
 
