@@ -41,6 +41,7 @@ import { Since } from "@/components/since";
 | `${chaizi}` | 拆字字根，**仅单字候选** | `亻尔` |
 | `${chaizi_code}` | 该字在拆字库里的编码，仅单字候选 | `wq` |
 | `${chaizi_all}` | 拆字字根，不限字数（逐字拼接） | `亻尔 女子` |
+| `${chaizi_code_all}` <Since v="0.123" /> | 该字在拆字库里的编码，不限字数（逐字拼接） | `wq w` |
 | `${dict}` | 挂载的[注释词库](#注释词库)里该词的注释 | `apple`、`🍎 红苹果` |
 
 `${chaizi}` 限单字是有意的：拆字回答的是「这个**字**由哪些字根构成」，词组的字根串既难读、
@@ -91,7 +92,7 @@ import { Since } from "@/components/since";
 
 ### 变量参数
 
-`${chaizi_all}` 与 `${code_rev_all}` 支持用冒号指定分隔符：
+`${chaizi_all}`、`${chaizi_code_all}` 与 `${code_rev_all}` 支持用冒号指定分隔符：
 
 | 写法 | 结果 |
 | --- | --- |
@@ -99,6 +100,8 @@ import { Since } from "@/components/since";
 | `${chaizi_all:／}` | `亻尔／女子` |
 | `${chaizi_all: · }` | `亻尔 · 女子` |
 | `${chaizi_all:}` | `亻尔女子` |
+| `${chaizi_code_all}` | `wq w` |
+| `${chaizi_code_all:／}` | `wq／w` |
 | `${code_rev_all}` | `q/trn/trnt` |
 | `${code_rev_all: }` | `q trn trnt` |
 
