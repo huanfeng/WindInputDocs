@@ -118,7 +118,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
 | `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**。写在方案级时切过去就没有回程了，见下方提示 |
-| `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_t2s` <Since v="0.121" />、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
+| `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_t2s` <Since v="0.121" />、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`open_dictionary`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
 | `single_char` <Since v="0.121" /> | 开关[单字输入](/docs/guides/config/schema#single-char)（候选只出单字）。裸写 = 切换；也可写 `single_char:on` / `:off` / `:toggle` 直达，`:follow` 取消临时切换、回到配置里的值。切的是**临时态**，不写配置——重启或切方案后失效 |
 | `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
 | `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |
@@ -250,6 +250,7 @@ tab = "none"              # 本方案关掉全局配的 Tab
 toggle_toolbar = 'ctrl+shift+\'       # 显示/隐藏工具栏
 softkeyboard = "ctrl+shift+k"         # 显示/隐藏软键盘
 open_settings = "ctrl+shift+]"        # 打开设置工具
+open_dictionary = "none"              # 打开词库管理页；出厂不绑
 add_word = "ctrl+equal"               # 就地加词（从当前组合造词）
 open_add_word_dialog = "ctrl+shift+equal" # 打开加词小窗
 activate_ime = "ctrl+shift+["         # 切换到本输入法（系统级）
@@ -261,6 +262,7 @@ take_screenshot = "ctrl+shift+f11"    # 截取输入法自身窗口（取证用�
 | `toggle_toolbar` | 热键字符串 | `ctrl+shift+\` | 显示/隐藏常驻工具栏 |
 | `softkeyboard` <Since v="0.120" /> | 热键字符串 | `ctrl+shift+k` | 显示/隐藏[软键盘](/docs/guides/soft-keyboard)面板。**清空即禁用**（面板仍可从工具栏与主菜单打开）。想给某一个面配直通车用 `key_actions` 的 `softkeyboard:<面id>` |
 | `open_settings` | 热键字符串 | `ctrl+shift+]` | 打开设置工具窗口 |
+| `open_dictionary` | 热键字符串 | `none`（出厂不绑） | 直接打开设置窗口的[词库管理](/docs/settings/dict)页，落在当前正在用的方案域（设置端 `--page dict --schema=<方案id>`）。任意默认组合都在抢用户键位，故出厂空绑，常规入口走主菜单「词库管理…」 |
 | `add_word` | 热键字符串 | `ctrl+equal` | 就地加词，仅中文模式生效。该键额外走系统级全局拦截，规避 QQNT / Tabby 等宿主的加速键双处理 |
 | `open_add_word_dialog` | 热键字符串 | `ctrl+shift+equal` | 打开独立加词小窗，仅中文模式生效，同样走全局拦截 |
 | `activate_ime` | 热键字符串 | `ctrl+shift+[` | 切换到本输入法。经 Windows `DirectSwitchHotkeys` 注册表交由系统 `ctfmon` 原生处理（per-app 切换），**不经引擎按键分发** |
@@ -383,12 +385,13 @@ global_hotkeys = []  # 提升为系统级全局热键的动作名列表
 | `toggle_punct` | 中/英标点切换 |
 | `toggle_toolbar` | 显示/隐藏工具栏 |
 | `open_settings` | 打开设置 |
+| `open_dictionary` | 打开词库管理 |
 | `take_screenshot` | 截图 |
 | `toggle_s2t` | 简/繁切换 |
 | `toggle_t2s` <Since v="0.121" /> | 繁入简出开关 |
 
 <Callout type="warn" title="不支持的动作会被忽略">
-只有上表 8 个动作可放进 `global_hotkeys`；填写其它名字（含 `add_word` / `activate_ime` 等）会被判为不支持并忽略。其中 `activate_ime` 另有专属系统级通道（`DirectSwitchHotkeys` 注册表），无需也不能列在此处；`add_word` 需要当前组合上下文，不参与全局注册。
+只有上表 9 个动作可放进 `global_hotkeys`；填写其它名字（含 `add_word` / `activate_ime` 等）会被判为不支持并忽略。其中 `activate_ime` 另有专属系统级通道（`DirectSwitchHotkeys` 注册表），无需也不能列在此处；`add_word` 需要当前组合上下文，不参与全局注册。
 </Callout>
 
 ## 无效按键策略（keys.overflow）
