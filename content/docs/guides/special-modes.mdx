@@ -334,7 +334,7 @@ backslash = "special:quick_symbols"
 
 判据是 `[overlay]` 段，**与写没写 `hidden` 无关**：`hidden` 只决定列不列进方案切换列表。隐藏但没有 `[overlay]` 的码表方案（比如只作快捷输入成员用的小表）照常跟随全局。
 
-所以设置工具里对五笔开启的「精准匹配」不会流到特殊模式，特殊模式也**不会**拿到全局的 `punct_commit`、`z_key_repeat` 等出厂值。要什么就在该方案上显式写：方案文件 `<方案id>.schema.toml` 的 `[engine.codetable]` 段，或用户覆盖层 `schema_overrides/<方案id>.toml` 的 `[codetable]` 段。
+所以设置工具里对五笔开启的「精准匹配」不会流到特殊模式，特殊模式也**不会**拿到全局的 `punct_commit`、`z_key_repeat` 等出厂值。要什么就在该方案上显式写：方案文件 `<方案id>.schema.toml` 的 `[engine.codetable]` 段，或用户覆盖层 `schema_overrides/<方案id>.toml` 的同名 `[engine.codetable]` 段。
 </Callout>
 
 特殊方案没写时用的基线，与全局出厂值只有一处不同：

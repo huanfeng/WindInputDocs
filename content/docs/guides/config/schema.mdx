@@ -30,7 +30,7 @@ primary_pinyin = ""                      # 主拼音方案 ID（临时拼音目�
 
 ## 码表引擎（schema.codetable）
 
-所有码表方案的公共基线。方案可经 `schema_overrides/<方案ID>.toml` 的 `[codetable]` 段（带 `enabled` 总开关）逐字段覆盖。
+所有码表方案的公共基线。方案可经 `schema_overrides/<方案ID>.toml` 的 `[engine.codetable]` 段逐项覆盖，没写的项跟随这里的值。
 
 ```toml
 [schema.codetable]
@@ -154,7 +154,7 @@ half_life = 0.0          # 热度衰减半衰期（小时），0 = 内置 72 小
 - `promote_prefix` 与 `half_life` **仅 `strategy = "position"` 时生效**，其余策略下设置页会置灰
 - `half_life` 的单位是小时，`0` = 内置 72 小时，见[热度衰减半衰期](/docs/guides/frequency#热度衰减半衰期)
 
-单个方案要与这份全局基线不同，用 `schema_overrides/<方案ID>.toml` 的 `[codetable]` 段覆盖；图形界面入口是[方案级码表配置](/docs/settings/schema#schema-codetable)。
+单个方案要与这份全局基线不同，用 `schema_overrides/<方案ID>.toml` 的 `[engine.codetable]` 段覆盖；图形界面入口是[方案级码表配置](/docs/settings/schema#schema-codetable)。
 
 ### 英文 [schema.english] <Since v="0.114" /> [#english]
 
