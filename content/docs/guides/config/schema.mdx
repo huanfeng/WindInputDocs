@@ -67,6 +67,8 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
 | `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
 
+- 英文方案不读 `punct_commit`，与拼音一样恒允许标点顶屏；混输方案仍读它 <Since v="0.123" />
+
 <Callout type="warn" title="input_chars / leading_chars / z_key_action 实际取方案文件那份">
 这三个键在本段与方案文件的 `[engine.codetable]` 段里都存在，但**引擎只从方案文件取**——它们是方案的引擎固定参数，不是全局行为基线。写在 `config.toml` 的 `[schema.codetable]` 下不会生效。`z_key_action` 按码表在自己的方案文件（或 `schema_overrides/<方案ID>.toml`）里开。
 
