@@ -415,6 +415,8 @@ select_char_key = "ignore"  # 以词定字键候选词长度不足时
 | `select_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 次选/三选键（见 `select_key_groups`）候选不足时的行为 |
 | `select_char_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 以词定字键（见 `select_char_keys`）候选词长度不足时的行为 |
 
+- 临时拼音里没有候选时按次选/三选键，同样按 `select_key` 处理 <Since v="0.123" />
+
 枚举取值行为：
 
 | 取值 | 行为 |

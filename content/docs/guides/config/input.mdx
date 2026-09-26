@@ -48,6 +48,9 @@ top_commit_learn = true             # 顶屏上屏也造词、推临时词晋升
 | `commit_newline` <Since v="0.122" /> | 枚举 | `keep` / `cr` / `lf` / `crlf` | `"keep"` | 上屏文本里的**换行用什么字符表达**：`keep` = 原样透传，词条里写什么就上屏什么；`cr` / `lf` / `crlf` = 一律折成该形态。0.121 及以前是无条件折成 `cr`，见[上屏换行的字符样式](#commit-newline)。⚠️ 仅 Windows 生效——macOS 的输入法框架用 LF，不参与本项 |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 
+- `punct_on_empty_behavior` 也管临时拼音、临时英文、快捷输入与特殊模式：它们无候选时按标点，与主输入按同一档处理；用 `z` 等字母键进入时，这个字母也算编码 <Since v="0.123" />
+- `english_case_cycle_key` 也作用于快捷输入里的英文 <Since v="0.123" />
+
 <Callout type="info" title="智能档不再「打得越全反而越不出」 (0.114)">
 `smart` 档按「同一来源 + 同一编码」分组，组内有常用词就滤掉非常用词。0.113 及以前，同一个字在不同长度的输入下会落进不同的分组——五笔的「桜」（`sivg`）打 `siv` 能出、打全 `sivg` 反而消失，因为打 `siv` 时同码位的常用字「档」被上游的去重整条丢掉了，「桜」成了孤儿码而被放行。
 
@@ -300,7 +303,7 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | `space_as_input` | 布尔 | — | `false` | 空格是否作为输入字符（而非触发上屏） |
 | `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临英期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局)。英文候选一行放得下，全局竖排时常设 `horizontal` |
 
-- 快捷输入里的英文也读本段的 `raw_candidate`、`case_variants`、`commit_space`、`phrase_seg`：原文与变形排在英文候选之首（仍在拼音之后），补空格只对英文候选与所打原文，见[快捷输入](/docs/settings/input/quick-input#english-like-temp-english) <Since v="0.123" />
+- 快捷输入里的英文也读本段的 `raw_candidate`、`case_variants`、`case_follow_input`、`commit_space`、`phrase_seg`：原文与变形排在英文候选之首（仍在拼音之后），补空格只对英文候选与所打原文，见[快捷输入](/docs/settings/input/quick-input#english-like-temp-english) <Since v="0.123" />
 
 ## 大写锁定（input.capslock）
 
