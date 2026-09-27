@@ -251,6 +251,8 @@ default_weight = 500            # 该库无权重列，整库定档 500
 
 启用判定优先级：**`enabled` > `default_enabled` > 主词库始终启用**。
 
+`[[dictionaries]]` 只认上表这些键。**字体不在词库级配置**——写 `font_path` / `font_family` 会被忽略，方案字体见[方案字体](#schema-font)。
+
 <Callout type="info" title="混输方案不写 dictionaries">
 混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库。详见[混输方案配置](/docs/settings/schema/mixed#no-own-dict)。
 </Callout>
@@ -507,7 +509,7 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | `punct.custom_mappings` | 表 <Since v="0.119" /> | — | 不写 | 本方案专用的[自定义标点映射](/docs/settings/input/punctuation#自定义标点映射)。**不写 = 跟随全局**，写了则**整份替换**全局那张表，写空表 `{}` = 本方案一条自定义标点都不要。详见[整份替换，不是逐行合并](#punct-mappings-replace) |
 | `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
 | `candidate.text_orientation` | 枚举 <Since v="0.120" /> | `normal` / `rotated` / `upright` | `"normal"` | **横排时**文字怎么排：`normal` 照常水平、`rotated` 整项顺时针转 90°、`upright` 逐字直立下行（对联式）。竖排时不生效，详见[横排时文字排列](#text-orientation) |
-| `candidate.font_family` | 字符串 <Since v="0.120" /> | — | 不写 | 本方案候选**文字**的字体；不写 = 用[全局字体](/docs/guides/config/ui#ui-font)。只作用于候选词本身，序号、编码栏、注释不跟着换 |
+| `candidate.font_family` | 字符串 <Since v="0.120" /> | — | 不写 | 本方案候选**文字**的字体；不写 = 用[全局字体](/docs/guides/config/ui#ui-font)。只作用于候选词本身，序号、编码栏、注释不跟着换。填**已安装**字体的家族名，不按文件加载，见[方案字体](#schema-font) |
 | `candidate.comment_template_vertical` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**竖排**候选的[注释](/docs/settings/appearance/candidate-comment)模板。**不写 = 跟随全局**，写空串 `""` = 本方案不显示注释 |
 | `candidate.comment_template_horizontal` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**横排**候选的注释模板。两个方向各自独立，只配一个、另一个跟随全局是常见用法 |
 | `phrases.enabled` | 布尔 | — | `true` | 本方案是否加载[短语](/docs/settings/dict/phrases)。关掉后不出短语候选，短语也不再占用码位 |
@@ -546,6 +548,23 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 
 <Callout type="info" title="竖排时不生效">
 `layout` 为 `vertical` 时 `text_orientation` 不起作用——已经竖着排的候选再转 90°，就又成了横排。
+</Callout>
+
+### 方案字体 [#schema-font]
+
+`candidate.font_family`（设置工具：方案自定义 → 本方案行为 → 候选文字字体）按**名字**引用一款**已安装到系统**的字体：
+
+- 填字体自报的家族名——双击字体文件，预览窗口标题处显示的那个。名字对不上时这项设置不生效，日志里会有告警。
+- 它**不加载字体文件**。方案需要专用字体时（如 Menksoft 编码的蒙古文：文字全在私用区，普通字体画不出来），请让用户先安装该字体（右键字体文件 → 安装），再在这里填它的名字。
+
+<Callout type="warn" title="别写进 [[dictionaries]]，也别借用 [engine.chaizi]">
+- `[[dictionaries]]` 没有 `font_path` / `font_family` 这两个键，写了会被忽略。
+- <Since v="0.123" /> 写了的话，切到该方案时会弹提示点名这两项。
+- `[engine.chaizi]` 下虽有同名键，那是[拆字配置](#拆字配置)的**字根字体**（悬停提示里的字根），与方案字体是两回事。
+</Callout>
+
+<Callout type="info" title="0.123 之前：切过五笔后方案字体失效">
+私用区文字（如上面的蒙古文）的方案字体，会被带字根字体的方案（如内置五笔）接管：只要启动时或中途用过这类方案，再切回来，候选就显示成字根或空白。0.123 起切方案时会撤下字根字体，不再干扰。
 </Callout>
 
 ### 自定义标点：整份替换，不是逐行合并 <Since v="0.119" /> [#punct-mappings-replace]
