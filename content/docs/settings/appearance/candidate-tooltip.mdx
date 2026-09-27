@@ -274,11 +274,11 @@ template = "${unicode_all}"
 
 ### 英文候选显示词典释义 [#recipe-dict]
 
-先按[注释词库](/docs/settings/appearance/candidate-comment#注释词库)挂好英汉词典，再加一段：
+先按[注释词库](/docs/settings/appearance/candidate-comment#注释词库)挂好英汉词典，再加一段（设置页「按预设添加」里的「词库注释」就是这一段）：
 
 ```toml
 [[ui.tooltip.sections]]
-label = "释义"
+label = "词库注释"
 template = "${dict}"
 ```
 
