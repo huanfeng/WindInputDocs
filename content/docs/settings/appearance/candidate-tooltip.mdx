@@ -106,6 +106,26 @@ template = "${debug}"
 - 模板语法写错时的表现与候选注释相同：变量名拼错会原样显示出来，方便你发现。
 - `each` 写了不认识的值，按整段求值处理，并在日志里留一条警告。
 
+### 给段内容上色 [#colors]
+
+段名与段内容里同样可以用[内联颜色 `$[颜色]{内容}`](/docs/settings/appearance/candidate-comment#inline-color)，
+写法与候选注释相同。例如让读音显示为强调色：
+
+```toml
+template = "${char}：$[accent]{${readings}}"
+```
+
+气泡与候选窗有两处不同：
+
+- **颜色名先取气泡专用的那一个**：写 `x` 时先找主题里的 `tooltip_x`，没有再用 `x`。气泡底色是深的，
+  候选窗用的颜色多是为浅色底调的——`$[error]{…}` 在候选窗里是深红，放进气泡会看不清，所以在气泡里取到的是
+  调浅过的 `tooltip_error`。`$[text]{…}` 同理取到气泡文字色 `tooltip_text`。各颜色名在气泡里的值见
+  [标准色](/docs/settings/appearance/themes#standard-colors)；`#` 开头的固定色不受影响，写什么就是什么。
+- **`selected=` 不起作用**：气泡没有选中态。
+
+不改模板也能分色：主题可以按变量名、以及段名（`title`）统一配色，见
+[文字角色色](/docs/settings/appearance/themes#text-roles)。
+
 ## 变量 [#variables]
 
 候选注释的[全部变量](/docs/settings/appearance/candidate-comment#变量)在这里都能用（`${pinyin}`、
@@ -347,7 +367,10 @@ template = "${char}：${code_rev_all}"
   无论这份列表是你手改的，还是从旧版开关换算来的。升级后想看看有什么新段，对照本页的
   [出厂列表](#default-sections)手工加上，或删掉你配置里的 `sections` 回到出厂状态。
 - 只有全局一份，不能按方案或输入模式分别设置。
-- 段名没有单独的样式（加粗、颜色），与内容同一字体。
+- 段名可以由主题单独配色（[`title` 角色](/docs/settings/appearance/themes#text-roles)），但不能单独加粗，
+  与内容同一字体。
+- macOS 版的气泡由 `.app` 自己绘制。`.app` 与输入法服务的版本不一致时（新服务配旧 `.app`，或反过来），
+  气泡里的分段颜色退化为单色——整段用气泡文字色，内容与排版不受影响。
 
 <Callout type="info" title="配置项参考">
 对应的配置键、取值范围与默认值见[外观配置 · 悬停提示](/docs/guides/config/ui#tooltip)。

@@ -116,7 +116,10 @@ primary = "#0066CC"     # 只改主色，其余外观沿用 default
 
 - **亮暗分设**：值写成 `{ light = "...", dark = "..." }` 表示亮暗不同颜色；写成单个字符串则亮暗共用；只写一侧时另一侧自动回退
 - **token 引用**：`"${tokenName}"` 引用同表中另一个 token 的值
-- **颜色格式**：`"#RGB"` / `"#RRGGBB"` / `"#RRGGBBAA"`（支持 alpha 透明度）/ `"transparent"`
+- **颜色格式**：`"#RRGGBB"` / `"#RRGGBBAA"`（支持 alpha 透明度）/ `"transparent"`
+- **3 位简写 `"#RGB"`** <Since v="0.123" />：`"#F80"` 即 `"#FF8800"`，必须带 `#`（`fed`、`ace` 这类英文单词
+  不会被当成颜色）。0.122 及更早的版本其实不认 3 位写法，写了等于没配、回落到继承来的颜色；升级后这些
+  颜色开始生效，用过 3 位色的主题外观会随之变化。语言栏的颜色配置同样适用
 
 `[behavior]` 中的值是主题给用户的推荐默认，用户可在「外观」页单独覆盖，覆盖跨主题切换保持：
 
@@ -143,6 +146,237 @@ slice_repeat = ["repeat", "stretch"]    # 横轴平铺、纵轴拉伸
 ```
 
 取值只有 `repeat` 与 `stretch`（不写 = `stretch`，即 0.121 及以前的行为）。**分轴写**是有用的：横轴随宽度变，纵轴通常固定，一个值管两轴会让一张宽图在 40px 高的编码条里从「压扁到条高」变成「只取顶部 40 行」。
+
+### 文字角色色 <Since v="0.123" /> [#text-roles]
+
+候选注释与悬停提示里的文字，每一段都带着一个**角色**——它是哪个变量产出的（`pinyin`、`code_rev`……），
+或是模板里写死的文字（`literal`）、气泡的段名（`title`）。主题可以按角色配色，不用改模板：
+
+```toml
+[comment.roles]
+pinyin   = "${text_dim}"
+code_rev = "${accent_text}"
+literal  = { light = "#B0B0B0", dark = "#606060" }
+
+[tooltip.roles]
+title    = "${tooltip_accent}"
+readings = "#9AD0FF"
+```
+
+注释模板是 `${code_rev}{ (${pinyin})}` 时，编码显示为强调色、注音为次要文字色，括号为浅灰。
+
+**写在哪**：
+
+| 表 | 作用于 |
+| --- | --- |
+| `[comment.roles]` | 候选注释，平时 |
+| `[comment.selected.roles]` | 候选注释，候选被选中（高亮）时 |
+| `[comment.hover.roles]` | 候选注释，鼠标悬停时 |
+| `[tooltip.roles]` | 悬停提示（气泡没有选中、悬停之分，写 `[tooltip.selected.roles]` 不生效） |
+
+只有注释与悬停提示读这张表，写在其它节点下的 `roles` 被忽略。
+
+**值的写法**与节点的 `color` 相同：`"${token}"`、`"#RRGGBB"`、`{ light = "…", dark = "…" }`。另外：
+
+- `""` 表示不配色、跟随正文色。派生主题用它撤销被继承主题配的某个角色。
+- `"transparent"` 与完全透明的颜色（如 `"#FF000000"`）不收，按没配处理——文字占着位置却看不见，只会是误写。
+- 派生主题的 `roles` 与被继承主题的**逐个角色合并**，只写要改的那几个即可。
+- `[tooltip.roles]` 里写 `"${error}"` 取到的是候选窗用的 `error`（为浅色底调的深红）。气泡里要可读的版本，
+  写 `"${tooltip_error}"`，见[标准色](#standard-colors)。
+- 引擎不检查角色名：写错了（如 `pinyn`）只是不生效，不报错。
+- 彩色 emoji 自带颜色，`emoji` 角色的配色对它基本无效。
+
+#### 角色名 [#role-names]
+
+| 角色 | 中文名 | 哪段文字 |
+| --- | --- | --- |
+| `code_hint` | 剩余编码 | `${code_hint}` |
+| `emoji` | Emoji | `${emoji}` |
+| `code_rev` | 反查编码 | `${code_rev}`（含旧名 `${code}`） |
+| `code_rev_all` | 反查编码（全部） | `${code_rev_all}`（含旧名 `${code_all}`） |
+| `shuangpin` | 双拼编码 | `${shuangpin}` |
+| `pinyin` | 拼音 | `${pinyin}` |
+| `chaizi` | 拆字 | `${chaizi}` |
+| `chaizi_code` | 拆字编码 | `${chaizi_code}` |
+| `chaizi_all` | 拆字（逐字） | `${chaizi_all}` |
+| `chaizi_code_all` | 拆字编码（逐字） | `${chaizi_code_all}` |
+| `dict` | 注释库 | `${dict}` |
+| `word_code` | 词的编码 | `${word_code}`（气泡） |
+| `code_source` | 编码来源 | `${code_source}`（气泡） |
+| `debug` | 调试信息 | `${debug}`（气泡） |
+| `full_text` | 完整原文 | `${full_text}`（气泡） |
+| `unicode_all` | Unicode（逐字） | `${unicode_all}`（气泡） |
+| `readings` | 读音 | `${readings}`（气泡逐字段） |
+| `unicode` | Unicode | `${unicode}`（气泡逐字段） |
+| `char` | 当前字 | `${char}`（气泡逐字段） |
+| `title` | 段名 | 气泡段名里写死的文字，以及段名两侧的 `[` `]`、`inline` 段的 `: ` |
+| `literal` | 模板字面文字 | 模板里写死的文字：括号、冒号、空格、制表符等 |
+
+几条细则：
+
+- `${a|b|c}` 的角色是**实际取到值的那个变量**：`${code_hint|code_rev}` 取到反查码时是 `code_rev`。
+- `${name:参数}` 的角色就是 `name`，参数不影响。
+- 段名里的变量（如 `编码{(${code_source})}` 里的 `五笔`）没单独配色时跟 `title` 走，整个段名同色。
+- 变量名拼错而原样显示的 `${pinyn}` 没有角色，始终是正文色，在段名里也不跟 `title`。
+- 截断加的 `…` 与它前面那个字同色。
+
+#### 哪个颜色生效 [#role-color-order]
+
+一段文字按这个顺序取色，取到即止：
+
+1. 模板里的[内联颜色](/docs/settings/appearance/candidate-comment#inline-color) `$[颜色]{…}`（它另有一套
+   [选中与悬停的规则](/docs/settings/appearance/candidate-comment#inline-color-states)）；
+2. 选中或悬停时，`[comment.selected.roles]` / `[comment.hover.roles]` 里给这个角色配的颜色；
+3. 选中或悬停时，若主题给这个状态**换了注释颜色**（`[comment.selected] color` 等），用换过的那个；
+4. `[comment.roles]` / `[tooltip.roles]` 里给这个角色配的颜色；
+5. 段名里的变量：`title` 的颜色；
+6. 正文色（节点的 `color`）。
+
+第 3 条是为可读性兜底：选中底换成深色实心块的主题，必然也把选中态注释换成了浅色；平时为浅色底调的
+角色色直接搬到深色底上多半看不清，退回主题作者为这个状态亲自选的颜色最稳妥。想在选中时仍然分色，
+就在 `[comment.selected.roles]` 里单列（见下面的配方）。
+
+「换了」看的是最终显示的颜色：写了 `[comment.selected] color`、但与平时相同，也算没换。亮色、暗色模式
+各自判断。出厂主题都没给选中、悬停换注释颜色，所以角色色在选中时照常显示。
+
+出厂主题不配任何角色，升级后外观不变。
+
+### 标准色 <Since v="0.123" /> [#standard-colors]
+
+下面这些颜色名由内置基础主题 `_base` 给出默认值，内置主题都继承它，所以在任何内置主题里都**一定能取到**。
+模板的[内联颜色](/docs/settings/appearance/candidate-comment#inline-color)写这些名字，就能跟随主题与明暗；
+主题里也可以用 `${名字}` 引用或覆盖它们。
+
+<Callout type="warn" title="第三方主题要继承 _base 才有保证">
+主题的 `base` 链上有 `_base`（直接写 `base = "_base"`，或继承 `default`、`msime` 等内置主题）时，这些名字
+才保证存在。不继承任何主题的独立主题没有它们，模板里写这些名字的地方回落到正文色。
+</Callout>
+
+**候选窗用**（为候选窗底色调）：
+
+| 名字 | 用途 | 亮色 | 暗色 |
+| --- | --- | --- | --- |
+| `text` | 主文字 | `#1E1E1E` | `#E0E0E0` |
+| `text_dim` | 次要文字 | `#646464` | `#B0B0B0` |
+| `text_hint` | 提示文字（注释默认色） | `#969696` | `#808080` |
+| `accent` | 强调色 | `${primary}`（`#4285F4`） | 同左 |
+| `on_accent` | 强调色底上的文字 | `#FFFFFF` | 同左 |
+| `selection_text` | 选中候选的文字 | `${text}` | 同左 |
+| `accent_text` | 可读的强调文字色 | `${accent}` | 同左 |
+| `success` | 成功 / 肯定 | `#1E8E3E` | `#81C995` |
+| `warning` | 提醒 | `#B06000` | `#FDD663` |
+| `error` | 错误 / 否定 | `#D93025` | `#F28B82` |
+| `info` | 说明 / 补充 | `#1A73E8` | `#8AB4F8` |
+
+表中是 `_base` 的值，各主题可以覆盖：清风系主题（清风·蓝 / 橙 / 绿 / 紫）的 `text`
+三档与 `accent_text` 都是自己调过的，名字不变。
+
+**悬停提示用**（为深色气泡底调）：上表每个名字 `x` 都有一个 `tooltip_x`。内联颜色在气泡里写 `x`
+时先取 `tooltip_x`，所以同一个模板在候选窗和气泡里都看得清。
+
+| 名字 | 亮色 | 暗色 |
+| --- | --- | --- |
+| `tooltip_text` | `#FFFFFF` | `${text}` |
+| `tooltip_text_dim` | `#BDBDBD` | `#BDBDBD` |
+| `tooltip_text_hint` | `#A0A0A0` | `#A0A0A0` |
+| `tooltip_accent` | `#8AB4F8` | `#8AB4F8` |
+| `tooltip_accent_text` | `${tooltip_accent}` | 同左 |
+| `tooltip_on_accent` | `${tooltip_text}` | 同左 |
+| `tooltip_selection_text` | `${tooltip_text}` | 同左 |
+| `tooltip_success` | `#81C995` | `#81C995` |
+| `tooltip_warning` | `#FDD663` | `#FDD663` |
+| `tooltip_error` | `#F28B82` | `#F28B82` |
+| `tooltip_info` | `#8AB4F8` | `#8AB4F8` |
+
+`tooltip_on_accent`、`tooltip_selection_text` 在气泡里没有对应的场景，等于气泡文字色，写了也看得清。
+
+`tooltip_accent` 随主题的强调色换：
+
+| 主题 | `tooltip_accent` |
+| --- | --- |
+| `_base`、微软风格（`msime`） | `#8AB4F8` |
+| 清风·蓝（`default`，取自 `_qingfeng`） | `#60a5fa` |
+| 清风·橙（`amber`） | `#fbbf24` |
+| 清风·绿（`jade`） | `#34d399` |
+| 清风·紫（`violet`） | `#a78bfa` |
+
+<Callout type="info" title="改了 primary，也改 tooltip_accent">
+继承内置主题、只改了 `primary` 的话，气泡里的强调色仍是被继承主题的那个蓝色——看得清，但与候选窗
+不同色。想一并换色，给 `tooltip_accent` 配一个在深色底上够亮的同色相颜色（通常取你 `accent_text`
+暗色那一档的值）。不能直接写 `${accent_text}`：它亮色那一档是为白底调的深色，放进气泡看不清。
+</Callout>
+
+### 配方：给注释与气泡分色 <Since v="0.123" /> [#role-recipes]
+
+以下片段都写在你自己的主题文件里，放法见上文「自制主题」。
+
+#### 淡化装饰、突出信息 [#recipe-dim-decoration]
+
+括号、冒号这类装饰退后，编码与注音更醒目：
+
+```toml
+base = "default"
+
+[meta]
+name = "清风·蓝·分色"
+
+[comment.roles]
+literal   = { light = "#B8BDC8", dark = "#4A5163" }   # 括号、冒号更淡
+code_hint = "${accent_text}"
+code_rev  = "${accent_text}"
+pinyin    = "${text_dim}"
+chaizi    = "${text_dim}"
+
+[tooltip.roles]
+title    = "${tooltip_text_hint}"   # 段名退后
+literal  = "${tooltip_text_hint}"
+readings = "${tooltip_accent}"
+```
+
+#### 派生主题只改角色色 [#recipe-derive-roles]
+
+喜欢某个主题的整体外观，只想加点分色：继承它，只写 `roles`。
+
+```toml
+base = "violet"
+
+[meta]
+name = "清风·紫·编码高亮"
+
+[comment.roles]
+code_rev = "${accent_text}"
+
+[tooltip.roles]
+title = "${tooltip_accent}"
+```
+
+被继承的主题已经配了角色、你想去掉其中一个时，写空串：
+
+```toml
+[comment.roles]
+pinyin = ""   # 拼音回到注释正文色
+```
+
+#### 选中时保留编码高亮 [#recipe-keep-on-selected]
+
+主题把选中态注释换了颜色时（例如选中底是深色实心块），平时配的角色色在选中时会统一回落到那个颜色
+（见[哪个颜色生效](#role-color-order)）。想让编码在选中时仍然醒目，在 `[comment.selected.roles]` 里
+为深色底另配一个：
+
+```toml
+[comment.roles]
+code_rev = "${accent_text}"
+
+[comment.selected]
+color = "${on_accent}"        # 选中态注释改为白色（你的主题本来就有这一行）
+
+[comment.selected.roles]
+code_rev = "#FFE08A"          # 选中时编码用浅黄，其余注释仍是白色
+```
+
+出厂主题没有换选中态注释颜色，用不着这一步。模板里的内联颜色对应的写法是 `selected=`，见
+[选中与悬停时的颜色](/docs/settings/appearance/candidate-comment#inline-color-states)。
+
 
 ## macOS 上的生效范围 [#macos]
 
