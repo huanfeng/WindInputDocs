@@ -140,6 +140,26 @@ import { Since } from "@/components/since";
 
 对应的配置键是 [`keys.key_actions`](/docs/guides/config/keys#key-actions) 与 [`keys.session_actions`](/docs/guides/config/keys#session-actions)。方案文件里还能各写一份**只对该方案生效**的，见[方案设置](/docs/settings/schema#schema-keys)。
 
+### 上屏当前高亮候选 <Since v="0.123" /> [#commit-highlighted]
+
+「全局自定义输入中按键」的「选择候选」分类，排在最前的一项：**上屏当前高亮候选（同空格）**——出口与按空格上屏高亮候选完全一致（词频、历史、统计等一致）。主输入、临时拼音、临时英文、快捷输入、特殊模式、辅助码筛选下都能配。**没有候选时这个键不吃**，按键回落原语义。
+
+对应配置键是 [`session_actions` 的 `commit_highlighted`](/docs/guides/config/keys#commit-highlighted)，方案文件也能单独配一份。
+
+[联想](/docs/settings/input/association#卡片选项)候选出现时，这个键跟随联想自己的「空格上屏联想候选」开关：开着才上屏当前高亮的联想候选，关掉则不上屏联想候选，按键回落原语义。
+
+### 调用直通命令 <Since v="0.123" /> [#command-action]
+
+「全局自定义按键」与「全局自定义输入中按键」都新增了「高级」分类，里面的**调用直通命令**把[命令直通车](/docs/guides/command-bar)的表达式直接挂到一个键上——填一段 `proc.run(...)` / `open(...)` / `key.tap(...)` 之类的表达式，按下就执行。按键总览会显示成 `运行命令：<表达式>` 的字样。
+
+「全局自定义按键」里，组合键与修饰键轻敲随时可按（中英文态都行）；**单个有字符的键**只在**中文态、且没有输入**时触发，英文态下这个字符照常输出。「全局自定义输入中按键」里配的命令在**正在输入时**触发，当前输入原样保留。
+
+<Callout type="warn" title="组合键只在全局自定义按键里生效">
+方案级的**按键自定义**（对应 `key_actions`，见[方案设置](/docs/settings/schema#schema-keys)）不提供组合键选项——组合键要绑命令，只能来这里的「全局自定义按键」配。已经写在方案文件里的组合键条目不会被删，只是不再生效：设置页会把它标成「组合键仅全局有效」，按键总览也标成不生效。方案级**输入中按键自定义**（对应 `session_actions`）不受影响——它本来就只认 `shift+` 一种前缀，方案级的 `shift+…` 绑定（含 `command:<表达式>`）照常有效。
+</Callout>
+
+对应配置键是 [`key_actions` 与 `session_actions` 的 `command:<表达式>`](/docs/guides/config/keys#command-action)。
+
 ## 功能快捷键 [#function-keys]
 
 每项以「修饰键 + 主键」的形式在对话框中编辑。留空即不绑定该功能。

@@ -939,6 +939,10 @@ key.tap("Shift+vk:0x5D")
 进入临时拼音模式后不查询快捷短语层，输 `zzbd` 得到的是拼音候选而非字符组导航。但词库条目内嵌的 `$` 语法在临拼下仍会正常展开与执行。
 </Callout>
 
+## 绑到一个键上 <Since v="0.123" /> [#bind-to-key]
+
+这套表达式不止能写进短语——也可以直接绑到一个键上，按一下就执行，不必先输入编码再选中。写法与语义见[按键配置 · 命令直通](/docs/guides/config/keys#command-action)（配置项 `keys.key_actions` / `keys.session_actions` 的 `command:<表达式>`），图形界面入口见[按键设置 · 调用直通命令](/docs/settings/keys#command-action)。
+
 ## 相关阅读
 
 - [短语与模板](/docs/settings/dict/phrases) — 权重、词频与短语管理

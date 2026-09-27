@@ -122,6 +122,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `single_char` <Since v="0.121" /> | 开关[单字输入](/docs/guides/config/schema#single-char)（候选只出单字）。裸写 = 切换；也可写 `single_char:on` / `:off` / `:toggle` 直达，`:follow` 取消临时切换、回到配置里的值。切的是**临时态**，不写配置——重启或切方案后失效 |
 | `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
 | `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |
+| `command:<表达式>` <Since v="0.123" /> | 命令直通：执行一段[命令直通车](/docs/guides/command-bar)表达式，如 `command:proc.run("charmap.exe")`。详见下方[命令直通](#command-action) |
 | `none` | 显式什么都不做。**这是关掉低层预置绑定的唯一手段**：本表逐键深合并，在设置页删掉一行压不住随程序分发的 `data\config.toml`（或定制版 `data_custom\config.toml`）里写的同一个键——只有显式写 `none` 才是「本层表态：这个键别干活」。方案级覆盖里关掉某个全局绑定同理 |
 
 写错的动词会被**整条丢弃**并在日志里告警，不会静默变成别的功能。
@@ -171,6 +172,8 @@ backslash = "none"      # 本方案关掉全局配的 \ 引导键
 
 要在某个方案里**关掉**一个全局绑定，写显式的 `"none"`。覆盖是深合并，只能新增或改写——从覆盖文件里删掉一行是删不掉全局那条的。
 
+- **组合键只在全局 `key_actions` 生效** <Since v="0.123" />：方案级 `[key_actions]` 写组合键（Ctrl / Alt / Win / Shift + 键）不生效，设置工具的方案级入口也不再提供组合键选项——组合键要用，请配在全局表里。已经写在方案文件里的组合键条目不会被删，只是不再生效：设置页会把它标成「组合键仅全局有效」，[按键总览](/docs/settings/schema#schema-keys)也标成不生效。`session_actions` **不受影响**——它本来就只认 `shift+` 一种前缀（如 `shift+tab`），方案级 `[session_actions]` 里的 `shift+…` 照常有效
+
 <Callout type="warn" title="英文状态下这份表整表不生效">
 切到**英文状态**（半角英文，非英文方案）后，当前方案的 `[key_actions]` 连同它的 `z` 引导键一起不再参与查表，按键一律按全局那份表执行。那时方案本身已经不参与输入（编码、标点、候选都不工作），它的按键表也就跟着退场。
 
@@ -186,6 +189,27 @@ backslash = "none"      # 本方案关掉全局配的 \ 引导键
 
 `special:<方案id>` **没有**这条回捞通路——特殊模式的码表是作者设计的短码，去掉 `z` 之后的残余多半查不到，且它常开「进入即展示候选」，价值恰恰在按下那一刻。所以特殊模式请用 `\`、`` ` `` 这类在码表里不产出编码的符号键。
 </Callout>
+
+#### 命令直通：`command:<表达式>` <Since v="0.123" /> [#command-action]
+
+`key_actions` 与 `session_actions` 都认 `command:<表达式>` 这个动词：表达式就是[命令直通车](/docs/guides/command-bar) / [工具栏自定义按钮](/docs/guides/config/ui#toolbar-buttons)那套 cmdbar 表达式——`proc.run("charmap.exe")`、`open("https://…")`、`key.tap("Ctrl+Shift+P")`、`web.search(…)`，也可以写 `$CC(…)`。
+
+```toml
+[keys.key_actions]
+"ctrl+alt+c" = 'command:proc.run("charmap.exe")'  # TOML 单引号包住表达式里的双引号
+
+[keys.session_actions]
+tab = 'command:ime.toggle("s2t")'  # 切换简繁
+```
+
+表达式保留大小写与内部空白，只裁掉首尾空白；裁完是空串则整条动词无效，按写错的动词处理。
+
+两张表里语义不同：
+
+- `key_actions` 里，组合键（**只在全局 `key_actions` 生效**，见上方[方案级覆盖](#key-actions)）、单独的修饰键轻敲（绑了命令的键不再兼任它原来的中英文切换等功能）都能配，**中英文态都能按**；单个有字符的键只在**中文态、且没有输入**时触发，英文态下这个字符照常输出
+- `session_actions` 里，正在输入（有编码或候选）时按下就执行命令，**当前输入原样保留**；没有输入时这个键不吃，回落原语义
+
+设置工具的位置：[全局自定义按键 / 全局自定义输入中按键](/docs/settings/keys#command-action)的「高级」分类 →「调用直通命令」，填表达式；按键总览显示为 `运行命令：<表达式>` 的字样。
 
 ### 会话态按键功能表（session_actions） <Since v="0.115" /> [#session-actions]
 
@@ -210,6 +234,8 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
 - **`single_char`** <Since v="0.121" />：开关[单字输入](/docs/guides/config/schema#single-char)，动词与 `key_actions` 那份完全一样（`single_char:on` / `:off` / `:toggle` / `:follow`）。按下即开关并**就地重出候选**，不会把正在打的码上屏。写在本表意味着「只在打字时管用」——绑在 Tab 上，没打字时 Tab 仍是宿主的制表符。
 - **与翻页共用一个键**：写 `aux_code:page_next` <Since v="0.118" />，**能进辅助码就进、进不去就翻下一页**。于是 `tab = "aux_code:page_next"` 一键两用：第一次按进筛选，之后按继续翻页；辅助码没开、方案没配码表时它就是个纯翻页键，空闲无候选时仍原样交还给应用。这个形态只有本表有——`key_actions` 解析不出翻页键。
+- `commit_highlighted` <Since v="0.123" />：上屏当前高亮的候选，详见下方[上屏当前高亮候选](#commit-highlighted)
+- `command:<表达式>` <Since v="0.123" />：命令直通，详见上方[命令直通](#command-action)——正在输入时按下就执行命令，当前输入原样保留；没有输入时这个键不吃
 
 本表与下面的 `page_keys` / `highlight_keys` / `select_key_groups` / `select_char_keys` 各自独立保存，**运行时**才合并（本表写了的键优先）——改一处不会动到另一处。出厂默认留在那四项里，这样把它们清成 `[]` 就真的能关掉对应功能。撞键时按消费顺序裁决：以词定字 > 翻页 / 高亮 > 二三候选。
 
@@ -242,6 +268,23 @@ tab = "none"              # 本方案关掉全局配的 Tab
 与 `[key_actions]` 的覆盖规则完全一致：深合并，只能新增或改写。要在某个方案里**关掉**一个全局绑定，写显式的 `"none"`——从覆盖文件里删掉那一行只是回到继承全局，不是禁用。
 
 方案没写的键照常继承全局那份（含 `page_keys` 等四项折算出来的默认值）。
+
+#### 上屏当前高亮候选：`commit_highlighted` <Since v="0.123" /> [#commit-highlighted]
+
+`session_actions`（及方案级 `[session_actions]`）新增的动词：上屏当前高亮的候选，出口与按空格上屏高亮候选完全一致——词频、历史、统计等都走同一条路。
+
+```toml
+[keys]
+session_actions = { tab = "commit_highlighted" }
+```
+
+主输入、临时拼音、临时英文、快捷输入、[引导键特殊模式](/docs/guides/special-modes)、[辅助码](/docs/settings/schema/pinyin#aux-code)筛选下都成立。**没有候选时这个键不吃**，按键回落原语义（Tab 仍是宿主的制表符）。
+
+临时英文开了「空格作为输入字符」（空格不再上屏、留着连续打词，见[临时英文](/docs/settings/input/temp-modes#临时英文)）之后，空格本身不再触发上屏，但 `commit_highlighted` **仍然上屏**——它走的是独立出口，不受这个开关影响。
+
+[联想](/docs/guides/config/input#association)候选出现时，`commit_highlighted` 跟随联想自己的空格上屏开关 `input.association.space_commits`：开着才上屏当前高亮的联想候选，关掉则不上屏联想候选，按键回落原语义。
+
+设置工具的位置：[全局自定义输入中按键](/docs/settings/keys#commit-highlighted)的「选择候选」分类最前一项「上屏当前高亮候选（同空格）」。
 
 ## 功能快捷键
 
