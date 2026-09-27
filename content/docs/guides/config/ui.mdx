@@ -319,7 +319,9 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 
 ## 悬停提示（ui.tooltip） [#tooltip]
 
-鼠标悬停候选时弹出的提示。气泡由有序的**段列表**组成，每段内容是一个模板，语法与变量同[候选注释](/docs/settings/appearance/candidate-comment)。完整用法、变量表与常用配方见[候选悬停提示](/docs/settings/appearance/candidate-tooltip)。
+鼠标悬停候选时弹出的提示。
+
+- 气泡由有序的**段列表**组成，每段内容是一个模板，语法与变量同[候选注释](/docs/settings/appearance/candidate-comment)。完整用法、变量表与常用配方见[候选悬停提示](/docs/settings/appearance/candidate-tooltip) <Since v="0.123" />
 
 ```toml
 [ui.tooltip]
@@ -387,7 +389,7 @@ template = "${debug}"
 | `code_enabled` | 布尔 | — | `true` | 「编码」段的 `enabled` |
 | `pinyin_enabled` | 布尔 | — | `true` | 「拼音」段的 `enabled` |
 | `pinyin_heteronyms` | 布尔 | — | `true` | `false` → 拼音段模板用 `${readings:1}`（只取首音，优先于下一项） |
-| `pinyin_max_readings` | 整数 | — | `0` | `N > 0` → 拼音段模板用 `${readings:N}` |
+| `pinyin_max_readings` | 整数 | — | `0` | `N > 0` 且 `pinyin_heteronyms` 没关 → 拼音段模板用 `${readings:N}`（关了则以 `${readings:1}` 为准） |
 | `chaizi_enabled` | 布尔 | — | `false` | 拼音同时开着 → 拼音、拆字两段合成一个「拆字 / 拼音」段（`promote = "chaizi"`，行序同旧版）；拼音关着 → 「拆字」段 `enabled = true` |
 | `debug_enabled` | 布尔 | — | `false` | 「调试」段的 `enabled` |
 
