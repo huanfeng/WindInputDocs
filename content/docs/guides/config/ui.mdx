@@ -317,34 +317,81 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 如果你所用的应用始终不显示、又确实想要这个提示，把 `position_mode` 改成 `fixed`（或右键气泡勾选「固定位置」）——固定位置不依赖光标，任何应用下都会显示。
 </Callout>
 
-## 悬停提示（ui.tooltip）
+## 悬停提示（ui.tooltip） [#tooltip]
 
-鼠标悬停候选时弹出的提示。原 `ui.tooltip.{code,pinyin,chaizi,debug}.*` 子表已拍平为平铺字段。
+鼠标悬停候选时弹出的提示。气泡由有序的**段列表**组成，每段内容是一个模板，语法与变量同[候选注释](/docs/settings/appearance/candidate-comment)。完整用法、变量表与常用配方见[候选悬停提示](/docs/settings/appearance/candidate-tooltip)。
 
 ```toml
 [ui.tooltip]
-delay = 200               # 提示延迟显示时间（毫秒）
-code_enabled = true       # 编码提示
-pinyin_enabled = true     # 拼音提示
-pinyin_heteronyms = true  # 显示多音字所有读音
-pinyin_max_readings = 0   # 每字最多显示读音数
-chaizi_enabled = false    # 拆字提示
-debug_enabled = false     # 调试提示
+delay = 200        # 悬停多久后显示（毫秒）
+max_chars = 200    # 单行最多显示多少字（0 = 不限）
+wrap_width = 40    # 折行宽度，按列计（0 = 不折行）
+
+[[ui.tooltip.sections]]
+label = "完整原文"
+template = "${full_text}"   # 仅候选被截断时有值
+
+[[ui.tooltip.sections]]
+label = "编码{(${code_source})}"
+template = "${word_code}"
+
+[[ui.tooltip.sections]]
+label = "拼音"
+each = "han"
+template = "${char}：${readings}"
+
+[[ui.tooltip.sections]]
+enabled = false
+label = "拆字"
+each = "han"
+template = "${char}：${chaizi}{ [${chaizi_code}]}"
+
+[[ui.tooltip.sections]]
+enabled = false
+label = "Unicode"
+each = "char"
+template = "${char}：${unicode}"
+
+[[ui.tooltip.sections]]
+enabled = false
+label = "调试"
+template = "${debug}"
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `delay` | 整数 | — | `200` | 提示延迟显示时间（毫秒） |
-| `code_enabled` | 布尔 | — | `true` | 编码提示（显示候选对应编码） |
-| `pinyin_enabled` | 布尔 | — | `true` | 拼音提示（显示候选拼音读音） |
-| `pinyin_heteronyms` | 布尔 | — | `true` | 显示多音字的所有读音 |
-| `pinyin_max_readings` | 整数 | — | `0` | 每字最多显示读音数（`0` = 不限） |
-| `chaizi_enabled` | 布尔 | — | `false` | 拆字提示 |
-| `debug_enabled` | 布尔 | — | `false` | 调试提示（内部诊断信息） |
+| `max_chars` <Since v="0.123" /> | 整数 | `0` = 不限 | `200` | 每行最多显示多少字（按字素簇计，emoji 组合算一个），超出截断加 `…`。只影响显示，右键复制 / 上屏取完整原文 |
+| `wrap_width` <Since v="0.123" /> | 整数 | `0` = 不折行 | `40` | 折行宽度，按显示列计：汉字、全角字符、emoji 计 2，其余计 1。英文 / 编码串优先在空格、`/`、`·` 后断开；模板字面含制表符的段，带制表符的行不折 |
+| `sections` <Since v="0.123" /> | 结构体数组 | 字段见下表 | 出厂六段，见上方代码块 | 气泡的段，数组顺序即自上而下的显示顺序。**整表覆盖**：用户配置里写了就整张取代出厂列表，不逐段合并 |
 
-<Callout type="warn" title="高级项：tooltip.pinyin_max_readings">
-`ui.tooltip.pinyin_max_readings` 为高级项，设置工具不直接编辑，一般无需改动；仅在需要限制多音字读音显示数量时通过 `config.toml` 手改，`0` 表示不限。
-</Callout>
+### 段字段（ui.tooltip.sections） <Since v="0.123" /> [#tooltip-sections]
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `true` | 段开关；关着的段保留在列表里 |
+| `label` | 字符串（模板） | — | `""` | 段名，显示为 `[段名]` 独占一行；空 = 无标题行。本身也是模板，但其中的字面文字不随变量为空而消失：`编码{(${code_source})}` 直接输入时显示 `编码` |
+| `template` | 字符串（模板） | — | `""` | 段内容。结果按换行拆行、空行丢弃；全空则整段不显示 |
+| `each` | 字符串（隐性枚举） | `""` / `han` / `char` | `""` | 求值粒度：`""` 整个候选一次；`han` 对显示文本中每个码位 ≥ U+3400 的字（汉字）各一次；`char` 对每个非空白字符各一次。逐字时每字一行，`${char}` 不计入「这行有值」。未知值按 `""` 处理并记警告 |
+| `promote` | 字符串（变量名） | — | `""` | 仅逐字段：该变量有值的行稳定排到前面，两组内部保持原文顺序；空 = 按原文顺序 |
+| `inline` | 布尔 | — | `false` | 内容恰为一行且段名非空时，写成 `段名: 内容`，不单独占一行标题 |
+
+气泡专属变量：`${full_text}`（候选显示被截断时的完整原文，未截断为空）、`${word_code}`（编码来源方案里该词的全部编码）、`${code_source}`（编码来源方案名，直接用该方案输入时为空）、`${unicode_all}` / `${unicode_all:分隔符}`（逐字码位）、`${debug}`（调试信息），以及逐字段里的 `${char}`、`${readings}` / `${readings:N}`、`${unicode}`。注释模板的变量同样可用。详见[候选悬停提示 · 变量](/docs/settings/appearance/candidate-tooltip#variables)。
+
+### 已退役的旧键 <Since v="0.123" /> [#tooltip-retired-keys]
+
+下面六个开关已由 `sections` 取代。升级时**自动迁移**：按旧开关换算成外观一致的段列表写入用户配置，旧键随之从配置文件移除；用户配置里已写了 `sections` 时以它为准，旧键只删不换算。
+
+| 旧键 | 类型 | 可选值 | 旧默认 | 迁移为 |
+| --- | --- | --- | --- | --- |
+| `code_enabled` | 布尔 | — | `true` | 「编码」段的 `enabled` |
+| `pinyin_enabled` | 布尔 | — | `true` | 「拼音」段的 `enabled` |
+| `pinyin_heteronyms` | 布尔 | — | `true` | `false` → 拼音段模板用 `${readings:1}`（只取首音，优先于下一项） |
+| `pinyin_max_readings` | 整数 | — | `0` | `N > 0` → 拼音段模板用 `${readings:N}` |
+| `chaizi_enabled` | 布尔 | — | `false` | 拼音同时开着 → 拼音、拆字两段合成一个「拆字 / 拼音」段（`promote = "chaizi"`，行序同旧版）；拼音关着 → 「拆字」段 `enabled = true` |
+| `debug_enabled` | 布尔 | — | `false` | 「调试」段的 `enabled` |
+
+迁移以当时的出厂列表为底，所以老用户也会得到「完整原文」段（开）与「Unicode」段（关）。代价是段列表从此定格：以后版本新增的出厂段不会自动出现在已有 `sections` 的用户配置里，见[已知局限](/docs/settings/appearance/candidate-tooltip#limitations)。
 
 ## 工具栏（ui.toolbar）
 
