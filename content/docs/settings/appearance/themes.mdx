@@ -239,7 +239,26 @@ readings = "#9AD0FF"
 「换了」看的是最终显示的颜色：写了 `[comment.selected] color`、但与平时相同，也算没换。亮色、暗色模式
 各自判断。出厂主题都没给选中、悬停换注释颜色，所以角色色在选中时照常显示。
 
-出厂主题不配任何角色，升级后外观不变。
+#### 出厂主题的角色色 [#factory-roles]
+
+出厂主题都继承基础主题 `_base`，它配了这一组角色色（颜色名见[标准色](#standard-colors)）：
+
+| 表 | 角色 | 颜色 |
+| --- | --- | --- |
+| `[comment.roles]` | `code_hint`、`code_rev`、`shuangpin` | `${info}` |
+| `[tooltip.roles]` | `full_text`、`readings` | `${tooltip_accent_text}`（随主题强调色） |
+| `[tooltip.roles]` | `word_code` | `${tooltip_success}` |
+| `[tooltip.roles]` | `code_source`、`chaizi_code` | `${tooltip_info}` |
+| `[tooltip.roles]` | `chaizi` | `${tooltip_warning}` |
+| `[tooltip.roles]` | `unicode` | `${tooltip_error}` |
+
+- 气泡这几项写的是 `tooltip_*`：角色表里的 `${…}` 按字面取色，不像模板内联色那样先找 `tooltip_` 版本，
+  写 `${info}` 就会拿到为浅色底调的深蓝，压在深色气泡上看不清。
+- 没有单列选中、悬停：出厂主题都没给这两个状态换注释颜色，角色色在三种状态下照常显示。
+- 继承 `_base` 的主题自动拿到这张表。要换色，在自己的 `roles` 里写同名角色；要去掉，写 `""`。
+  把窗口底换成深色、彩色或背景图的主题，记得一并检查 `info` 是否还看得清。
+- 没写 `base` 的主题不继承这张表，注释与气泡保持正文色。
+- 模板里的[内联颜色](/docs/settings/appearance/candidate-comment#inline-color)优先于这些角色色。
 
 ### 标准色 <Since v="0.123" /> [#standard-colors]
 

@@ -21,7 +21,7 @@ vbg
 **同一套模板语法和变量**，会写注释模板就会写气泡。
 
 <Callout type="info" title="这是进阶定制">
-出厂配置已经复现了以往的气泡外观，多数人不需要改。本页面向想调整气泡内容的用户：只要编码、
+出厂配置保留了以往气泡的内容与分段（编码、读音等按主题配色显示），多数人不需要改。本页面向想调整气泡内容的用户：只要编码、
 想看 Unicode 码位、想让英文候选显示词典释义、想把拆字与拼音合成一段，等等。
 </Callout>
 
@@ -124,7 +124,9 @@ template = "${char}：$[accent]{${readings}}"
 - **`selected=` 不起作用**：气泡没有选中态。
 
 不改模板也能分色：主题可以按变量名、以及段名（`title`）统一配色，见
-[文字角色色](/docs/settings/appearance/themes#text-roles)。
+[文字角色色](/docs/settings/appearance/themes#text-roles)。出厂主题已经配好了一组：完整原文与读音用强调色，
+编码用绿色，编码来源（「编码(五笔)」里的「五笔」）与拆字编码用蓝色，字根用黄色，Unicode 码位用红色；
+`好：` 这类前缀和段名文字保持气泡文字色。具体见[出厂主题的角色色](/docs/settings/appearance/themes#factory-roles)。
 
 ## 变量 [#variables]
 
