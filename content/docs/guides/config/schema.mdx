@@ -391,6 +391,23 @@ tab = "aux_code:page_next"
 
 ⚠️ 全拼**不能绑 `` ` ``**：出厂 `separator = "auto"` 且 `'` 作次选键，于是反引号被判为音节分隔符——绑了也走不到辅助码，内核会为此打一条告警（共键写法在这里则退化成纯翻页键，反引号也就不再是分隔符了）。
 
+### 辅助码来源（files） <Since v="0.123" /> [#aux-code-files]
+
+用哪张码表不在全局配置里，而是方案文件 `[engine.aux_code]` 段的 `files`。改它写在方案覆盖 `schema_overrides/<方案id>.toml`（设置里的[「辅助码来源」](/docs/settings/schema/pinyin#aux-code-source)写的就是这里）：
+
+```toml
+[engine.aux_code]
+files = ["schema:wubi86"]                             # 引用一个码表方案
+# files = ["aux_code/flypy_full.txt"]                 # 一张码表文件
+# files = ["schema:wubi86", "aux_code/flypy_full.txt"] # 多来源：排在前面的优先
+```
+
+- **`schema:<方案id>`** 引用一个已安装的码表方案，取它的系统词库**加用户词库**里的编码（自造的单字也算，临时词不算）。只能引用引擎类型为码表的方案，不能引用自己；被引用的方案不必在切换列表里。编码里含非字母字符的条目会被跳过（辅助码只收字母键）。
+- 其余条目是码表文件路径，相对 `schemas/` 目录（用户数据目录下的同名文件优先），格式为每行 `字=码`。
+- 覆盖里写 `files` 即**整组替换**方案文件的值；删掉这个键即恢复跟随方案。
+- `files` 非空不代表功能开启，总开关仍是上面的 `enabled`。
+- 引用的方案不存在时不会出错：日志告警一次，辅助码进不去。
+
 ## 模糊音（schema.pinyin.fuzzy）
 
 各模糊音配对开关默认全关，需先开 `enabled` 总开关再逐项启用。
