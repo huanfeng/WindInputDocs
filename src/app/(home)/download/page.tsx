@@ -8,6 +8,8 @@ import {
   currentVersion,
   macDownloadUrl,
   macFileName,
+  minorOf,
+  type ReleaseEntry,
   releases,
   setupDownloadUrl,
   setupFileName,
@@ -17,6 +19,19 @@ import { releasesUrl } from "@/lib/shared";
 // 下载页顶部展示最新版本的更新说明——数据源与直链同为 releases[0]，
 // 不会与 /changelog 漂移。notes 可能为空（同步脚本只写了版本号）。
 const latest = releases[0];
+
+// 补丁版（如 0.123.1）只修正问题，不会重复列出上一个 minor 版本（0.123.0）带来的
+// 新功能——若只取 releases[0]，功能更新说明会被补丁版的修复说明整个挤没。这里把
+// 与最新版同一 minor 的连续条目一起取出，按新→旧原样展示，谁也不覆盖谁。
+// releases 保证新版本在前，故同 minor 的条目必然连续，一旦 minor 变化即可停止。
+const latestMinor = minorOf(latest.version);
+const latestGroup: ReleaseEntry[] = [];
+for (const r of releases) {
+  if (minorOf(r.version) !== latestMinor) break;
+  latestGroup.push(r);
+}
+const latestNotesGroup = latestGroup.filter((r) => r.notes.length > 0);
+const latestGroupOldest = latestGroup[latestGroup.length - 1];
 
 export const metadata: Metadata = {
   title: "下载",
@@ -114,13 +129,15 @@ export default function DownloadPage() {
       {/* 技巧轮播。紧接下载按钮：装包的空档正好扫一眼「装完能玩什么」 */}
       <TipTicker className="mt-10" />
 
-      {latest.notes.length > 0 && (
+      {latestNotesGroup.length > 0 && (
         <section className="mt-8 rounded-lg border bg-fd-card/50 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="font-semibold text-fd-foreground">
               本次更新{" "}
               <span className="font-mono text-fd-primary">
-                v{latest.version}
+                {latestGroup.length > 1
+                  ? `v${latestGroupOldest.version} – v${latest.version}`
+                  : `v${latest.version}`}
               </span>
             </h2>
             {latest.date && (
@@ -129,8 +146,24 @@ export default function DownloadPage() {
               </time>
             )}
           </div>
-          <div className="mt-3 text-sm leading-relaxed">
-            <ReleaseNotes notes={latest.notes} />
+          <div className="mt-3 flex flex-col gap-4 text-sm leading-relaxed">
+            {latestNotesGroup.map((r) => (
+              <div key={r.version}>
+                {latestNotesGroup.length > 1 && (
+                  <div className="mb-1.5 flex items-baseline gap-2">
+                    <span className="font-mono text-xs font-medium text-fd-primary">
+                      v{r.version}
+                    </span>
+                    {r.date && (
+                      <time className="text-xs text-fd-muted-foreground">
+                        {r.date}
+                      </time>
+                    )}
+                  </div>
+                )}
+                <ReleaseNotes notes={r.notes} />
+              </div>
+            ))}
           </div>
           <Link
             href="/changelog"
