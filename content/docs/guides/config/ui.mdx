@@ -41,7 +41,7 @@ comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 | `hide_window` | 布尔 | — | `false` | 隐藏候选窗（不显示候选列表） |
 | `double_click_screenshot` <Since v="0.123" /> | 布尔 | — | `false` | 双击候选窗的**编码栏或空白处**，把候选窗当前画面复制到剪贴板（与右键菜单「截图到剪贴板」同一效果）。候选词与翻页键按下即生效，不参与双击判定；双击间隔与位移容差跟随系统鼠标设置。仅 Windows |
 | `index_labels` | 字符串数组 <Since v="0.117" /> | — | `[]` | 自定义序号标签，一槽一项（如 `["a","s","d"]`、`["Ⅰ","Ⅱ","Ⅲ"]`）。**每项是一个完整标签**，可含多个字符；空表 = 默认 `1`–`9`。槽内空串或槽位不足处让位主题 `index.labels`，主题也未定义才回退数字 |
-| `comment_template_vertical` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **竖排**候选注释（右侧灰字）模板。语法与变量见[候选注释](/docs/settings/appearance/candidate-comment)；留空 = 不显示 |
+| `comment_template_vertical` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **竖排**候选注释（候选右侧的小字）模板。语法与变量见[候选注释](/docs/settings/appearance/candidate-comment)；留空 = 不显示 |
 | `comment_template_horizontal` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **横排**候选注释模板。横排宽度由全部候选共享，放注音/字根易撑宽窗口 |
 | `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽 |
 | `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数 |

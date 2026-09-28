@@ -186,8 +186,9 @@ $[accent_text]{${code_hint|code_rev}}{ $[text_dim]{(${pinyin})}}
   的版本扩展，写了也不会让整段失效。
 - 不想改模板、只想让某类信息换个颜色的话，主题可以按变量名统一配色，见
   [文字角色色](/docs/settings/appearance/themes#text-roles)。模板里写的颜色优先于主题配的。
-- 出厂主题已经给编码类变量（`${code_hint}`、`${code_rev}`、`${shuangpin}`）配了「说明」色 `info`，所以默认注释
-  是蓝色而不是灰色。想要以往的灰字，把模板改成 `$[text_hint]{${code_hint|code_rev|shuangpin}}`。
+- 出厂主题已经给编码类变量（`${code_hint}`、`${code_rev}`、`${code_rev_all}`、`${shuangpin}`）配了「说明」色
+  `info`，所以默认注释是蓝色而不是灰色。想要以往的灰字，把模板改成
+  `$[text_hint]{${code_hint|code_rev|shuangpin}}`（出厂主题的注释色就是 `text_hint`）。
 
 #### 只管上色，不是可选段 [#inline-color-groups]
 
