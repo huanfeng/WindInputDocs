@@ -268,7 +268,8 @@ readings = "#9AD0FF"
 补上的名字也会用在几处按名取色的地方，主题没写它们时外观会有变化：
 
 - 气泡正文颜色取 `tooltip_text`：写了 `tooltip_bg`、没写 `tooltip_text` 的主题，暗色模式下气泡文字是主题的
-  `text`。气泡底配成了浅色的话，自己写上 `tooltip_text`。
+  `text`。气泡底配成了浅色，或者 `text` 只写了一个深色值（没有暗色档）的，都要自己写上 `tooltip_text`，
+  否则暗色下气泡文字看不清。
 - 候选窗翻页箭头的灰显色取 `text_hint`；翻页栏没配文字颜色时，页码取 `text_dim`。
 </Callout>
 
