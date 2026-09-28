@@ -257,6 +257,8 @@ readings = "#9AD0FF"
 - 补的值取 `_base` 的；其中引用别的名字的，按**本主题**的颜色算：`accent_text` 是本主题的 `accent`，
   `selection_text` 是本主题的 `text`，`tooltip_text` 暗色那一档是本主题的 `text`。本主题也没写的，
   再用 `_base` 的。
+- 例外：主题连气泡底色 `tooltip_bg` 也没写时，`tooltip_text` 用输入法原来的气泡文字色（浅灰白 `#F0F0F5`，
+  亮暗一样），气泡看起来和以前完全一样。
 
 <Callout type="warn" title="气泡底是浅色的主题，要自己写 tooltip_ 那一组">
 补上的 `tooltip_*` 是为深色气泡底调的。主题把气泡底（`tooltip_bg`）配成浅色的话，这些颜色放上去看不清，
@@ -265,8 +267,8 @@ readings = "#9AD0FF"
 
 补上的名字也会用在几处按名取色的地方，主题没写它们时外观会有变化：
 
-- 气泡正文颜色取 `tooltip_text`：暗色模式下是主题的 `text`。只调了浅色、`text` 写成一个深色值的主题，
-  暗色模式下气泡文字会发暗，写上 `tooltip_text` 即可。
+- 气泡正文颜色取 `tooltip_text`：写了 `tooltip_bg`、没写 `tooltip_text` 的主题，暗色模式下气泡文字是主题的
+  `text`。气泡底配成了浅色的话，自己写上 `tooltip_text`。
 - 候选窗翻页箭头的灰显色取 `text_hint`；翻页栏没配文字颜色时，页码取 `text_dim`。
 </Callout>
 
