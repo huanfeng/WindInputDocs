@@ -13,25 +13,30 @@ import { Since } from "@/components/since";
 
 ## 文件位置与合并
 
-规则文件为 TOML 的 `[[apps]]` 数组表，两层：
+规则文件为 TOML 的 `[[apps]]` 数组表，按下面的顺序逐层叠加，靠后的层优先：
 
 | 层 | 位置 | 谁维护 |
 | --- | --- | --- |
 | 系统预置 | `<安装目录>\data\compat.toml` | 随程序分发，升级时整体替换。**顶部有完整的字段注释**，值得一读 |
+| 定制层 | `<安装目录>\data_custom\compat.toml` | 只有[定制版](/docs/guides/custom-edition#layers)才有，由定制作者随包分发 |
 | 用户覆盖 | `%APPDATA%\WindInput\compat.toml` | 你自己写，或由右键菜单自动管理 |
 
-<Callout type="error" title="合并是「整条覆盖」，不是逐字段合并">
-用户层里同名进程（不区分大小写）的规则会**整条替换**系统层那一条，系统层其余规则保留。
+<Callout type="error" title="同名进程基本是「整条覆盖」，只有少数宿主修正字段会继承">
+靠后层里同名进程（不区分大小写）的规则会**整条替换**前面层的那一条，前面层的其余规则保留。
 
-这意味着：系统层给 `Weixin.exe` 配了 `caret_use_top = true`，你若在用户层再写一条 `Weixin.exe`（哪怕只写了 `initial_mode`），系统层那条**连同 `caret_use_top` 一起失效**。
+例外是一组描述「这个程序本身有什么毛病」的宿主修正字段：`composition_start_pair_guard`、`pin_anchor_when_start_drifts`、`ignore_host_ime_close`、`host_drawn_candidates`。后层那条**没写**它们时，从前面层继承；显式写 `false` 才算关掉。这样你在菜单里改点别的，也不会把出厂的宿主修复一并抹掉。
 
-**通过右键菜单给一个有系统预置规则的程序设初始状态时，同样会踩到这个坑**——菜单只把你改的那个字段写进用户层，但合并时整条覆盖。要保留原有字段，请手工把系统层那条的字段一并抄进用户层。
+**其余字段都不继承**——包括 `caret_use_top`、`stale_probe_guard`、`host_render`、`first_show_mode` 以及 `initial_mode` 这类个人偏好。这意味着：系统层给 `Weixin.exe` 配了 `caret_use_top = true`，你若在用户层再写一条 `Weixin.exe`（哪怕只写了 `initial_mode`），系统层那条的 `caret_use_top` **一起失效**。
+
+**通过右键菜单给一个有系统预置规则的程序设置任何一项时，同样会踩到这个坑**——菜单只把你改的那个字段写进用户层。要保留原有字段，请手工把系统层那条的字段一并抄进用户层。
 </Callout>
 
 <Callout type="warn" title="用户层文件由菜单托管，手写的注释不会保留">
 每次通过右键菜单切换开关，用户层 `compat.toml` 都会被**整份重写**（TOML 序列化不保留注释），你手写的注释与排版会丢失。需要长期留存的说明请写在系统层那份——那份程序不会改写。
 
-好消息是容错做得很足：用户层解析失败时按空规则集处理（宁可重建也不把菜单卡死），单个字段值写错也只让**那个字段**退化为「不干预」，不会让整份文件失效。
+好消息是容错做得很足：单个字段的**值或类型**写错（拼错的取值、`password_force_english = "yes"`、`status_x = "120"`、不存在的方案……），只让**那一个字段**退化为没写——跟随全局、不干预或继承低层，同一条规则的其它字段、文件里的其它规则照常生效，日志里会留一条警告。
+
+只有 **TOML 语法本身**写坏（引号或括号不配对之类）才会让整份用户层文件读不出来：此时按空规则集处理（系统层照常生效），而下一次通过菜单修改时会以空文件重建——宁可重建也不把菜单卡死。
 </Callout>
 
 改完手工编辑的规则后，用[功能主菜单](/docs/settings/menu)的**重载配置**即可生效——`host_render` 除外，它需要**重启服务**。
@@ -50,7 +55,7 @@ caret_use_top = true
 | `process` | 字符串 | —— | 进程名，**不区分大小写**，如 `Notepad.exe` |
 | `comment` | 字符串 | `""` | 备注，仅供阅读，程序不使用 |
 | `caret_use_top` | 布尔 | `false` | 用 caret rect 的 `top` 而非 `bottom` 定位候选窗 |
-| `first_show_mode` | 枚举 | `fast` | 候选窗首显策略，见[下文](#候选窗首显策略) |
+| `first_show_mode` | 枚举 | 不写 = 跟随全局 | 候选窗首显策略，见[下文](#候选窗首显策略) |
 | `initial_mode` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英状态：`english` / `chinese` |
 | `initial_punct` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英标点，取值同上 |
 | `host_render` | 布尔 | `false` | 加入宿主代理渲染白名单，见[下文](#host-render) |
@@ -63,10 +68,15 @@ caret_use_top = true
 | `composition_start_pair_guard` <Since v="0.121" /> | 布尔 | 不写 = 继承出厂值 | 把「组合起点降级帧 + 紧随的 selection 帧」识别为同一次采样，避免把「组合起点 → 当前插入点」的跨度当成锚点错误。只给已实测存在该交替序列的宿主开（QQNT / VS Code / 飞书已内置） |
 | `pin_anchor_when_start_drifts` <Since v="0.121" /> | 布尔 | `false` | 宿主报的组合起点跟着插入点漂移时，把候选窗锚点钉在首帧起点，见[下文](#pin-anchor) |
 | `host_drawn_candidates` | 布尔 | 不写 = 自动判定 | 写 `false` 可强制弹出清风自己的候选框，见[下文](#host-drawn-candidates) |
+| `schema` <Since v="0.123" /> | 字符串 | 不写 = 跟随全局 | 本应用使用的输入方案：方案 ID 表示固定用它，`"@remember"` 表示记住本应用上次用的方案，见[下文](#app-schema) |
+| `password_force_english` <Since v="0.123" /> | 布尔 | 不写 = 跟随全局 | 本应用的密码框是否强制英文，覆盖全局的 `input.password_force_english`，见[下文](#password-force-english) |
+| `status_position_mode` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用的状态气泡定位方式，取值同全局 [`ui.status.position_mode`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
+| `status_x` / `status_y` <Since v="0.123" /> | 整数（物理像素） | `0` | `status_position_mode = "fixed"` 时本应用的气泡位置。拖动气泡自动记录，`(0,0)` = 尚未设定 |
+| `status_fallback_position` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用报不出光标位置时气泡落在哪，取值同全局 [`ui.status.fallback_position`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 
 `initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
 
-`first_show_mode` 则相反：认不出的值**回落到默认档** `fast`，因为「写了个认不出的值」与「没写」在这里得到同样的行为最不意外。
+`first_show_mode` 同理：认不出的值等于没写，跟随全局的 `ui.candidate.first_show_mode`（出厂 `fast`）。其它枚举字段也都是这个规矩——拼错的值不会被悄悄当成对该应用的显式设置。
 
 ## 内置规则
 
@@ -192,6 +202,80 @@ candidate_y = 1200
 ```
 
 坐标每个应用各记一份，互不影响；`(0, 0)` 表示尚未设定，首次显示落在屏幕默认位置，拖动一次即记住。定位方式在[功能主菜单 → 应用独立配置](/docs/settings/menu#app-config)里选，坐标不进菜单——拖候选窗就是设置动作本身。
+
+## 应用独立的方案 <Since v="0.123" /> [#app-schema]
+
+让某个程序固定用某个方案，或记住它自己上次用的方案。例如写代码时总用拼音、其余场合用五笔；聊天软件里用什么就记住什么：
+
+```toml
+[[apps]]
+process = "Code.exe"
+schema = "pinyin"        # 固定：每次切进来都用 pinyin 方案
+
+[[apps]]
+process = "Weixin.exe"
+schema = "@remember"     # 记住：恢复在这个程序里上次用的方案
+```
+
+| 写法 | 效果 |
+| --- | --- |
+| 不写 | 跟随全局，与其它程序共用同一个当前方案（原来的行为） |
+| 方案 ID | 焦点每次**从别的程序**切进来时切到它。ID 即方案文件名前缀，必须在已启用的方案（`schema.available`）里 |
+| `"@remember"` | 切进来时恢复本程序上次用的方案；从没用过时用全局方案 |
+
+- **手动切方案只影响这个程序。** 配了 `schema` 的程序里，用菜单、快捷键或工具栏切方案，都不会改全局方案，也不写 `config.toml`，其它程序不受影响。固定方案的程序里手切是临时的，离开再回来恢复成规则里的方案；`@remember` 的程序则记下手切的结果，存在 `state.toml`，重启后仍然有效。没配 `schema` 的程序手切方案，行为和以前一样。
+- **只在跨程序切入时套用**，同一程序里换输入框不重新切，尊重你在程序里的手切。
+- **不存在或未启用的方案等于没写。** 写了不在 `schema.available` 里的 ID，这条按跟随全局处理并在日志里警告；以后启用了该方案，规则自动生效。`@remember` 记下的方案被停用时同理，当作没记过。以 `@` 开头的值只认 `@remember`，别的一律当没写。
+- **不会卡住输入。** 刚开机方案还没加载完时，先保持当前方案，后台加载好了（且焦点还在这个程序里）再切过去。
+- 自动切换只换方案，不动中英状态、不弹状态气泡；中英状态照旧由 `initial_mode` 管，两者可以叠加。
+
+菜单入口：在目标程序里打开[功能主菜单 → 应用独立配置 → 方案](/docs/settings/menu#app-schema)。
+
+## 密码框强制英文按应用 <Since v="0.123" /> [#password-force-english]
+
+全局的[密码框强制英文](/docs/settings/menu#密码框强制英文)默认开启。有的程序会把普通输入框误报成密码框，结果那里始终打不出中文——为此把全局关掉，真正的密码框也就不保护了。现在可以只给那一个程序关掉：
+
+```toml
+[[apps]]
+process = "SomeApp.exe"
+comment = "搜索框被误报成密码框"
+password_force_english = false
+```
+
+写 `true` 则反过来：全局关掉时只给这个程序开。不写 = 跟随全局 `input.password_force_english`。
+
+菜单入口：在目标程序里打开[功能主菜单 → 应用独立配置 → 密码框强制英文](/docs/settings/menu#app-config)。
+
+## 状态提示位置 <Since v="0.123" /> [#status-position]
+
+Illustrator 这类设计软件**报不出光标位置**，状态气泡跟随光标时只能沿用上一次拿到的位置，常常停在刚才别的程序里。可以给它单独配一个位置：
+
+```toml
+[[apps]]
+process = "Illustrator.exe"
+status_position_mode = "window_bottom_left"   # 这个程序里气泡始终在窗口左下角
+```
+
+或者平时仍跟随光标，只在这一次拿不到光标时才退到锚点：
+
+```toml
+[[apps]]
+process = "Illustrator.exe"
+status_fallback_position = "screen_center"
+```
+
+| 字段 | 取值 |
+| --- | --- |
+| `status_position_mode` | `follow_caret` / `fixed` / 7 个锚点（`screen_center`、`screen_top_left`、`screen_top_right`、`screen_bottom_left`、`screen_bottom_right`、`window_center`、`window_bottom_left`），含义见[配置参考 · 状态气泡](/docs/guides/config/ui#status-anchor) |
+| `status_x` / `status_y` | `fixed` 时本程序自己的位置，拖一次气泡自动记下 |
+| `status_fallback_position` | `last` / `hide` / 上面 7 个锚点。只在定位方式为 `follow_caret` 时有用 |
+
+- 定位方式与坐标**从同一处取**：规则写了 `status_position_mode` 就用规则自己的 `status_x/y`，没写才整套用全局的。兜底位置单独回落，没写就跟随全局。
+- 规则写了定位方式时，在这个程序里拖动气泡、或右键气泡选「固定位置」「恢复默认位置」，都写进这条规则而不是全局设置。
+- 兜底选了锚点后，「焦点切换时显示」在这类程序里等不到光标位置时也会在锚点上弹出（约 0.15 秒后），而不是干脆不显示。
+- macOS 上拿不到宿主窗口的边框，`window_center` / `window_bottom_left` 分别按 `screen_center` / `screen_bottom_left` 处理。
+
+菜单入口：[功能主菜单 → 应用独立配置 → 状态提示位置](/docs/settings/menu#app-status-position)。
 
 ## 钉住组合起点 <Since v="0.121" /> [#pin-anchor]
 
