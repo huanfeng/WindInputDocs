@@ -299,6 +299,8 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 | `show_on_focus` | 布尔 | — | `false` | 切换到别的输入框时也提示一次当前状态。仅 `display_mode = "temp"` 下有意义（`always` 本就在获焦时显示）。跟随光标定位下**取不到精确插入点的应用不显示**，详见下方说明 |
 | `schema_name_style` | 枚举 | `full` / `short` | `"full"` | 方案名显示样式：`full` = 全名（默认）；`short` = 图标短称（`icon_label`，无则回退全名） |
 | `position_mode` | 枚举 | `follow_caret` / `fixed` | `"follow_caret"` | 位置模式：`follow_caret` = 跟随光标（默认）；`fixed` = 固定屏幕坐标（`custom_x` / `custom_y`） |
+| `position_mode` 的锚点取值 <Since v="0.123" /> | 枚举 | 7 个锚点，见[下文](#status-anchor) | —— | 气泡固定在屏幕或当前窗口的某个位置，不读光标 |
+| `fallback_position` <Since v="0.123" /> | 枚举 | `last` / `hide` / 7 个锚点 | `"last"` | 跟随光标时，程序报不出光标位置的那一次气泡放哪：`last` = 上次拿到光标的位置（默认，即以前的行为）；`hide` = 不显示；锚点见[下文](#status-anchor)。只在 `position_mode = "follow_caret"` 时生效 |
 | `offset_x` | 整数 | — | `0` | `follow_caret` 下相对默认位置（光标下方居中）的水平偏移（像素，正 = 右） |
 | `offset_y` | 整数 | — | `0` | `follow_caret` 下相对默认位置的垂直偏移（像素，正 = 下） |
 | `custom_x` | 整数 | — | `0` | `fixed` 模式的固定屏幕 X（像素） |
@@ -315,7 +317,34 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 因此跟随光标定位下只在拿到精确位置时才显示：**宁可不提示，也不提示在错的地方**。绝大多数应用能在毫秒级内给出位置，正常都会显示。
 
 如果你所用的应用始终不显示、又确实想要这个提示，把 `position_mode` 改成 `fixed`（或右键气泡勾选「固定位置」）——固定位置不依赖光标，任何应用下都会显示。
+
+- 也可以保持跟随光标，把 `fallback_position` 设成某个锚点：等不到光标位置时，约 0.15 秒后在锚点上显示 <Since v="0.123" />
 </Callout>
+
+### 锚点定位与兜底位置 <Since v="0.123" /> [#status-anchor]
+
+`position_mode` 与 `fallback_position` 共用下面 7 个锚点：
+
+| 取值 | 位置 |
+| --- | --- |
+| `screen_center` | 屏幕中央 |
+| `screen_top_left` / `screen_top_right` | 屏幕左上角 / 右上角 |
+| `screen_bottom_left` / `screen_bottom_right` | 屏幕左下角 / 右下角 |
+| `window_center` | 窗口中央 |
+| `window_bottom_left` | 窗口左下角 |
+
+「屏幕」指当前窗口所在的那块显示器、避开任务栏后的区域；「窗口」指当前窗口的可见边框（不含阴影）。角上的锚点离边缘留一小段距离，窗口最小化时窗口锚点按同位置的屏幕锚点处理。macOS 上拿不到宿主窗口的边框，两个窗口锚点分别按 `screen_center` / `screen_bottom_left` 处理，「屏幕」取鼠标所在的那块。
+
+```toml
+[ui.status]
+position_mode = "follow_caret"
+fallback_position = "screen_bottom_right"   # 报不出光标位置时，显示在屏幕右下角
+```
+
+- `position_mode` 设成锚点：气泡始终在那里，不读光标，任何程序里都会显示
+- `fallback_position`：平时照常跟随光标，只在某一次拿不到可信的光标位置时才启用。设计软件等报不出光标的程序，默认的 `last` 会让气泡停在上一次的位置（可能是别的程序里）；`hide` 干脆不显示
+- 两个键写错都回落出厂默认（`follow_caret` / `last`）
+- 两者都能按应用单独覆盖：见[应用兼容性规则 · 状态提示位置](/docs/guides/compat#status-position)，或在该程序里用[功能主菜单 → 应用独立配置 → 状态提示位置](/docs/settings/menu#app-status-position)
 
 ## 悬停提示（ui.tooltip） [#tooltip]
 
