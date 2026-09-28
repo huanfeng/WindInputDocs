@@ -241,23 +241,22 @@ readings = "#9AD0FF"
 
 #### 出厂主题的角色色 [#factory-roles]
 
-出厂主题都继承基础主题 `_base`，它配了这一组角色色（颜色名见[标准色](#standard-colors)）：
+出厂主题都继承基础主题 `_base`，它给悬停提示配了这一组角色色（颜色名见[标准色](#standard-colors)）。
+候选注释**不配**，保持原来的注释色：
 
 | 表 | 角色 | 颜色 |
 | --- | --- | --- |
-| `[comment.roles]` | `code_hint`、`code_rev`、`code_rev_all`、`shuangpin` | `${info}` |
 | `[tooltip.roles]` | `full_text`、`readings` | `${tooltip_accent_text}`（随主题强调色） |
 | `[tooltip.roles]` | `word_code` | `${tooltip_success}` |
 | `[tooltip.roles]` | `code_source`、`chaizi_code`、`chaizi_code_all` | `${tooltip_info}` |
 | `[tooltip.roles]` | `chaizi`、`chaizi_all` | `${tooltip_warning}` |
 | `[tooltip.roles]` | `unicode`、`unicode_all` | `${tooltip_error}` |
 
-- 气泡这几项写的是 `tooltip_*`：角色表里的 `${…}` 按字面取色，不像模板内联色那样先找 `tooltip_` 版本，
+- 写的是 `tooltip_*`：角色表里的 `${…}` 按字面取色，不像模板内联色那样先找 `tooltip_` 版本，
   写 `${info}` 在亮色模式下拿到的是为浅色底调的深蓝，压在深色气泡上看不清。
-- 没有单列选中、悬停：出厂主题都没给这两个状态换注释颜色，角色色在三种状态下照常显示。
-- 继承 `_base` 的主题自动拿到这张表。要换色，在自己的 `roles` 里写同名角色；要去掉，写 `""`。
-  把窗口底换成深色、彩色或背景图的主题，记得一并检查 `info` 是否还看得清。
-- 没写 `base` 的主题不继承这张表，注释与气泡保持正文色。
+- 继承 `_base` 的主题自动拿到这张表。要换色，在自己的 `[tooltip.roles]` 里写同名角色；要去掉，写 `""`。
+  想给候选注释分色，自己写 `[comment.roles]`。
+- 没写 `base` 的主题不继承这张表，气泡保持正文色。
 - 模板里的[内联颜色](/docs/settings/appearance/candidate-comment#inline-color)优先于这些角色色。
 
 ### 标准色 <Since v="0.123" /> [#standard-colors]
