@@ -29,6 +29,7 @@ comment_template_vertical   = "${code_hint|code_rev|shuangpin}"   # 竖排候选
 comment_template_horizontal = "${code_hint|code_rev|shuangpin}"   # 横排候选注释模板
 comment_max_chars_vertical   = 0   # 竖排候选注释最大字数
 comment_max_chars_horizontal = 0   # 横排候选注释最大字数
+comment_above = false   # 注释首行（模板里第一个 \n 之前）显示在候选上方
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -43,8 +44,9 @@ comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 | `index_labels` | 字符串数组 <Since v="0.117" /> | — | `[]` | 自定义序号标签，一槽一项（如 `["a","s","d"]`、`["Ⅰ","Ⅱ","Ⅲ"]`）。**每项是一个完整标签**，可含多个字符；空表 = 默认 `1`–`9`。槽内空串或槽位不足处让位主题 `index.labels`，主题也未定义才回退数字 |
 | `comment_template_vertical` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **竖排**候选注释（候选右侧的小字）模板。语法与变量见[候选注释](/docs/settings/appearance/candidate-comment)；留空 = 不显示 |
 | `comment_template_horizontal` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **横排**候选注释模板。横排宽度由全部候选共享，放注音/字根易撑宽窗口 |
-| `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽 |
-| `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数 |
+| `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽。开启 `comment_above` 后按上下两段各自计算 |
+| `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数。开启 `comment_above` 后按上下两段各自计算 |
+| `comment_above` | 布尔 <Since v="0.124" /> | — | `false` | 注释首行显示在候选上方：模板里**字面写的第一个 `\n`** 把注释拆成两段，上段在候选上方一行，下段仍在右侧；变量值自带的换行不算。写法约束与版面见[注释显示在候选上方](/docs/settings/appearance/candidate-comment#comment-above)；上方条样式见主题的 `[comment_above]` 节点。设置位置：外观 → 候选标注 → 候选注释 → 设置 |
 | `auto_comment_dicts` | 布尔 <Since v="0.121" /> | — | `true` | 词库在 `columns` 中声明 `comment` 列时，自动将该列作为 `${dict}` 的注释源。判据是显式声明；`import_tables` 引入的子表逐一检测。识别结果在[注释词库](#comment-dicts)列表中标「自动」 |
 
 ### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]

@@ -172,9 +172,12 @@ readings = "#9AD0FF"
 | `[comment.roles]` | 候选注释，平时 |
 | `[comment.selected.roles]` | 候选注释，候选被选中（高亮）时 |
 | `[comment.hover.roles]` | 候选注释，鼠标悬停时 |
+| `[comment_above.roles]` <Since v="0.124" /> | [上方注释条](#comment-above-node)，平时 |
+| `[comment_above.selected.roles]` <Since v="0.124" /> | 上方注释条，候选被选中时 |
+| `[comment_above.hover.roles]` <Since v="0.124" /> | 上方注释条，鼠标悬停时 |
 | `[tooltip.roles]` | 悬停提示（气泡没有选中、悬停之分，写 `[tooltip.selected.roles]` 不生效） |
 
-只有注释与悬停提示读这张表，写在其它节点下的 `roles` 被忽略。
+只有注释、上方注释条与悬停提示读这张表，写在其它节点下的 `roles` 被忽略。
 
 **值的写法**与节点的 `color` 相同：`"${token}"`、`"#RRGGBB"`、`{ light = "…", dark = "…" }`。另外：
 
@@ -226,9 +229,9 @@ readings = "#9AD0FF"
 
 1. 模板里的[内联颜色](/docs/settings/appearance/candidate-comment#inline-color) `$[颜色]{…}`（它另有一套
    [选中与悬停的规则](/docs/settings/appearance/candidate-comment#inline-color-states)）；
-2. 选中或悬停时，`[comment.selected.roles]` / `[comment.hover.roles]` 里给这个角色配的颜色；
+2. 选中或悬停时，`[comment.selected.roles]` / `[comment.hover.roles]` 里给这个角色配的颜色（上方条读 `[comment_above.selected.roles]` / `[comment_above.hover.roles]`，没写则回退到注释的同名表）；
 3. 选中或悬停时，若主题给这个状态**换了注释颜色**（`[comment.selected] color` 等），用换过的那个；
-4. `[comment.roles]` / `[tooltip.roles]` 里给这个角色配的颜色；
+4. `[comment.roles]` / `[tooltip.roles]` 里给这个角色配的颜色（上方条读 `[comment_above.roles]`，没写则回退 `[comment.roles]`）；
 5. 段名里的变量：`title` 的颜色；
 6. 正文色（节点的 `color`）。
 
@@ -258,6 +261,38 @@ readings = "#9AD0FF"
   想给候选注释分色，自己写 `[comment.roles]`。
 - 没写 `base` 的主题不继承这张表，气泡保持正文色。
 - 模板里的[内联颜色](/docs/settings/appearance/candidate-comment#inline-color)优先于这些角色色。
+
+### 上方注释条 <Since v="0.124" /> [#comment-above-node]
+
+打开[「注释首行显示在候选上方」](/docs/settings/appearance/candidate-comment#comment-above)后，注释的上段画在候选上方，
+它的样式由 `[comment_above]` 节点管，字段与 `[comment]` 相同。
+
+**回退规则**——没写的字段这样取：
+
+| 字段 | 没写时 |
+| --- | --- |
+| 字体、字重、字号、颜色 | 继承 `[comment]` |
+| `[comment_above.roles]`（含 `selected`、`hover` 各态） | 继承 `[comment.roles]` |
+| `[comment_above.selected]`、`[comment_above.hover]` 的字体、颜色 | 继承 `[comment]` 对应状态 |
+| `margin`、`padding` | **不继承**，默认 0 |
+
+边距不继承，是因为 `[comment]` 的 `margin.left` 是「文字与**右侧**注释的间距」，只给右侧用；
+上方条若继承会被推歪。上方条与主行之间的间距，用它自己的 `padding.bottom`（或 `margin.bottom`）调。
+
+上方条同样消费背景、边框（含选中、悬停态）；背景图与渐变只作用于基态。这些装饰**不继承** `[comment]`，
+状态节点也是：`[comment.selected]` 只贡献字体、颜色与 `roles`，它的底色、边框、边距不会带到
+`[comment_above.selected]`。模板里的内联颜色与 `roles` 对上方条同样生效。
+
+最小示例——上方条比基础主题的注释（`font_size = -4`，字号是相对正文的偏移）再小一号、换成次要文字色，并与主行留出 2 的间距：
+
+```toml
+[comment_above]
+font_size = -6
+color = "${text_dim}"
+padding = { bottom = 2 }
+```
+
+不打开开关时这个节点不起作用。
 
 ### 标准色 <Since v="0.123" /> [#standard-colors]
 
