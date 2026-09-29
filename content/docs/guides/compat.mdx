@@ -1,6 +1,6 @@
 ---
 title: 应用兼容性规则
-description: compat.toml 的全部字段、候选窗首显的三档策略、应用独立初始状态、宿主代理渲染，以及合并语义的坑
+description: compat.toml 的全部字段、候选窗首显的三档策略、应用独立初始状态、宿主渲染模式，以及合并语义的坑
 ---
 
 import { Since } from "@/components/since";
@@ -58,7 +58,7 @@ caret_use_top = true
 | `first_show_mode` | 枚举 | 不写 = 跟随全局 | 候选窗首显策略，见[下文](#候选窗首显策略) |
 | `initial_mode` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英状态：`english` / `chinese` |
 | `initial_punct` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英标点，取值同上 |
-| `host_render` | 布尔 | `false` | 加入宿主代理渲染白名单，见[下文](#host-render) |
+| `host_render` | 布尔 | `false` | 开启宿主渲染模式（加入白名单），见[下文](#host-render) |
 | `auto_pair` | 布尔 | 不写 = 跟随全局 | 本应用是否启用[符号自动配对](/docs/guides/config/input)。给表格类宿主（Excel / WPS 表格）用：它们在「输入态」下把方向键解释成「确认单元格并移动」，配对后光标退不回两个符号之间 |
 | `smart_method` | 枚举 | 不写 = 跟随全局 | 本应用的[智能符号](/docs/guides/config/input)替换方案：`delete_replace` / `hold_composition`。终端类宿主（Tabby）用后者——它全程不做删改 |
 | `caret_offset_x` / `caret_offset_y` | 整数（dp） | `0` | 光标坐标的**系统性偏移**校正，正 = 右 / 下。单位是 dp 不是物理像素，同一份数值在不同缩放的屏幕上观感一致 |
@@ -319,7 +319,7 @@ host_drawn_candidates = false
 反过来，如果程序是按 TSF 规范**明确声明**由自己画候选（多数现代全屏游戏引擎），这几行管不着它——它已经说了不要输入法的界面，再画一个就是两头画。
 </Callout>
 
-## 宿主代理渲染 host_render <Since v="0.113" /> [#host-render]
+## 宿主渲染模式 host_render <Since v="0.113" /> [#host-render]
 
 少数宿主运行在受限容器中，或其窗口层级（Band）盖过一切普通窗口，输入法自绘的候选窗被压在下面看不见——Win11 开始菜单 / 任务栏搜索的 `SearchHost.exe` 就是这样。
 
