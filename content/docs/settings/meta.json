@@ -9,6 +9,7 @@
     "appearance",
     "dict",
     "stats",
-    "advanced"
+    "advanced",
+    "compat"
   ]
 }

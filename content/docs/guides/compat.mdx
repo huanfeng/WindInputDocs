@@ -21,14 +21,36 @@ import { Since } from "@/components/since";
 | 定制层 | `<安装目录>\data_custom\compat.toml` | 只有[定制版](/docs/guides/custom-edition#layers)才有，由定制作者随包分发 |
 | 用户覆盖 | `%APPDATA%\WindInput\compat.toml` | 你自己写，或由右键菜单自动管理 |
 
-<Callout type="error" title="同名进程基本是「整条覆盖」，只有少数宿主修正字段会继承">
-靠后层里同名进程（不区分大小写）的规则会**整条替换**前面层的那一条，前面层的其余规则保留。
+### 用窗口管理，不用手写 <Since v="0.124" /> [#gui]
 
-例外是一组描述「这个程序本身有什么毛病」的宿主修正字段：`composition_start_pair_guard`、`pin_anchor_when_start_drifts`、`ignore_host_ime_close`、`host_drawn_candidates`。后层那条**没写**它们时，从前面层继承；显式写 `false` 才算关掉。这样你在菜单里改点别的，也不会把出厂的宿主修复一并抹掉。
+成批查看、修改内置规则、新增、禁用、还原、导入导出，都可以在设置的「高级 → 应用兼容」打开的[应用兼容设置窗口](/docs/settings/compat)里点着完成，不用手写文件。窗口与右键菜单写的是同一份用户层。
 
-**其余字段都不继承**——包括 `caret_use_top`、`stale_probe_guard`、`host_render`、`first_show_mode` 以及 `initial_mode` 这类个人偏好。这意味着：系统层给 `Weixin.exe` 配了 `caret_use_top = true`，你若在用户层再写一条 `Weixin.exe`（哪怕只写了 `initial_mode`），系统层那条的 `caret_use_top` **一起失效**。
+### 合并语义：字段级叠加，用户层只记差异 <Since v="0.124" /> [#overlay]
 
-**通过右键菜单给一个有系统预置规则的程序设置任何一项时，同样会踩到这个坑**——菜单只把你改的那个字段写进用户层。要保留原有字段，请手工把系统层那条的字段一并抄进用户层。
+三层按顺序**逐字段**叠加，靠后的层优先。**同名进程（不区分大小写）的规则不是整条替换，而是字段级合并**：
+
+- 用户层那条**写了**的字段，覆盖前面层的值；
+- **没写**的字段，继承前面层的值——所以你只给 `Weixin.exe` 写一条 `initial_mode`，系统层给它的 `caret_use_top`、`stale_probe_guard` 照常生效；
+- 想**取消**前面层设的某个字段（回到「跟随全局」），在用户层写 `unset`：`unset = ["caret_use_top"]`；
+- 想**关掉**前面层打开的开关，显式写 `false`；
+- 想**禁用整条**前面层的规则，写 `disabled = true`（字段保留，整条不生效）。
+
+```toml
+# 用户层：只记相对系统层的差异
+[[apps]]
+process = "Weixin.exe"
+initial_mode = "english"            # 新增一项，系统层的 caret_use_top 等照旧继承
+unset = ["stale_probe_guard"]       # 取消系统层设的这一项
+
+[[apps]]
+process = "Dota2.exe"
+disabled = true                     # 整条不生效
+```
+
+与系统层**一模一样**的字段写进用户层会被当成冗余自动丢掉，用户层文件里始终只有真正的差异。设置端应用兼容窗口与右键菜单写的都是这套语义，所以你在菜单里给一个有出厂规则的程序改任何一项，都不会再冲掉它的其它出厂字段。
+
+<Callout type="warn" title="0.123 及更早的版本是「整条覆盖」">
+旧版本里同名进程的用户规则**整条替换**系统层那条（只有少数宿主修正字段会继承）。如果你有手写的旧用户层文件，升级后语义变成叠加：原来靠「整条覆盖」抹掉的出厂字段现在会回来。要抹掉就显式写 `unset`。
 </Callout>
 
 <Callout type="warn" title="用户层文件由菜单托管，手写的注释不会保留">
@@ -54,6 +76,8 @@ caret_use_top = true
 | --- | --- | --- | --- |
 | `process` | 字符串 | —— | 进程名，**不区分大小写**，如 `Notepad.exe` |
 | `comment` | 字符串 | `""` | 备注，仅供阅读，程序不使用 |
+| `unset` <Since v="0.124" /> | 字符串数组 | `[]` | 用户层专用：取消前面层设的字段（回到「跟随全局」），如 `unset = ["caret_use_top"]`，见[合并语义](#overlay) |
+| `disabled` <Since v="0.124" /> | 布尔 | `false` | 用户层专用：`true` 禁用前面层的整条规则，见[合并语义](#overlay) |
 | `caret_use_top` | 布尔 | `false` | 用 caret rect 的 `top` 而非 `bottom` 定位候选窗 |
 | `first_show_mode` | 枚举 | 不写 = 跟随全局 | 候选窗首显策略，见[下文](#候选窗首显策略) |
 | `initial_mode` | 枚举 | 不写 = 不干预 | 进入该应用时的初始中英状态：`english` / `chinese` |
@@ -350,7 +374,7 @@ style = "cr"
 出厂名单只有 `WINWORD.EXE`。同一次实测里**记事本与 WPS 文字都能正常分段**，所以 WPS 刻意不在名单上——按「富文本模型」推理会想当然地把它加进来，实测说的是反话。
 
 <Callout type="warn" title="这是与 [[apps]] 并列的另一个段，不是 apps 的字段">
-合并语义是「同名进程整条覆盖」。做成 `[[apps]]` 的字段的话，你只要给 `WINWORD.EXE` 写任何一条自己的规则，出厂那条 `cr` 就会整条消失，而且完全看不出为什么。两者各写各的，互不影响。
+两段各管各的：`[[commit_newline]]` 在设置端也是「应用兼容」窗口里独立的一个分类。0.123 及更早版本同名进程是整条覆盖，当时把它做成 `[[apps]]` 的字段，你给 `WINWORD.EXE` 写任何一条自己的规则都会让出厂那条 `cr` 消失，所以拆成了独立段；现在合并语义是字段级叠加，分开放仍然更清晰，互不影响。
 </Callout>
 
 ## 排查：某个程序里输入法没反应
