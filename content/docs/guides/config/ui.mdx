@@ -162,6 +162,9 @@ pager_in_preedit = false   # 翻页栏并入编码栏行
 
 ```toml
 position_mode = "follow_caret"  # 候选窗定位方式
+offset_x = 0                    # 跟随光标时的水平微调（dp，正=右）
+offset_y = 0                    # 跟随光标时的垂直微调（dp，正=远离光标）
+shadow = "follow"               # 主题阴影：follow 跟随主题 / off 关闭
 custom_x = 0                    # 固定模式内容左上 X（拖动落盘）
 custom_y = 0                    # 固定模式内容左上 Y（拖动落盘）
 ```
@@ -169,6 +172,8 @@ custom_y = 0                    # 固定模式内容左上 Y（拖动落盘）
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `position_mode` | 枚举 | `follow_caret` / `fixed` | `"follow_caret"` | 候选窗定位方式：`follow_caret` = 跟随光标（默认）；`fixed` = 固定屏幕坐标，不再随光标移动、也不再上翻（`flip` / `swap_when_above` 随之失效） |
+| `offset_x` / `offset_y` | 整数 | −400 ~ 400 | `0` | 跟随光标时在主题自带定位之上的**用户微调**（dp），与主题的 `position_offset` 相加。X 正值向右；Y 正值恒为「远离光标」——候选窗在下方时向下推、翻到上方时向上推。固定位置与拖动不受影响 |
+| `shadow` | 枚举 | `follow` / `off` | `"follow"` | 主题阴影覆盖。`off` 时不画阴影，候选窗与内容等大，阴影带来的定位补偿随之归零；主题自带的位置偏移仍保留。用于个别应用里透明边引起的兼容问题。仅 Windows（macOS 用系统原生阴影） |
 | `custom_x` | 整数 | — | `0` | 固定模式下内容左上屏幕 X（不含阴影扩边） |
 | `custom_y` | 整数 | — | `0` | 固定模式下内容左上屏幕 Y（不含阴影扩边） |
 
