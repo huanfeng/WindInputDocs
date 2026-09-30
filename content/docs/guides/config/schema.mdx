@@ -48,6 +48,9 @@ short_code_yield_level = 0    # 出简让全：0 关 / 2 一二级简码 / 3 全
 single_char = false           # 单字输入：候选只出单字，不出词（方案可覆盖）
 input_chars = ""              # 码元字符集：哪些字符可进输入缓冲；空 = a-z
 leading_chars = ""            # 可作第一码的字符（码元字符集的子集）；空 = 与 input_chars 相同
+wildcard = false              # 通配输入：组码时通配键代替一个码元
+wildcard_key = "z"            # 通配键：单个字母或 ASCII 符号
+wildcard_single_only = false  # 通配仅出单字（行内通配与反查模式）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -66,6 +69,9 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 | `single_char` <Since v="0.121" /> | 布尔 | — | `false` | [单字输入](#single-char)：候选只出单字，不出词。**只管码表方案**，拼音另有一份 `schema.pinyin.single_char`，取值互不共享。单个码表方案可在自己的 `[engine.codetable]` 里写同名键覆盖（不写 = 跟随此处） |
 | `input_chars` | 字符串 | 范围+字面 | `""` | 码元字符集：哪些字符可进输入缓冲。空 = 内置默认 `a-z` |
 | `leading_chars` | 字符串 | 范围+字面 | `""` | 可作**第一码**的字符，须是 `input_chars` 的子集。空 = 与 `input_chars` 相同 |
+| `wildcard` <Since v="0.124" /> | 布尔 | — | `false` | [通配输入](/docs/settings/schema/codetable#wildcard)：组码时通配键代替恰好一个码元，候选显示完整编码 |
+| `wildcard_key` <Since v="0.124" /> | 字符串 | 单个字母或 ASCII 符号 | `"z"` | 通配键。数字与空格不可用，非法则视为关闭 |
+| `wildcard_single_only` <Since v="0.125" /> | 布尔 | — | `false` | 通配结果只列单字（按显示上的一个字判断）。行内通配与反查模式都生效，与 `wildcard` 正交 |
 
 - 英文方案不读 `punct_commit`，与拼音一样恒允许标点顶屏；混输方案仍读它 <Since v="0.123" />
 
