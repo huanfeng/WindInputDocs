@@ -51,6 +51,7 @@ leading_chars = ""            # 可作第一码的字符（码元字符集的子
 wildcard = false              # 通配输入：组码时通配键代替一个码元
 wildcard_key = "z"            # 通配键：单个字母或 ASCII 符号
 wildcard_single_only = false  # 通配仅出单字（行内通配与反查模式）
+lookup_disabled_dicts = false  # 通配 / 反查 / 注释反查也查未启用的扩展词库
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -72,6 +73,7 @@ wildcard_single_only = false  # 通配仅出单字（行内通配与反查模式
 | `wildcard` <Since v="0.124" /> | 布尔 | — | `false` | [通配输入](/docs/settings/schema/codetable#wildcard)：组码时通配键代替恰好一个码元，候选显示完整编码 |
 | `wildcard_key` <Since v="0.124" /> | 字符串 | 单个字母或 ASCII 符号 | `"z"` | 通配键。数字与空格不可用，非法则视为关闭 |
 | `wildcard_single_only` <Since v="0.125" /> | 布尔 | — | `false` | 通配结果只列单字（按显示上的一个字判断）。行内通配与反查模式都生效，与 `wildcard` 正交 |
+| `lookup_disabled_dicts` <Since v="0.125" /> | 布尔 | — | `false` | 通配、反查模式与候选注释反查也查未启用（`default_enabled = false` 且未手动启用）的扩展词库，已启用的排前；普通打字候选不变。开着时用户在设置里禁用的扩展库通配仍会读入；首次通配读盘有一次性延迟；含未启用库的注释反查索引后台构建，建好前注释里的编码暂不显示；会多占一份索引文件（「重建缓存」可清） |
 
 - 英文方案不读 `punct_commit`，与拼音一样恒允许标点顶屏；混输方案仍读它 <Since v="0.123" />
 
