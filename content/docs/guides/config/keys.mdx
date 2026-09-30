@@ -454,7 +454,7 @@ select_char_key = "ignore"  # 以词定字键候选词长度不足时
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `number_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 数字键位次超出当前页候选数量时的行为 |
+| `number_key` | 枚举 | `ignore` / `commit` / `commit_and_input` / `clear_and_input` | `ignore` | 数字键位次超出当前页候选数量时的行为；`clear_and_input` <Since v="0.124" /> |
 | `select_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 次选/三选键（见 `select_key_groups`）候选不足时的行为 |
 | `select_char_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 以词定字键（见 `select_char_keys`）候选词长度不足时的行为 |
 
@@ -467,6 +467,9 @@ select_char_key = "ignore"  # 以词定字键候选词长度不足时
 | `ignore` | 吞掉该键，不做任何操作（默认） |
 | `commit` | 上屏当前高亮的候选 |
 | `commit_and_input` | 上屏当前高亮候选，并把该按键对应的字符追加输入 |
+| `clear_and_input` | 清空已输入的编码与候选（含已选定的部分），只上屏该数字。仅 `number_key` 支持 |
+
+联想候选出现后，按 `0` 或超出联想条数的数字键，固定为收起联想并只输出该数字，不受 `number_key` 影响。
 
 ## 相关阅读
 
