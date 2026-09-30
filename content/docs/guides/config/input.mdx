@@ -340,9 +340,26 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 | `hotkey` | 字符串 | — | `""` | 专用直达热键（如 `"ctrl+shift+p"`，空串 = 不注册）；与 `trigger_keys` 引导键共存，热键进入时组合区不写引导符。预置文件未写，默认空 |
 | `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临拼期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局) |
 
+## 反查模式（input.reverse） <Since v="0.125" /> [#reverse]
+
+按一个键进入，用本方案编码查字，通配键在任何位置（含第一码）都生效。只在码表与五笔拼音混输方案里可用。
+
+```toml
+[input.reverse]
+enabled = false             # 总开关，出厂关闭
+candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布局」）
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `false` | 反查模式总开关；关着时绑了键也不进 |
+| `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 反查模式期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局) |
+
+进入键在 [`key_actions`](/docs/guides/config/keys#key-actions) 里绑动词 `reverse`，出厂不绑。详见[反查模式](/docs/guides/reverse-mode)。
+
 ## 模式级候选布局
 
-临时拼音、临时英文、网址输入、邮箱输入、快捷输入、引导键特殊模式、快捷加词，各有一个同名的 `candidate_layout`，语义完全一致：
+临时拼音、临时英文、网址输入、邮箱输入、快捷输入、引导键特殊模式、快捷加词、反查模式，各有一个同名的 `candidate_layout`，语义完全一致：
 
 | 取值 | 含义 |
 | --- | --- |
@@ -357,6 +374,7 @@ candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布�
 | 模式 | 配置键 | 出厂默认 | 设置工具 |
 | --- | --- | --- | --- |
 | 临时拼音 | `input.temp_pinyin.candidate_layout` | `follow` | ✅ 下拉 |
+| 反查模式 | `input.reverse.candidate_layout` | `follow` | ✅ 下拉 |
 | 临时英文 | `input.temp_english.candidate_layout` | `follow` | ✅ 下拉 |
 | 快捷输入 | `schema.mix_modes` 中 `quick_mix` 的 `candidate_layout` | `vertical` | ✅ 下拉 |
 | 网址输入 | `input.url.candidate_layout` | `follow` | ✅ 下拉 <Since v="0.122" />（开了历史补全才会出候选） |
