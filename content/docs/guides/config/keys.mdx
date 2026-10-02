@@ -114,7 +114,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | --- | --- |
 | `temp_pinyin` / `temp_english` | 进临时拼音 / 临时英文 |
 | `aux_code` <Since v="0.118" /> | 进[辅助码](/docs/settings/schema/pinyin)筛选：对已出的拼音候选按字形二次过滤。需已开启辅助码且当前有候选。与翻页共用一个键的写法（`aux_code:page_next`）只有 `session_actions` 有 |
-| `reverse` <Since v="0.125" /> | 进[反查模式](/docs/guides/reverse-mode)：用本方案编码查字，通配键在任何位置都生效。需先开启 `input.reverse.enabled`，出厂不绑 |
+| `reverse` <Since v="0.125" /> | 进[反查模式](/docs/guides/reverse-mode)：用本方案编码查字，通配键在任何位置都生效。没有总开关，绑了即可用，出厂不绑 |
 | `mix:<实例id>` | 进指定融合模式（`mix:quick_mix` = 内置[快捷输入](/docs/settings/input/quick-input)） |
 | `special:<方案id>` | 进指定[引导键特殊模式](/docs/guides/special-modes)——方案须已声明 `[overlay]` 段 |
 | `toggle_schema:<方案id>` | 切到指定方案，**再按一次回到来源**（往返，不要求目标方案配对称的绑定） |
