@@ -614,7 +614,7 @@ pinyin_partial_candidates_overflow = true # 超码长时保留同类候选
 
 ## 快捷输入（schema.quick_input）
 
-只放**与候选来源无关**的全局行为，目前仅一个键。
+只放快捷输入的全局行为，与具体是哪个融合实例无关。
 
 ```toml
 [schema.quick_input]
@@ -624,6 +624,7 @@ decimal_places = 6       # 计算器结果小数位数
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `decimal_places` | 整数 | — | `6` | 计算器结果小数位数（`0` = 取整） |
+| `history_max` <Since v="0.125" /> | 整数 | — | `1000` | [快捷输入历史](/docs/settings/input/quick-input#history)的条数上限，超出时裁掉用得少、用得旧的；`0` = 不限。设置页不开放 |
 
 快捷输入的其余设置**都不在这一段**，而在内置「快捷」融合模式（`schema.mix_modes` 里 id 为 `quick_mix` 的那一项）上：
 
