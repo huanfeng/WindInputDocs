@@ -176,6 +176,11 @@ case_variants = false     # 大小写变形候选（全小写/首字母大写/�
 case_follow_input = true  # 候选跟随输入的大小写（打 Hi 出 Hill）
 phrase_seg = false        # 词组分词输入：ip'max → iPhone 15 Pro Max
 
+[schema.english.auto_learn]
+enabled = false          # 英文自动造词（英文方案与临时英文共用这一个开关）
+promote_count = 3        # 临时词用到几次晋升用户词库，0 = 不晋升
+temp_max_entries = 5000  # 英文临时词库条数上限，0 = 不限（设置页不开放）
+
 [schema.english.frequency]
 enabled = false          # 英文调频总开关
 strategy = "position"    # position（默认）/ top / step
@@ -191,6 +196,9 @@ code_scope = "candidate" # 调频记账方式：candidate（按整词）/ input�
 | `case_variants` | 布尔 | — | `false` <Since v="0.119" /> | 是否补出全小写／首字母大写／全大写三种形态。每条各占一个候选位，英文方案是长时输入场景，故默认关（[临时英文那侧默认开](/docs/guides/config/input#temp-english)） |
 | `case_follow_input` | 布尔 | — | `true` <Since v="0.121" /> | 词库候选跟随你打的大小写：打 `Hi` 出 `Hill`、打 `WoW` 出 `WoWed`。**只跟大写**——输入里的小写位保持词库原文，`China` / `iPhone` / `Hi-Fi` 自带的大写不会被压掉；候选与输入逐位对不上的（短语、命令类）整条保持原样 |
 | `phrase_seg` <Since v="0.122" /> | 布尔 | — | `false` | 词组分词输入，见[词组分词输入](#phrase-seg) |
+| `auto_learn.enabled` <Since v="0.125" /> | 布尔 | — | `false` | 英文自动造词：上屏了词库里没有的原文就记进英文临时词库。英文方案与临时英文共用这一个开关，见[自动造词](/docs/settings/schema/english#auto-learn) |
+| `auto_learn.promote_count` <Since v="0.125" /> | 整数 | — | `3` | 临时词累计用到几次（含造词那一次）晋升用户词库；`0` = 不晋升 |
+| `auto_learn.temp_max_entries` <Since v="0.125" /> | 整数 | — | `5000` | 英文临时词库条数上限，超出按「用得最少、造得最早」淘汰；`0` = 不限。设置页不开放 |
 | `frequency.enabled` | 布尔 | — | `false` | 英文调频总开关 |
 | `frequency.strategy` | 枚举 | `position` / `top` / `step` | `"position"` | 词频应用策略 |
 | `frequency.promote_prefix` | 枚举 | `none` / `single` / `all` | `"all"` | 前缀补全候选参与位置提升的范围。**仅 `position` 时生效** |
