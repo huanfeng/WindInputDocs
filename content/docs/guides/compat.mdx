@@ -96,7 +96,7 @@ caret_use_top = true
 | `password_force_english` <Since v="0.123" /> | 布尔 | 不写 = 跟随全局 | 本应用的密码框是否强制英文，覆盖全局的 `input.password_force_english`，见[下文](#password-force-english) |
 | `status_position_mode` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用的状态气泡定位方式，取值同全局 [`ui.status.position_mode`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 | `status_x` / `status_y` <Since v="0.123" /> | 整数（物理像素） | `0` | `status_position_mode = "fixed"` 时本应用的气泡位置。拖动气泡自动记录，`(0,0)` = 尚未设定 |
-| `composition_placeholder` <Since v="0.125" /> | 枚举 | 不写 = `space` | 编码不显示在程序里时，输入区里临时放的占位字符：`space`（空格）/ `zwsp`（零宽空格），见[下文](#composition-placeholder) |
+| `composition_placeholder` <Since v="0.125" /> | 枚举 | 不写 = `space` | 编码不显示在程序里时，输入区里临时放的占位字符：`space`（空格）/ `zwsp`（零宽空格）/ `blank`（盲文空白），见[下文](#composition-placeholder) |
 | `status_fallback_position` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用报不出光标位置时气泡落在哪，取值同全局 [`ui.status.fallback_position`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 
 `initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
@@ -350,6 +350,8 @@ host_drawn_candidates = false
 编码不显示在程序里时——候选窗自己显示编码（非嵌入模式）、联想、热键进入的加词 / 临时拼音等——输入法仍要在程序的输入区里挂一个占位字符，程序才会继续把按键交给输入法、并报得出光标位置。这个字符默认是空格。
 
 有些网页输入框会在你输入时**自动去掉首尾空格**再写回去（番茄小说的搜索框就是）。占位的空格一被去掉，浏览器就把正在进行的输入打断，结果是一个字都打不上去。`composition_placeholder = "zwsp"` 改用零宽空格，这类输入框不会去掉它。
+
+也有程序要「看得见内容」才开始编辑：钉钉在线表格里选中单元格直接打字时，零宽空格被当成没有内容，输入停在表格左上角、候选窗位置也跟着错。这类程序用 `composition_placeholder = "blank"`（盲文空白 U+2800）——它像空格一样占一个字宽，却不会被当成空格去掉。
 
 ```toml
 [[apps]]
