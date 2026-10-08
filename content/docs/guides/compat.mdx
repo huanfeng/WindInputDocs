@@ -96,6 +96,7 @@ caret_use_top = true
 | `password_force_english` <Since v="0.123" /> | 布尔 | 不写 = 跟随全局 | 本应用的密码框是否强制英文，覆盖全局的 `input.password_force_english`，见[下文](#password-force-english) |
 | `status_position_mode` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用的状态气泡定位方式，取值同全局 [`ui.status.position_mode`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 | `status_x` / `status_y` <Since v="0.123" /> | 整数（物理像素） | `0` | `status_position_mode = "fixed"` 时本应用的气泡位置。拖动气泡自动记录，`(0,0)` = 尚未设定 |
+| `composition_placeholder` <Since v="0.125" /> | 枚举 | 不写 = `space` | 编码不显示在程序里时，输入区里临时放的占位字符：`space`（空格）/ `zwsp`（零宽空格），见[下文](#composition-placeholder) |
 | `status_fallback_position` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用报不出光标位置时气泡落在哪，取值同全局 [`ui.status.fallback_position`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 
 `initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
@@ -113,6 +114,7 @@ caret_use_top = true
 | `EXCEL.EXE` / `et.exe` | `first_show_mode = "wait"` | 进单元格时先在编辑栏建临时编辑上下文、约 0.5s 后才切到单元格，`fast` 档的试探坐标会抢在切换前把候选窗显示在编辑栏 |
 | `QQ.exe` / `Code.exe` / `Feishu.exe` <Since v="0.121" /> | `composition_start_pair_guard = true` | 长组合时交替上报组合起点降级帧与当前 selection，跨度不是锚点错误 |
 | `wps.exe` / `WINWORD.EXE` <Since v="0.121" /> | `pin_anchor_when_start_drifts = true` | 长组合内组合起点每帧跟着插入点右移，大偏移逃生阀被这份数据一路骗着重锁 |
+| `msedge.exe` / `chrome.exe` / `firefox.exe` <Since v="0.125" /> | `composition_placeholder = "zwsp"` | 网页里会自动去掉首尾空格的输入框，占位空格一被去掉输入就被打断，见[下文](#composition-placeholder) |
 
 ## caret_use_top
 
@@ -338,9 +340,27 @@ process = "*"
 host_drawn_candidates = false
 ```
 
-`"*"` 只对这一个字段生效，不会把规则里的其它字段也套到所有程序上；某个程序自己的规则优先于 `"*"`。写 `true` 和不写是一样的（都是自动判定），这个字段只用来关。
+`"*"` 只对这个字段（以及 [`composition_placeholder`](#composition-placeholder)）生效，不会把规则里的其它字段也套到所有程序上；某个程序自己的规则优先于 `"*"`。写 `true` 和不写是一样的（都是自动判定），这个字段只用来关。
 
 反过来，如果程序是按 TSF 规范**明确声明**由自己画候选（多数现代全屏游戏引擎），这几行管不着它——它已经说了不要输入法的界面，再画一个就是两头画。
+</Callout>
+
+## 占位字符 composition_placeholder <Since v="0.125" /> [#composition-placeholder]
+
+编码不显示在程序里时——候选窗自己显示编码（非嵌入模式）、联想、热键进入的加词 / 临时拼音等——输入法仍要在程序的输入区里挂一个占位字符，程序才会继续把按键交给输入法、并报得出光标位置。这个字符默认是空格。
+
+有些网页输入框会在你输入时**自动去掉首尾空格**再写回去（番茄小说的搜索框就是）。占位的空格一被去掉，浏览器就把正在进行的输入打断，结果是一个字都打不上去。`composition_placeholder = "zwsp"` 改用零宽空格，这类输入框不会去掉它。
+
+```toml
+[[apps]]
+process = "msedge.exe"
+composition_placeholder = "zwsp"
+```
+
+Edge、Chrome、Firefox 已内置。基于浏览器内核的桌面程序（如 VS Code、飞书）遇到同样的问题时，照上面加一行即可；也支持 `process = "*"` 一次套到所有程序。
+
+<Callout type="warn" title="不要给 WPS 这类程序改">
+WPS 等程序要靠那个空格才能给出有效的光标位置，改成零宽空格可能让候选窗找不到位置。只给确实遇到「打不上字」的程序开。
 </Callout>
 
 ## 宿主渲染模式 host_render <Since v="0.113" /> [#host-render]
