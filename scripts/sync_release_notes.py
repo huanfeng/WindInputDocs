@@ -46,6 +46,12 @@ LATEST_JSON = os.path.join(DATA_DIR, "latest.json")
 # （静态托管的 SPA 回落），mac 客户端会把 47KB 的 HTML 当 JSON 解析。
 LATEST_MAC_JSON = os.path.join(DATA_DIR, "latest-mac.json")
 
+# Linux 的那一份，结构与主仓 release-published.yml 推到 R2 的 latest-linux.json 一致：
+# 两个架构各一个 .deb，放在 `debs` 下按架构给出（键名与 exeUrl / pkgUrl 都不同，串档会在
+# 客户端解析阶段被拒）。下载页据此决定要不要给出 Linux 入口；两个架构缺一个就不写。
+LATEST_LINUX_JSON = os.path.join(DATA_DIR, "latest-linux.json")
+LINUX_ARCHES = ("amd64", "arm64")
+
 # 对外的下载域名。安装包仍在 R2（经 EdgeOne 前置），latest.json 与发布说明
 # 改由文档站产出，但**对外 URL 一律保持不变**——老版本客户端里这些地址是
 # 硬编码的，换域名等于把存量用户的在线更新一次性切断。
@@ -126,6 +132,59 @@ def sync_latest(release: dict, version: str) -> None:
         (LATEST_MAC_JSON, pkg_name(version), "pkgUrl"),
     ):
         write_latest(release, version, path, asset_name, url_key)
+    write_latest_linux(release, version)
+
+
+def deb_name(version: str, arch: str) -> str:
+    """Linux 安装包文件名。口径与主仓 linux-build.yml / WindInputSite worker/src/env.ts 一致。"""
+    return f"WindInput-{version}-linux-{arch}.deb"
+
+
+def build_latest_linux(release: dict, version: str) -> dict | None:
+    """组装 Linux 元数据；两个架构的 .deb 缺任何一个都返回 None（只来一个等于没发）。"""
+    assets = {a.get("name"): a for a in release.get("assets", [])}
+    debs = {}
+    for arch in LINUX_ARCHES:
+        name = deb_name(version, arch)
+        asset = assets.get(name)
+        if asset is None:
+            return None
+        digest = asset.get("digest") or ""
+        debs[arch] = {
+            "url": f"{DL_BASE}/{name}",
+            "sha256": digest.split(":", 1)[1] if digest.startswith("sha256:") else "",
+            "size": asset.get("size", 0),
+        }
+    return {
+        "version": version,
+        "tag": release.get("tag_name") or f"v{version}",
+        "channel": channel_of(version),
+        "debs": debs,
+        "releaseNotesUrl": f"{DL_BASE}/WindInput-{version}-Release.md",
+        "publishedAt": release.get("published_at", ""),
+    }
+
+
+def write_latest_linux(release: dict, version: str) -> None:
+    """写 data/latest-linux.json；缺包时保留旧文件（同 write_latest 的取舍）。"""
+    name = os.path.basename(LATEST_LINUX_JSON)
+    latest = build_latest_linux(release, version)
+    if latest is None:
+        print(
+            f"::warning::v{version} 的 Release 里没有完整的 Linux 安装包（amd64 + arm64），"
+            f"{name} 保持不变。",
+            file=sys.stderr,
+        )
+        return
+    if os.path.exists(LATEST_LINUX_JSON):
+        with open(LATEST_LINUX_JSON, encoding="utf-8") as f:
+            if json.load(f) == latest:
+                print(f"{name} 无变化。")
+                return
+    with open(LATEST_LINUX_JSON, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(latest, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"已更新 {name} → v{version}")
 
 
 def write_latest(

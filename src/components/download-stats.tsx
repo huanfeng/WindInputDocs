@@ -42,10 +42,18 @@ const PLATFORM_LABEL: Record<string, string> = {
   windows: "安装版",
   "windows-portable": "便携版",
   macos: "macOS",
+  "linux-amd64": "Linux x64",
+  "linux-arm64": "Linux ARM64",
 };
 
 /** 列顺序。与 WindInputSite 仓 worker/src/stats.ts 的 PLATFORM_ORDER 同序，两处一起加。 */
-const PLATFORM_ORDER = ["windows", "windows-portable", "macos"];
+const PLATFORM_ORDER = [
+  "windows",
+  "windows-portable",
+  "macos",
+  "linux-amd64",
+  "linux-arm64",
+];
 
 const SOURCE_LABEL: Record<string, string> = {
   mirror: "国内镜像",

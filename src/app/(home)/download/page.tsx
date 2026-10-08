@@ -1,9 +1,16 @@
-import { Apple, HardDrive, type LucideIcon, Package } from "lucide-react";
+import {
+  Apple,
+  HardDrive,
+  type LucideIcon,
+  Package,
+  Terminal,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DownloadStats } from "@/components/download-stats";
 import { ReleaseNotes } from "@/components/release-notes";
 import { TipTicker } from "@/components/tip-ticker";
+import { debFileName, linuxRelease } from "@/lib/linux-release";
 import {
   currentVersion,
   macDownloadUrl,
@@ -33,9 +40,12 @@ for (const r of releases) {
 const latestNotesGroup = latestGroup.filter((r) => r.notes.length > 0);
 const latestGroupOldest = latestGroup[latestGroup.length - 1];
 
+// 还没发过带 Linux 包的版本时为 null：不给 Linux 入口，也不列 Linux 卡片。
+const linux = linuxRelease();
+
 export const metadata: Metadata = {
   title: "下载",
-  description: "下载清风输入法 Windows / macOS 安装包",
+  description: "下载清风输入法 Windows / macOS / Linux 安装包",
 };
 
 // 卡片只回答「三种形态有什么区别」，不带任何下载入口——直链统一由页首的两个按钮
@@ -69,6 +79,21 @@ const editions: Edition[] = [
       "没有工具栏（改用菜单栏指示器），菜单由系统渲染、不受主题控制",
     ],
   },
+  ...(linux
+    ? [
+        {
+          icon: Terminal,
+          title: "Linux 版",
+          badge: "测试版",
+          points: [
+            "Fcitx5 输入法引擎，.deb 安装包（x64 / ARM64）",
+            "Ubuntu 22.04+、Deepin 25；X11 与 Wayland 会话均可",
+            "装完每个用户运行一次 windinput-setup，再注销重登",
+            "已知限制（KDE Plasma 的 Wayland 会话等）见 Linux 版文档",
+          ],
+        },
+      ]
+    : []),
   {
     icon: HardDrive,
     title: "便携模式",
@@ -92,6 +117,7 @@ export default function DownloadPage() {
             v{currentVersion}
           </code>
           {" · "}Windows 10 / 11（64 位） · macOS 12+
+          {linux && " · Ubuntu 22.04+ / Deepin 25"}
         </p>
         {/* 两个平台按钮同构：主文字给平台，小字给完整文件名（含版本号）。
             文件名用等宽字体——两侧长度恰好相同，按钮宽度自然对齐，不必钉死宽度。 */}
@@ -114,7 +140,29 @@ export default function DownloadPage() {
               {macFileName}
             </span>
           </a>
+          {linux && (
+            <a
+              href={linux.debs.amd64.url}
+              className="rounded-2xl border px-6 py-3 transition-colors hover:bg-fd-accent"
+            >
+              <span className="block font-medium">下载 Linux 版（x64）</span>
+              <span className="mt-0.5 block font-mono text-xs text-fd-muted-foreground">
+                {debFileName(linux.debs.amd64)}
+              </span>
+            </a>
+          )}
         </div>
+        {linux && (
+          <p className="mt-2 text-xs text-fd-muted-foreground">
+            ARM64 设备请下载{" "}
+            <a
+              href={linux.debs.arm64.url}
+              className="font-mono text-fd-primary hover:underline"
+            >
+              {debFileName(linux.debs.arm64)}
+            </a>
+          </p>
+        )}
         <div className="mt-4 flex justify-center">
           <Link
             href="/docs/start/installation"
@@ -174,7 +222,9 @@ export default function DownloadPage() {
         </section>
       )}
 
-      <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div
+        className={`mt-12 grid grid-cols-1 gap-4 ${linux ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+      >
         {editions.map((e) => (
           <div key={e.title} className="flex flex-col rounded-lg border p-5">
             <div className="mb-3 flex items-center gap-2">

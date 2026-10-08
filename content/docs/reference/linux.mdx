@@ -1,0 +1,78 @@
+---
+title: Linux 版
+description: Linux 版（测试版）的系统要求、安装与配置、升级卸载，以及与 Windows 版的差异和已知限制
+---
+
+<Callout type="warn" title="测试版">
+  Linux 版仍是测试版：日常输入已可用，但部分功能尚未移植（见[与 Windows 版的差异](#differences)），
+  不同桌面环境下的表现也还在打磨。遇到问题欢迎按[反馈问题](/docs/reference/report-logs)附上日志。
+</Callout>
+
+## 系统要求
+
+- Ubuntu 22.04 及以上，或 Deepin 25（其他 Debian 系发行版理论可用，未逐一验证）
+- x64（amd64）或 ARM64（arm64）
+- 输入法框架 **Fcitx5**（5.0.14 及以上；安装包会自动拉取依赖）
+
+X11 与 Wayland 会话均可使用，Wayland 下的差异见[已知限制](#limitations)。
+
+## 安装
+
+1. 从[下载页](/download)或 [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 获取与机器架构对应的安装包：
+   `WindInput-x.x.x-linux-amd64.deb`（x64）或 `WindInput-x.x.x-linux-arm64.deb`（ARM64）
+2. 在终端安装（会自动安装 Fcitx5 等依赖）：
+
+   ```bash
+   sudo apt install ./WindInput-x.x.x-linux-amd64.deb
+   ```
+
+3. **每个要使用清风输入法的用户**，在桌面的终端里运行一次：
+
+   ```bash
+   windinput-setup
+   ```
+
+4. **注销并重新登录**，用 `Ctrl + Space` 切到清风输入法。
+
+### windinput-setup 做了什么
+
+它只改当前用户自己的配置，可以重复运行：
+
+- 把「清风输入法」加入 Fcitx5 的输入法列表；
+- 清空 Fcitx5 的「临时切换输入法」热键（出厂是左 Shift），否则 Shift 单击会被 Fcitx5 先截走，「Shift 切换中英」不生效；
+- 用户配置里还没有方案时，写入初始方案（默认全拼，可用 `--schema wubi86` 改为五笔）；
+- 用 `im-config` 把当前用户的输入法框架设为 Fcitx5（不想让它动 im-config，加 `--no-im-config`）。
+
+Fcitx5 正在运行时，它会先让 Fcitx5 退出、改完再重新启动——所以请在**桌面里的终端**运行，不要在 SSH 等远程会话里运行。
+
+## 设置程序
+
+从应用菜单打开「清风输入法设置」，或在输入时按 `Ctrl + Shift + ]`。
+
+## 升级与卸载
+
+- **升级**：下载新版安装包，同样用 `sudo apt install ./WindInput-…deb` 覆盖安装，然后注销重登（或在桌面终端运行 `fcitx5 -rd` 重启 Fcitx5）。Linux 版暂不支持设置程序里的在线更新。
+- **卸载**：`sudo apt remove windinput`。用户数据保留在下面的目录里，不需要了可以手动删除。
+
+## 文件位置
+
+| 用途 | 路径 |
+|---|---|
+| 用户配置 | `~/.config/WindInput/` |
+| 用户词库与数据 | `~/.local/share/WindInput/` |
+| 日志 | `~/.local/share/WindInput/logs/` |
+| 程序与内置词库 | `/usr/lib/windinput/` |
+
+## 与 Windows 版的差异 [#differences]
+
+- 没有工具栏、软键盘与全局快捷键；
+- 没有「应用兼容性与独立配置」（按应用的兼容规则）；
+- 命令直通车的按键合成只作用于当前输入框所在的应用，桌面级快捷键（如 `Super+E`）不会触发；
+- 不支持在线更新（见上文「升级」）。
+
+## 已知限制 [#limitations]
+
+- **Wayland 会话下候选窗的位置由桌面合成器决定。** 光标位于屏幕底部时，候选窗可能被任务栏遮住；按屏幕位置摆放的提示（Toast、固定位置的状态气泡）不受影响。
+- **KDE Plasma 的 Wayland 会话尚未适配**，候选窗位置可能不准，可暂时改用 X11 会话。
+- **部分 Chromium 内核浏览器在 Wayland 下无法输入**（换用其他输入法也一样）：浏览器以原生 Wayland 方式运行、却没有开启 Wayland 输入法支持时会这样。可在启动参数里加上 `--enable-wayland-ime`，或改用 `--ozone-platform=x11` 启动。
+- 跟随光标的状态气泡不能拖动；需要自由摆放时，把气泡位置改为「固定位置」后再拖。

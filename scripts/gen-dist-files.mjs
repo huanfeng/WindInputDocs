@@ -105,6 +105,15 @@ function main() {
 
   // 全版本都生成：EdgeOne 的重写规则是 WindInput-*-Release.md 一条通配，
   // 只产出最新版会让历史地址 404。每份几 KB，全量也不过几十 KB。
+  // Linux 同 mac：缺失时只警告（首个带 Linux 包的版本之前本就没有这份）
+  const linux = tryReadJson("latest-linux.json");
+  if (linux) {
+    writeFileSync(
+      join(OUT, "latest-linux.json"),
+      `${JSON.stringify(linux, null, 2)}\n`,
+    );
+  }
+
   const releases = readJson("releases.json");
   for (const entry of releases) {
     writeFileSync(
@@ -116,6 +125,7 @@ function main() {
   console.log(
     `分发文件已生成：latest.json（v${latest.version}）` +
       `${mac ? ` + latest-mac.json（v${mac.version}）` : ""}` +
+      `${linux ? ` + latest-linux.json（v${linux.version}）` : ""}` +
       ` + ${releases.length} 份发布说明`,
   );
 }
