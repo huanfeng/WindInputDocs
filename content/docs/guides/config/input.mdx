@@ -320,6 +320,7 @@ cancel_on_mode_switch = false  # 中英模式切换时取消大写锁定
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `cancel_on_mode_switch` | 布尔 | — | `false` | 中英模式切换时是否同时取消 CapsLock 大写锁定状态 |
+| `mode_after_cancel` <Since v="0.125" /> | 枚举 | `chinese` / `english` / `toggle` | `"chinese"` | 上一项取消了大写之后落到哪个模式：`chinese` = Shift 回到中文、Ctrl+空格 按它自己的切换方向（即原有行为）；`english` = 一律进英文，适合「打完大写接着打小写」；`toggle` = 照常切换（Shift 翻转中英，Ctrl+空格 同 `chinese`）。仅 Windows |
 
 ## 临时拼音（input.temp_pinyin）
 
