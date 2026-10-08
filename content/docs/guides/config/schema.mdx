@@ -522,6 +522,21 @@ max_extra_syllables = 5   # 词组最多比输入多几个音节
 
 逐档的候选对照表、「堤岸」为何仍在、以及两项如何配合，见[拼音方案配置 · 词组补全](/docs/settings/schema/pinyin#completion)。
 
+## 拼音简拼（schema.pinyin.abbrev） <Since v="0.125" /> [#pinyin-abbrev]
+
+```toml
+[schema.pinyin.abbrev]
+enabled = true         # 是否给简拼候选
+max_syllables = 0      # 一个候选最多几个音节只打声母，0 = 不限
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | `true` / `false` | `true` | `false` = 纯简拼（`nh`）、混合简拼（`nhao`）、简拼整句（`bzdhaobuhao`）都不出；尾部残码补全不受影响 |
+| `max_syllables` | 整数 | `0`–`8` | `0` | 数的是只打了声母的音节：`hlyb`（喝了一杯）4 个、`nhao` 1 个、`bzdhaobuhao` 3 个。`3` = 短简拼照常、四个及以上的不出 |
+
+全拼、双拼方案生效。混输里的拼音另受 [`schema.mix.enable_pinyin_abbrev`](#混输schemamix) 管开关，两者都为 `true` 才出简拼；`max_syllables` 两边都认。逐例对照见[拼音方案配置 · 简拼](/docs/settings/schema/pinyin#abbrev-limit)。
+
 ## 上下文语言模型（schema.pinyin.grammar） <Since v="0.117" /> [#pinyin-grammar]
 
 整句转换的 n-gram 上下文打分。**实验性，尚未正式发布**：默认关闭，且模型文件不随安装包分发（许可与体积），需自行获取并放到 `data/schemas/pinyin/grammar/` 下。
