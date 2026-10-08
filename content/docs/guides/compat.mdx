@@ -114,7 +114,7 @@ caret_use_top = true
 | `EXCEL.EXE` / `et.exe` | `first_show_mode = "wait"` | 进单元格时先在编辑栏建临时编辑上下文、约 0.5s 后才切到单元格，`fast` 档的试探坐标会抢在切换前把候选窗显示在编辑栏 |
 | `QQ.exe` / `Code.exe` / `Feishu.exe` <Since v="0.121" /> | `composition_start_pair_guard = true` | 长组合时交替上报组合起点降级帧与当前 selection，跨度不是锚点错误 |
 | `wps.exe` / `WINWORD.EXE` <Since v="0.121" /> | `pin_anchor_when_start_drifts = true` | 长组合内组合起点每帧跟着插入点右移，大偏移逃生阀被这份数据一路骗着重锁 |
-| 窗口类名 `Chrome_WidgetWin_*` / `MozillaWindowClass` <Since v="0.125" /> | `composition_placeholder = "zwsp"` | 按窗口类名认浏览器内核：前者是 Edge、Chrome 等 Chromium 浏览器，**也包括所有 Electron 应用**（VS Code、飞书、QQ NT、新版微信等）；后者是 Firefox。网页里会自动去掉首尾空格的输入框，占位空格一被去掉输入就被打断，见[下文](#composition-placeholder) |
+| 窗口类名 `Chrome_WidgetWin_*` / `MozillaWindowClass` <Since v="0.125" /> | `composition_placeholder = "blank"` | 按窗口类名认浏览器内核：前者是 Edge、Chrome 等 Chromium 浏览器，**也包括所有 Electron 应用**（VS Code、飞书、QQ NT、新版微信等）；后者是 Firefox。网页里会自动去掉首尾空格的输入框，占位空格一被去掉输入就被打断，见[下文](#composition-placeholder) |
 
 ## caret_use_top
 
@@ -351,17 +351,17 @@ host_drawn_candidates = false
 
 有些网页输入框会在你输入时**自动去掉首尾空格**再写回去（番茄小说的搜索框就是）。占位的空格一被去掉，浏览器就把正在进行的输入打断，结果是一个字都打不上去。`composition_placeholder = "zwsp"` 改用零宽空格，这类输入框不会去掉它。
 
-也有程序要「看得见内容」才开始编辑：钉钉在线表格里选中单元格直接打字时，零宽空格被当成没有内容，输入停在表格左上角、候选窗位置也跟着错。这类程序用 `composition_placeholder = "blank"`（盲文空白 U+2800）——它像空格一样占一个字宽，却不会被当成空格去掉。
+也有程序要「看得见内容」才开始编辑：钉钉在线表格里选中单元格直接打字时，零宽空格被当成没有内容，输入停在表格左上角、候选窗位置也跟着错。这类程序用 `composition_placeholder = "blank"`（盲文空白 U+2800）——它像空格一样占一个字宽，却不会被当成空格去掉，所以对上面两类网页都适用。
 
 ```toml
 [[apps]]
 process = "SomeApp.exe"
-composition_placeholder = "zwsp"
+composition_placeholder = "blank"
 ```
 
-浏览器内核已内置，不按进程名而按**窗口类名**认：`Chrome_WidgetWin_*` 覆盖 Edge、Chrome 等 Chromium 浏览器以及所有 Electron 应用（VS Code、飞书、QQ NT、新版微信等），`MozillaWindowClass` 覆盖 Firefox。其它程序遇到同样的问题，照上面加一行即可；也支持 `process = "*"` 一次套到所有程序。
+浏览器内核已内置（出厂用 `blank`），不按进程名而按**窗口类名**认：`Chrome_WidgetWin_*` 覆盖 Edge、Chrome 等 Chromium 浏览器以及所有 Electron 应用（VS Code、飞书、QQ NT、新版微信等），`MozillaWindowClass` 覆盖 Firefox。其它程序遇到同样的问题，照上面加一行即可；也支持 `process = "*"` 一次套到所有程序。
 
-反过来，某个基于浏览器内核的程序改用零宽空格后出了问题（比如候选窗找不到光标位置），在用户层给它写回空格——进程规则比只写窗口类名的规则更具体，写了的字段压过它：
+反过来，某个基于浏览器内核的程序改用盲文空白后出了问题（比如候选窗找不到光标位置），在用户层给它写回空格——进程规则比只写窗口类名的规则更具体，写了的字段压过它：
 
 ```toml
 [[apps]]
@@ -370,7 +370,7 @@ composition_placeholder = "space"
 ```
 
 <Callout type="warn" title="不要给 WPS 这类程序改">
-WPS 等程序要靠那个空格才能给出有效的光标位置，改成零宽空格可能让候选窗找不到位置。只给确实遇到「打不上字」的程序开。
+WPS 等程序要靠那个空格才能给出有效的光标位置，改成零宽空格 / 盲文空白可能让候选窗找不到位置。只给确实遇到「打不上字」的程序开。
 </Callout>
 
 ## 宿主渲染模式 host_render <Since v="0.113" /> [#host-render]
