@@ -299,11 +299,11 @@ enabled = false          # 自动造词总开关
 
 ## 拼音引擎（schema.pinyin）
 
-所有拼音类方案（全拼 / 双拼 / 混输拼音子方案 / 临时拼音反查）共用。除 `separator` 外无方案级 override——方案文件的 `[pinyin] separator` 会盖过这里的值，不写则回落到这里。出厂就靠它让全拼与双拼分头处置反引号：全拼拿它当分隔符，双拼拿它进辅助码。
+所有拼音类方案（全拼 / 双拼 / 混输拼音子方案 / 临时拼音反查）共用（例外：编码提示来源 `code_hint_source` 只管全拼 / 双拼方案，临时拼音与混输方案各有一份，见下）。除 `separator` 外无方案级 override——方案文件的 `[pinyin] separator` 会盖过这里的值，不写则回落到这里。出厂就靠它让全拼与双拼分头处置反引号：全拼拿它当分隔符，双拼拿它进辅助码。
 
 ```toml
 [schema.pinyin]
-code_hint_source = "auto"   # 编码提示来源：off / codetable / schema / auto
+code_hint_source = "off"    # 编码提示来源：off / codetable / shuangpin / auto
 use_smart_compose = true    # 智能组词
 single_char = false         # 单字输入：候选只出单字
 separator = "auto"          # 分隔策略：auto / quote / backtick / none
@@ -311,7 +311,7 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `code_hint_source` <Since v="0.122" /> | 字符串 | `off` / `codetable` / `shuangpin` / `auto` | `"auto"` | 候选注释里显示哪种编码，见下方 Callout。0.122 之前是布尔键 `show_code_hint`，升级自动迁移 |
+| `code_hint_source` <Since v="0.122" /> | 字符串 | `off` / `codetable` / `shuangpin` / `auto` | `"off"` <Since v="0.123" /> | 全拼 / 双拼方案下，候选注释里显示哪种编码，见下方 Callout。0.122 之前是布尔键 `show_code_hint`，升级自动迁移。临时拼音 / 快捷输入读 [`input.temp_pinyin.code_hint_source`](/docs/guides/config/input)，混输方案读 [`schema.mix.pinyin_code_hint`](#混输schemamix) |
 | `use_smart_compose` | 布尔 | — | `true` | 智能组词 |
 
 <Callout title="`code_hint_source` 的四档">
@@ -319,10 +319,10 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 
 | 值 | 放行的变量 |
 | --- | --- |
-| `off` | 都不放行 |
+| `off`（出厂） | 都不放行 |
 | `codetable` | `${code_rev}` / `${code_rev_all}`（主码表反查） |
 | `shuangpin` | `${shuangpin}`（双拼编码，全拼方案下也能显示） |
-| `auto`（出厂） | 两者都放行，谁先出由模板的回退链决定 |
+| `auto` | 两者都放行，谁先出由模板的回退链决定 |
 
 从旧版升级时，`show_code_hint = true` 自动迁移为 `codetable`、`false` 为 `off`，行为不变。
 想让双拼码显示出来，改成 `auto` 或 `shuangpin`。
@@ -595,6 +595,7 @@ pinyin_word_min_weight = 0           # 拼音歧义拦截的权重阈值
 enable_pinyin_abbrev = false         # 拼音产出简拼候选（声母缩写，nh→你好）
 pinyin_partial_candidates = false    # 码长内保留「未消费整串」的拼音候选
 pinyin_partial_candidates_overflow = true # 超码长时保留同类候选
+pinyin_code_hint = true              # 拼音候选显示主码表编码（反查）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -612,6 +613,7 @@ pinyin_partial_candidates_overflow = true # 超码长时保留同类候选
 | `enable_pinyin_abbrev` | 布尔 | — | `false` <Since v="0.117" /> | 混输时拼音是否产出简拼候选（声母缩写）。**出厂关**：开着它会让超码长顶码上屏基本不发生，见下。仅影响混输的拼音子引擎，纯拼音方案不受影响；另需 [`schema.pinyin.abbrev.enabled`](#pinyin-abbrev) 为 `true` <Since v="0.125" /> |
 | `pinyin_partial_candidates` | 布尔 | — | `false` <Since v="0.117" /> | 码长内（输入未超过主码表码长）是否保留**未消费整串**的拼音候选。关（默认）：`gedw`（五笔精确码「青春」）不再列出 `ge` 的两百多条同音单字——它们每条只解释了 4 键中的 2 键。代价：码长内没有分步上屏（选一条部分候选先上屏、剩余码接着打）。正在输入中的拼音不受影响：`wanl` → 「完了」是前缀补全（消费整串），照常出候选 |
 | `pinyin_partial_candidates_overflow` | 布尔 | — | `true` <Since v="0.117" /> | 超码长（输入已超过主码表码长、切入纯拼音语境）是否保留同类候选。开（默认）：长拼音是拼音的地盘，`nihaom` 选「你好」再续打 `ma` 的分步上屏要留着 |
+| `pinyin_code_hint` | 布尔 | — | `true` <Since v="0.125" /> | 混输方案下，拼音候选旁显示它的主码表编码（`${code_rev}` / `${code_rev_all}`），便于学码。与拼音方案的 [`schema.pinyin.code_hint_source`](#拼音引擎schemapinyin) 互不影响——那份出厂 `off` 照顾纯拼音用户。临时拼音 / 快捷输入期间读 `input.temp_pinyin.code_hint_source`，不读这里 |
 
 <Callout type="info" title="顶码上屏时，「归属已判给码表」不受本项否决">
 超码长（编码长度超过码表满码）顶码上屏时，若**前 N 码是码表精确全码**且**拼音与英文都解释不了整串**，`auto_commit_block_on_pinyin` 不再否决——让路给拼音的前提是拼音接得住这一串。

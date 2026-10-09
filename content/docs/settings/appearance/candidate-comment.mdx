@@ -84,7 +84,8 @@ import { Since } from "@/components/since";
 
 <Callout title="哪些变量能出，还受一个开关管">
 「方案 → 候选行为 → 编码提示来源」决定放行哪一类编码：`codetable` 只放行 `${code_rev}` /
-`${code_rev_all}`，`shuangpin` 只放行 `${shuangpin}`，`auto`（出厂）两者都放行，`off` 都不放行。
+`${code_rev_all}`，`shuangpin` 只放行 `${shuangpin}`，`auto` 两者都放行，`off`（出厂）都不放行。
+临时拼音另有一份（出厂 `auto`）；混输方案读「混输行为 → 拼音候选显示编码」（出厂开，只放行码表反查）。
 
 开关管「允许哪些来源」，模板管「按什么顺序和格式摆」。所以把来源设成 `codetable` 之后，
 即使模板里写着 `${shuangpin}` 也不会显示——这是按配置办事，不是坏了。
