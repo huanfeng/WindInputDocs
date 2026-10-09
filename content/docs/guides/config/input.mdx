@@ -129,6 +129,7 @@ kind = "off"            # 联想类型（兼任总开关）
 mode = "one_shot"       # 一次性 / 持续联想
 max_count = 9           # 候选条数上限
 space_commits = true    # 空格上屏当前高亮的联想候选
+select_keys_commit = true       # 二三候选键选联想；false = 联想窗出来时让出这些键
 enter_cancels_only = false      # 回车：false = 收窗并照常换行/发送
 backspace_cancels_only = true   # 退格：true = 只收窗，不删字
 hide_after_ms = 5000    # 显示多久后自动收起；0 = 不自动收起
@@ -144,6 +145,7 @@ punct = false           # 来源：标点与符号（桌面默认关，移动端
 | `mode` | 枚举 | `one_shot` / `continuous` | `"one_shot"` | `one_shot` = 只出一次，任何非选词动作即退出；`continuous` = 选中后拿它当新上文接着给（「中」→「中国」→ 以「中国」开头的词） |
 | `max_count` | 整数 | — | `9` | 候选条数上限。各来源按下方书写顺序依次取配额，取不满的名额顺延给后一个来源 |
 | `space_commits` | 布尔 | — | `true` | 空格是否上屏当前高亮的联想候选。关掉则空格照常出空格，联想窗同时收起 |
+| `select_keys_commit` <Since v="0.125" /> | 布尔 | — | `true` | 二三候选键（`keys.select_key_groups` / `session_actions` 里 `select_candidate:N` 的可打印键，出厂 `;` `'`）在联想窗里是否选联想候选。`false` = 不选：联想窗收起，该键按联想窗不在时处理（普通标点照常出，另绑了模式引导的照常进模式）。修饰键组与数字键不受影响，详见[二三候选键选联想](/docs/settings/input/association#select-keys) |
 | `enter_cancels_only` | 布尔 | — | `false` | 联想窗弹出时按**回车**：`false` = 收窗，同时回车照常换行 / 发送；`true` = 只收窗、把回车吃掉，要按第二次才生效 |
 | `backspace_cancels_only` | 布尔 | — | `true` | 联想窗弹出时按**退格**：`true` = 只收窗、不删字；`false` = 收窗并删掉刚上屏的那个字 |
 | `hide_after_ms` | 整数 | — | `5000` | 联想窗显示多少毫秒后自动收起；`0` = 不自动收起 |
