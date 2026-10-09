@@ -258,6 +258,22 @@ default_weight = 500            # 该库无权重列，整库定档 500
 混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库。详见[混输方案配置](/docs/settings/schema/mixed#no-own-dict)。
 </Callout>
 
+### 扩展词库目录 <Since v="0.125" /> [#dictionary-dirs]
+
+除了逐个写 `[[dictionaries]]`，方案还可以声明**扩展词库目录**：目录里的词库文件在读方案时自动登记为扩展词库（默认不启用），用户放进去就能在设置里开关，不用改方案文件。
+
+```toml
+[[dictionary_dirs]]
+path = "pinyin/cn_dicts_cell"   # 相对 schemas\ 目录
+type = "rime_pinyin"            # 目录里词库的类型，取值同 dictionaries 的 type
+```
+
+- 只认 `*.dict.yaml`，不递归子目录。用户数据目录与程序 `data\` 下的同名目录**合并扫描**，同名文件以用户数据目录的为准
+- 自动登记的词库：`id` 为 `dir:<相对路径去掉 .dict.yaml>`（如 `dir:pinyin/cn_dicts_cell/idiom`），`label` 取词库头部 `name:`、没有就用文件名，`enabled` 由用户在设置里翻、照常写进覆盖层
+- 码表方案的这类词库排在已声明的词库之后（`base_order` 递增）；拼音方案不看 `base_order`，与主词库一起排序
+- **跳过**：方案里已用 `[[dictionaries]]` 手写声明的同一文件（手写的优先）；已被某个已声明词库的 `import_tables` 引用、且确实会被它加载的文件（避免同一批词加载两遍）
+- 出厂全拼、双拼方案声明了 `pinyin/cn_dicts_cell`；用法见[方案设置 · 自己添加扩展词库](/docs/settings/schema#dict-dirs)
+
 ## 词库文件（.dict.yaml）
 
 词库文件沿用 Rime 的 `.dict.yaml` 外形，但**解析器是本输入法自己的**，与 librime 并不等价。理解下面这几条能避免绝大多数「词库加载了却不生效」的问题。
