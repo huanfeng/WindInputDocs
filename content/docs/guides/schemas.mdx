@@ -260,20 +260,21 @@ default_weight = 500            # 该库无权重列，整库定档 500
 
 ### 扩展词库目录 <Since v="0.125" /> [#dictionary-dirs]
 
-除了逐个写 `[[dictionaries]]`，方案还可以声明**扩展词库目录**：目录里的词库文件在读方案时自动登记为扩展词库（默认不启用），用户放进去就能在设置里开关，不用改方案文件。
+除了逐个写 `[[dictionaries]]`，方案还有**扩展词库目录**：目录里的词库文件在读方案时自动登记为扩展词库（默认不启用），用户放进去就能在设置里开关，不用改方案文件。
+
+拼音、码表方案（`[engine] type` 为 `pinyin` / `codetable`）**不用声明就有一个**：主词库所在目录下的 `ext`（如全拼是 `pinyin/ext`、五笔是 `wubi86/ext`），类型同主词库。要换位置或加多个目录时才需要显式声明，声明后以声明为准；不想要就写 `dictionary_dirs = []`。
 
 ```toml
 [[dictionary_dirs]]
-path = "pinyin/cn_dicts_cell"   # 相对 schemas\ 目录
-type = "rime_pinyin"            # 目录里词库的类型，取值同 dictionaries 的 type
+path = "wubi86/cells"   # 相对 schemas\ 目录
+type = "rime_codetable" # 目录里词库的类型，取值同 dictionaries 的 type
 ```
 
 - 只认 `*.dict.yaml`，不递归子目录。用户数据目录与程序 `data\` 下的同名目录**合并扫描**，同名文件以用户数据目录的为准
-- 自动登记的词库：`id` 为 `dir:<相对路径去掉 .dict.yaml>`（如 `dir:pinyin/cn_dicts_cell/idiom`），`label` 取词库头部 `name:`、没有就用文件名，`enabled` 由用户在设置里翻、照常写进覆盖层
+- 自动登记的词库：`id` 为 `dir:<相对路径去掉 .dict.yaml>`（如 `dir:pinyin/ext/idiom`），`label` 取词库头部 `name:`、没有就用文件名，`enabled` 由用户在设置里翻、照常写进覆盖层
 - 码表方案的这类词库排在已声明的词库之后（`base_order` 递增）；拼音方案不看 `base_order`，与主词库一起排序
 - **跳过**：方案里已用 `[[dictionaries]]` 手写声明的同一文件（手写的优先）；已被某个已声明词库的 `import_tables` 引用、且确实会被它加载的文件（避免同一批词加载两遍）
-- **码表方案默认有一个**：`[engine] type = "codetable"` 的方案没写 `dictionary_dirs` 时，自动使用主词库所在目录下的 `ext`（如五笔是 `wubi86/ext`），类型同主词库。第三方码表方案不用改文件就能放扩展词库；不想要就写 `dictionary_dirs = []`
-- 出厂全拼、双拼方案声明了 `pinyin/cn_dicts_cell`；用法见[方案设置 · 自己添加扩展词库](/docs/settings/schema#dict-dirs)。程序目录下随包附带的 16 张在方案里另用 `[[dictionaries]]` 逐张声明（`id` 为 `cell_<文件名>`），只为给出中文名称
+- 出厂方案都没有声明，用的就是默认的 `ext`；用法见[方案设置 · 自己添加扩展词库](/docs/settings/schema#dict-dirs)。全拼、双拼随包附带的 16 张放在程序目录的 `pinyin/ext` 下，并在方案里另用 `[[dictionaries]]` 逐张声明（`id` 为 `cell_<文件名>`），只为给出中文名称
 
 ## 词库文件（.dict.yaml）
 
