@@ -88,7 +88,7 @@ const editions: Edition[] = [
           points: [
             "Fcitx5 输入法引擎，.deb 安装包（x64 / ARM64）",
             "Ubuntu 22.04+、Deepin 25；X11 与 Wayland 会话均可",
-            "装完每个用户运行一次 windinput-setup，再注销重登",
+            "装完注销重登，在 Fcitx5 配置里添加清风输入法",
             "已知限制（KDE Plasma 的 Wayland 会话等）见 Linux 版文档",
           ],
         },
