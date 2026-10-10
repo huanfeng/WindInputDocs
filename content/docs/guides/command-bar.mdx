@@ -534,7 +534,8 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `key.type(text)` | Unicode 直输，绕过键盘布局（走 SendInput，非 TSF）。文本里的换行与制表符会发成回车 / Tab **按键** <Since v="0.118" /> |
 | `clip.copy(s)` / `clip.paste()` | 写入剪贴板 / 模拟 Ctrl+V |
 | `dict.add(s)` / `dict.add(s, code)` | 加词到用户库（不给 `code` 就按当前方案的取码规则推导） |
-| `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `preedit` / `toolbar` |
+| `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `t2s` / `preedit` / `toolbar` |
+| `ime.toggle("emoji")` / `ime.toggle("emoji:模块id")` / `ime.toggle("dict:库id")` <Since v="0.126" /> | **数据开关**：emoji 候选总开关 / 某个 emoji 附加模块 / 某个注释词库，见[下文](#data-toggles) |
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
 | `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
@@ -544,6 +545,23 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `config.set(key, value)` / `config.toggle(key)` | 写入配置 / 循环切换枚举或翻转布尔（返回新值） |
 | `wind.cli(...)` | **调用命令行子命令**，见下文 |
 | `ui.toast(text, kind?, color?, pos?, ms?)` <Since v="0.121" /> | **弹一条桌面提示**，见下文 |
+
+### 数据开关 <Since v="0.126" /> [#data-toggles]
+
+`ime.toggle` 也能开关几项「查表」类功能，适合做成短语或绑到按键上，不必进设置页：
+
+| target | 开关的是 |
+| --- | --- |
+| `emoji` | [emoji 候选](/docs/settings/input#emoji)总开关 |
+| `emoji:模块id` | 一个 [emoji 附加模块](/docs/settings/input#emoji-modules)，如 `emoji:frost_greek`（希腊字母）；用户目录 `emoji\` 里放的表，id 就是文件名 |
+| `dict:库id` | 一个[注释词库](/docs/settings/appearance/candidate-comment#注释词库)，id 即设置页列表里 `${dict:…}` 显示的那个 |
+
+```text
+coxl = $CC("希腊字母开关", ime.toggle("emoji:frost_greek"))
+cozy = $CC("中英释义开关", ime.toggle("dict:chinese_english"))
+```
+
+每次切换都会写进配置并立即生效，屏幕中央弹一条提示说明现在是开还是关。id 写错时报错，不会静默无反应。
 
 `type(s)` 是唯一被特殊对待的名字：它只能作为 `$CC` 的动作**直接**写出来，不能嵌进别的函数里、也不能出现在显示名中，且只接受 1 个参数、不接受具名参数。`help("type")` 也查不到它。别和 `key.type` 搞混——后者是模拟键盘直输，走的是另一条路径。
 
