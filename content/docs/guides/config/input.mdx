@@ -508,7 +508,7 @@ frost_emoji = true
 
 ### 附加模块（input.emoji.modules） <Since v="0.126" /> [#emoji-modules]
 
-来自白霜拼音的 emoji 与符号表，每个模块一个布尔开关，键写在 `[input.emoji.modules]` 下；没写的键按出厂值。查询时排在主词表（与分类词表）之后，按下表顺序拼接，再按 `max_per_word` 截断，带不带 U+FE0F 的同一符号只算一个。
+每个模块一个布尔开关，键写在 `[input.emoji.modules]` 下；没写的键按出厂值。内置模块来自白霜拼音（见下表）；用户数据目录 `emoji\` 下放的 OpenCC 格式 `.txt` 也会成为模块，键是文件名（去掉 `.txt`），出厂关，见[设置页说明](/docs/settings/input#emoji-modules)。查询时排在主词表（与分类词表）之后，按下表顺序拼接，再按 `max_per_word` 截断，带不带 U+FE0F 的同一符号只算一个。
 
 | 键 | 默认 | 内容 |
 | --- | --- | --- |
