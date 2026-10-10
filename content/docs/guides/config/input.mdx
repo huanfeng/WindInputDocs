@@ -491,6 +491,9 @@ max_per_word = 3       # 一个词最多追加几个
 max_hosts = 1          # 只为列表前 N 个候选追加
 min_word_chars = 2     # 候选少于此字数时不追加
 categories = false     # 是否启用分类词表
+
+[input.emoji.modules]  # 附加模块（0.126 起），见下
+frost_emoji = true
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -502,6 +505,24 @@ categories = false     # 是否启用分类词表
 | `max_hosts` | 整数 | — | `1` | 只为候选列表的前 N 个候选做扩展。出厂 `1`（只扩首选）——这是把「候选序号漂移」控制住的主要手段 |
 | `min_word_chars` | 整数 | — | `2` | 宿主候选至少要有几个字才触发。出厂 `2`：单字（「一」→ 1️⃣）噪音最大且最没用 |
 | `categories` | 布尔 | — | `false` | 是否加载分类词表（「动物」→ 整组动物 emoji）。出厂关：干扰几乎全集中在这 166 条上；但它也是「我想找个动物表情」时唯一好用的入口，故做成独立开关 |
+
+### 附加模块（input.emoji.modules） <Since v="0.126" /> [#emoji-modules]
+
+来自白霜拼音的 emoji 与符号表，每个模块一个布尔开关，键写在 `[input.emoji.modules]` 下；没写的键按出厂值。查询时排在主词表（与分类词表）之后，按下表顺序拼接，再按 `max_per_word` 截断，带不带 U+FE0F 的同一符号只算一个。
+
+| 键 | 默认 | 内容 |
+| --- | --- | --- |
+| `frost_emoji` | `true` | 白霜 emoji 表（「右箭头」→ ➡️） |
+| `frost_radicals` | `false` | 偏旁部首（「提手旁」→ 扌） |
+| `frost_greek` | `false` | 希腊字母（「阿尔法」→ alpha α Α） |
+| `frost_misc` | `false` | 单位上标与杂项（「平方米」→ m²） |
+| `frost_keys` | `false` | 键盘符号（「command」→ ⌘） |
+| `frost_diezi` | `false` | 叠字（「两个火」→ 炎 炏） |
+| `frost_chem` | `false` | 化学式（「高锰酸钾」→ KMnO₄） |
+| `frost_month` | `false` | 月份星期的英文（「一月」→ Jan. January） |
+| `frost_sitcom` | `false` | 美剧人名（「谢耳朵」→ Sheldon） |
+
+每张表各自建一份索引缓存，开关一个模块不会让其它表重建。
 
 <Callout type="info" title="emoji 不参与词频学习">
 emoji 候选按表追加、位置由上面几项决定，选它不会改变任何词的排序。想让某个 emoji 常驻靠前，请用[快捷输入](/docs/settings/input/quick-input)或短语，而不是指望调频。
