@@ -536,7 +536,7 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `dict.add(s)` / `dict.add(s, code)` | 加词到用户库（不给 `code` 就按当前方案的取码规则推导） |
 | `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `t2s` / `preedit` / `toolbar` |
 | `ime.toggle("emoji")` / `ime.toggle("emoji:模块id")` / `ime.toggle("dict:库id")` <Since v="0.126" /> | **数据开关**：emoji 候选总开关 / 某个 emoji 附加模块 / 某个注释词库，见[下文](#data-toggles) |
-| `ime.set(target, 状态)` <Since v="0.126" /> | 把数据开关**设为**指定状态（`on` / `off`），已是该状态则不改动，见[下文](#data-toggles) |
+| `ime.set(target, 状态)` <Since v="0.126" /> | 把开关**设为**指定状态（`on` / `off`），已是该状态则不改动。target 可以是 `cn-en`（`on` = 中文）/ `fullshape` / `s2t` / `t2s` / `toolbar`，也可以是下文的数据开关；`layout` / `candwin` / `preedit` 是循环切换，只能用 `ime.toggle` |
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
 | `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
@@ -562,9 +562,11 @@ coxl = $CC("希腊字母开关", ime.toggle("emoji:frost_greek"))
 cozy = $CC("中英释义开关", ime.toggle("dict:chinese_english"))
 # 一次切到「查英文」状态：开释义、关 emoji
 coyw = $CC("英文释义模式", ime.set("dict:chinese_english", "on"), ime.set("emoji", "off"))
+# 确保回到中文、半角
+cozw = $CC("中文半角", ime.set("cn-en", "on"), ime.set("fullshape", "off"))
 ```
 
-状态真的变了才写进配置并立即生效，屏幕中央提示「…已开启 / 已关闭」；`ime.set` 遇到状态本就一致时不写配置，只提示「…已是开启状态」，让你知道命令确实执行了。id 写错或状态写成认不出的值时报错，不会静默无反应。`ime.set` 只支持上表这几种数据开关。
+状态真的变了才写进配置并立即生效，屏幕中央提示「…已开启 / 已关闭」；`ime.set` 遇到状态本就一致时不写配置，只提示「…已是开启状态」，让你知道命令确实执行了。id 写错或状态写成认不出的值时报错，不会静默无反应。输入状态（`cn-en`、`fullshape` 等）用 `ime.set` 时同理：已是目标状态只提示「已是中文模式」「简入繁出已是开启状态」之类，否则照常切换。
 
 `type(s)` 是唯一被特殊对待的名字：它只能作为 `$CC` 的动作**直接**写出来，不能嵌进别的函数里、也不能出现在显示名中，且只接受 1 个参数、不接受具名参数。`help("type")` 也查不到它。别和 `key.type` 搞混——后者是模拟键盘直输，走的是另一条路径。
 
