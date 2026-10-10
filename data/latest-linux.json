@@ -1,0 +1,19 @@
+{
+  "version": "0.125.0",
+  "tag": "v0.125.0",
+  "channel": "stable",
+  "debs": {
+    "amd64": {
+      "url": "https://dl.windinput.com/WindInput-0.125.0-linux-amd64.deb",
+      "sha256": "de54b04859c2f47ba086eab7d6fb92133e4896cfd6a54a74f6195cff9fbd3df3",
+      "size": 21568554
+    },
+    "arm64": {
+      "url": "https://dl.windinput.com/WindInput-0.125.0-linux-arm64.deb",
+      "sha256": "e7a70fe5602a31ec623a11d227d3a8e5f19ab3d7f52386da275720eef037bd38",
+      "size": 20955896
+    }
+  },
+  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.125.0-Release.md",
+  "publishedAt": "2026-10-10T02:41:57Z"
+}
