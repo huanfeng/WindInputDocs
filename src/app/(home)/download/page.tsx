@@ -257,11 +257,13 @@ export default function DownloadPage() {
         <h2 className="mb-2 font-semibold text-fd-foreground">下载前须知</h2>
         <ul className="list-inside list-disc space-y-1">
           <li>
-            当前版本无数字签名，Windows SmartScreen
-            可能拦截：点「更多信息」→「仍要运行」即可继续。
+            Windows 版已做数字签名，但 SmartScreen
+            还要看下载量积累的信誉，新版本发布初期仍可能拦截：点「更多信息」→
+            「仍要运行」即可继续。
           </li>
           <li>
-            macOS 版同样未签名，且需要额外授权：先到「系统设置 → 隐私与安全性」
+            macOS 版未做苹果签名与公证，且需要额外授权：先到「系统设置 →
+            隐私与安全性」
             放行被拦截的程序，再到「辅助功能」里打开清风输入法，否则标点配对、
             命令直通车按键合成等功能会静默失效。步骤见
             <Link
