@@ -1,10 +1,14 @@
 ---
 title: Linux 版
-description: Linux 版（测试版）的系统要求、安装与配置、升级卸载，以及与 Windows 版的差异和已知限制
+description: Linux 版（预览版）的系统要求、安装与配置、升级卸载，以及与 Windows 版的差异和已知限制
 ---
 
-<Callout type="warn" title="测试版">
-  Linux 版仍是测试版：日常输入已可用，但部分功能尚未移植（见[与 Windows 版的差异](#differences)），
+import { Since } from "@/components/since";
+
+<Since v="0.125" />
+
+<Callout type="warn" title="预览版">
+  Linux 版仍是预览版：日常输入已可用，但部分功能尚未移植（见[与 Windows 版的差异](#differences)），
   不同桌面环境下的表现也还在打磨。遇到问题欢迎按[反馈问题](/docs/reference/report-logs)附上日志。
 </Callout>
 
@@ -12,6 +16,7 @@ description: Linux 版（测试版）的系统要求、安装与配置、升级�
 
 - Ubuntu 22.04 及以上，或 Deepin 25（其他 Debian 系发行版理论可用，未逐一验证）
 - x64（amd64）或 ARM64（arm64）
+- 目前只提供 Debian 系的 `.deb` 安装包，rpm、Arch 等暂不提供
 - 输入法框架 **Fcitx5**（5.0.14 及以上；安装包会自动拉取依赖）
 
 X11 与 Wayland 会话均可使用，Wayland 下的差异见[已知限制](#limitations)。

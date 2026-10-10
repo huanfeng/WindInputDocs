@@ -84,7 +84,7 @@ const editions: Edition[] = [
         {
           icon: Terminal,
           title: "Linux 版",
-          badge: "测试版",
+          badge: "预览版",
           points: [
             "Fcitx5 输入法引擎，.deb 安装包（x64 / ARM64）",
             "Ubuntu 22.04+、Deepin 25；X11 与 Wayland 会话均可",
@@ -163,13 +163,21 @@ export default function DownloadPage() {
             </a>
           </p>
         )}
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
           <Link
             href="/docs/start/installation"
             className="rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-fd-accent"
           >
             安装指引
           </Link>
+          {linux && (
+            <Link
+              href="/docs/reference/linux"
+              className="rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-fd-accent"
+            >
+              Linux 安装指引
+            </Link>
+          )}
         </div>
         <DownloadStats />
       </div>
@@ -264,6 +272,21 @@ export default function DownloadPage() {
             </Link>
             页。
           </li>
+          {linux && (
+            <li>
+              Linux 版是预览版，安装包为 .deb：用{" "}
+              <code className="font-mono">sudo apt install ./文件名.deb</code>{" "}
+              安装，装完注销重登，再到 Fcitx5
+              配置里添加清风输入法。步骤与已知限制见
+              <Link
+                href="/docs/reference/linux"
+                className="text-fd-primary hover:underline"
+              >
+                Linux 版
+              </Link>
+              页。
+            </li>
+          )}
           <li>
             第三方码表方案（五笔 98、新世纪、虎码等）见码表仓库{" "}
             <a
