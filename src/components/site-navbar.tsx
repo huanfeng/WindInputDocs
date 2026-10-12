@@ -124,13 +124,15 @@ function SiteNavbar({ variant }: { variant: "home" | "docs" }) {
 
             <div className="ms-auto flex min-w-0 items-center gap-2">
               <SiteNotice />
+              {/* 宽屏导航刚展开的那一档（lg 到 1120px）链接已占满一行，完整搜索框会被
+                  压到「搜索」二字折行——这一档与窄屏一样改用图标按钮 */}
               <FullSearchTrigger
                 hideIfDisabled
-                className="w-full max-w-[240px] min-w-0 rounded-full ps-2.5 max-md:hidden"
+                className="w-full max-w-[240px] min-w-0 rounded-full ps-2.5 max-md:hidden lg:max-[1120px]:hidden"
               />
               <SearchTrigger
                 hideIfDisabled
-                className="shrink-0 p-2 md:hidden"
+                className="shrink-0 p-2 md:hidden lg:max-[1120px]:inline-flex"
               />
               <ThemeSwitch className="shrink-0 max-md:hidden" />
               {iconItems.map((item, i) => (
