@@ -260,13 +260,13 @@ function StatsPanel({ stats }: { stats: Stats }) {
     byKey.get(`${version} ${platform}`);
 
   return (
-    <div className="mt-3 w-full max-w-2xl rounded-lg border bg-fd-card/50 p-4 text-left text-xs">
+    <div className="mt-3 w-full max-w-3xl rounded-lg border bg-fd-card/50 p-4 text-left text-xs">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-sm font-semibold text-fd-foreground">
           下载统计明细
         </h3>
         <p className="text-fd-muted-foreground">
-          站内{" "}
+          官网{" "}
           <span className="font-semibold text-fd-foreground">{fmt(site)}</span>
           {" + "}GitHub{" "}
           <span className="font-semibold text-fd-foreground">
@@ -288,21 +288,35 @@ function StatsPanel({ stats }: { stats: Stats }) {
             <table className="w-full border-collapse">
               <thead className="sticky top-0 bg-fd-card">
                 <tr className="text-fd-muted-foreground">
-                  <th className="px-2 py-1.5 text-left font-medium">版本</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-left font-medium">
+                    版本
+                    <span className="ml-1.5 font-normal text-fd-muted-foreground/60">
+                      官网 / GitHub
+                    </span>
+                  </th>
                   {columns.map((p) => (
-                    <th key={p} className="px-2 py-1.5 text-right font-medium">
+                    <th
+                      key={p}
+                      className="whitespace-nowrap px-2 py-1.5 text-right font-medium"
+                    >
                       {PLATFORM_LABEL[p] ?? p}
                     </th>
                   ))}
-                  <th className="px-2 py-1.5 text-right font-medium">小计</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right font-medium">
+                    小计
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {versions.map((v) => {
-                  const rowTotal = columns.reduce((sum, p) => {
-                    const c = cell(v, p);
-                    return sum + (c ? c.site + c.github : 0);
-                  }, 0);
+                  const rowSite = columns.reduce(
+                    (sum, p) => sum + (cell(v, p)?.site ?? 0),
+                    0,
+                  );
+                  const rowGithub = columns.reduce(
+                    (sum, p) => sum + (cell(v, p)?.github ?? 0),
+                    0,
+                  );
                   return (
                     <tr key={v} className="border-t">
                       <td className="px-2 py-1 font-mono text-fd-foreground">
@@ -315,30 +329,27 @@ function StatsPanel({ stats }: { stats: Stats }) {
                       </td>
                       {columns.map((p) => {
                         const c = cell(v, p);
-                        const total = c ? c.site + c.github : 0;
                         return (
                           <td
                             key={p}
-                            className="px-2 py-1 text-right tabular-nums"
-                            // 悬停看构成：面板主体给合并数，来源拆分不占版面
+                            className="whitespace-nowrap px-2 py-1 text-right tabular-nums"
+                            // 格内拆开两个来源，合并数放进悬停提示
                             title={
-                              c
-                                ? `站内 ${fmt(c.site)} · GitHub ${fmt(c.github)}`
-                                : undefined
+                              c ? `合计 ${fmt(c.site + c.github)}` : undefined
                             }
                           >
-                            {total > 0 ? (
-                              fmt(total)
-                            ) : (
-                              <span className="text-fd-muted-foreground/30">
-                                —
-                              </span>
-                            )}
+                            <SplitCount
+                              site={c?.site ?? 0}
+                              github={c?.github ?? 0}
+                            />
                           </td>
                         );
                       })}
-                      <td className="px-2 py-1 text-right font-semibold tabular-nums text-fd-foreground">
-                        {fmt(rowTotal)}
+                      <td
+                        className="whitespace-nowrap px-2 py-1 text-right font-semibold tabular-nums text-fd-foreground"
+                        title={`合计 ${fmt(rowSite + rowGithub)}`}
+                      >
+                        <SplitCount site={rowSite} github={rowGithub} />
                       </td>
                     </tr>
                   );
@@ -349,7 +360,7 @@ function StatsPanel({ stats }: { stats: Stats }) {
 
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-fd-muted-foreground">
             <span>
-              站内分流：
+              官网分流：
               {Object.entries(stats.sources ?? {}).map(([k, v]) => (
                 <span key={k} className="ml-2">
                   {SOURCE_LABEL[k] ?? k}{" "}
@@ -370,7 +381,7 @@ function StatsPanel({ stats }: { stats: Stats }) {
           </div>
 
           <p className="mt-2 text-[11px] leading-relaxed text-fd-muted-foreground/70">
-            站内计数实时递增；GitHub 侧每小时同步一次，
+            官网计数实时递增；GitHub 侧每小时同步一次，
             {detail.githubSyncedAt
               ? `最近一次 ${new Date(detail.githubSyncedAt).toLocaleString("zh-CN")}`
               : "尚未同步"}
@@ -379,5 +390,24 @@ function StatsPanel({ stats }: { stats: Stats }) {
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * 一格里的两个来源：官网 / GitHub。两边都是 0 显示占位横线；单边为 0 照样写出 0，
+ * 「这个来源没人下」本身就是信息（便携版只在 GitHub 有，官网恒为 0）。
+ */
+function SplitCount({ site, github }: { site: number; github: number }) {
+  if (site === 0 && github === 0) {
+    return <span className="text-fd-muted-foreground/30">—</span>;
+  }
+  const part = (n: number) =>
+    n > 0 ? fmt(n) : <span className="text-fd-muted-foreground/40">0</span>;
+  return (
+    <>
+      {part(site)}
+      <span className="mx-1 text-fd-muted-foreground/40">/</span>
+      {part(github)}
+    </>
   );
 }
