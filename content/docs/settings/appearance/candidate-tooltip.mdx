@@ -306,16 +306,16 @@ template = "${unicode_all}"
 
 ### 英文候选显示词典释义 [#recipe-dict]
 
-先按[注释词库](/docs/settings/appearance/candidate-comment#注释词库)挂好英汉词典即可：出厂的「释义」段 <Since v="0.126" />
-已经会把所有注释词库里这个词的释义列出来，每个词库一行：
+先按[注释词库](/docs/settings/appearance/candidate-comment#注释词库)挂好英汉词典，然后：
 
-```toml
-[[ui.tooltip.sections]]
-label = "释义"
-template = "${dict_all:\n}"   # 冒号后是分隔符，这里是换行
-```
+- 出厂的「释义」段已经会把所有注释词库里这个词的释义列出来，每个词库一行（模板 `${dict_all:\n}`，冒号后是分隔符），挂好词典即可，不用再配 <Since v="0.126" />
+- 只想看排在最前面的那一个词库，或所用版本还没有「释义」段时，加一段（设置页「按预设添加」里的「词库注释」就是这一段）：
 
-只想看排在最前面的那一个词库，把模板换成 `${dict}`（设置页「按预设添加」里的「词库注释」就是这样一段）。
+  ```toml
+  [[ui.tooltip.sections]]
+  label = "词库注释"
+  template = "${dict}"
+  ```
 
 没有释义的候选这一段自动消失，所以中文候选不受影响。与候选注释相比，释义放在气泡里不占候选窗
 的宽度，长释义也看得全。
