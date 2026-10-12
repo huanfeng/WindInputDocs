@@ -111,6 +111,8 @@ cods = $CC("五笔候选调整", setting.open("dict", "--schema=wubi86 --type=sh
 
 词频记录（`count` 使用次数与 `last_used` 最近使用时间）按「方案 + 编码 + 文本」存储。在这里可以**删除**单条记录（该词回落原始排序）或**清空**整个列表。
 
+只想攒一份使用统计、不想让候选顺序变化，开方案页的「仅记录次数」，见[只记次数、不调序](/docs/guides/frequency#record-always)；攒下的记录可经[导入与导出](/docs/settings/dict/import-export)带出后自行分析。
+
 调频要不要开、按什么策略——那些是**每种引擎的全局配置**，在对应的[四台引擎的配置](/docs/settings/schema#engine-cards)里。排序原理与三种策略的取舍见[词频与候选排序](/docs/guides/frequency)。
 
 <Callout type="info" title="记账用哪个编码：码表与拼音相反 (0.114)">
