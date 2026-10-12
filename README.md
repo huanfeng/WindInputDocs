@@ -65,7 +65,8 @@ https://windinput.com 。GitHub Actions 只做校验，不负责发布。
 
 > 下载直链走 Cloudflare R2（`https://dl.windinput.com/WindInput-<版本>-Setup.exe`，
 > 与旧站一致）；GitHub Releases 仅作备用渠道（国内访问较慢）。
-> 便携版不单独发包，由安装包的便携解压模式释放；macOS 版开发中、未发布。
+> macOS（`.pkg`）与 Linux（`.deb`，预览版）的安装包同样经下载网关分发；
+> 便携版（`.zip`）只发布在 GitHub Releases。
 
 > 注：OG 图路由（`src/app/og/`）渲染中文标题时会从 Google Fonts 动态拉字形，
 > 国内网络下构建会每页超时 ~10s 后降级（构建仍成功、OG 图中文缺字）。

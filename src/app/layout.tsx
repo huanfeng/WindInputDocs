@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: `%s | ${appName}`,
   },
   description:
-    "轻量、快速、可定制的开源中文输入法，支持五笔、全拼、双拼及混合输入",
+    "轻量、快速、可定制的开源中文输入法，支持五笔、全拼、双拼及混合输入，适用于 Windows、macOS 与 Linux",
 };
 
 export default function Layout({ children }: LayoutProps<"/">) {

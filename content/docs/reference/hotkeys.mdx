@@ -3,6 +3,8 @@ title: 快捷键总表
 description: 全部默认键位速查，以及每一项支持配置成什么——不含短语编码与符号表
 ---
 
+import { Since } from "@/components/since";
+
 本页只回答两件事：**默认是什么键**，以及**这一项能改成什么**。改法见[按键设置](/docs/settings/keys)，确切配置键见[按键配置](/docs/guides/config/keys)。
 
 <Callout type="info" title="找编码不在这里">
@@ -109,3 +111,13 @@ macOS 版的默认键位与 Windows 相同，且额外支持 `⌘`(Command) / `�
 - **全局热键需要授权**——到 **系统设置 → 隐私与安全性 → 辅助功能** 打开「清风输入法」，未授权时全局热键不响应
 
 见 [macOS 版](/docs/reference/macos)。
+
+## Linux 差异 <Since v="0.125" /> [#linux]
+
+Linux 版跑在 Fcitx5 之上，输入法激活时的键位与 Windows 相同。三点差异：
+
+- **切换到 / 离开清风输入法用 Fcitx5 的切换热键**（默认 `Ctrl + Space`），在 Fcitx5 配置里改
+- **没有工具栏与全局热键**，上面「全局热键」一节不适用，快捷键只在输入法激活时响应
+- **左 Shift 单击默认被 Fcitx5 截走**，「Shift 切换中英」要先到 Fcitx5 的全局选项里腾出这个键，见 [Linux 版 · 想用 Shift 单击切换中英](/docs/reference/linux#shift-toggle)
+
+见 [Linux 版](/docs/reference/linux)。
