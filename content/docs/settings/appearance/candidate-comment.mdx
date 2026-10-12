@@ -467,13 +467,15 @@ comment_template_vertical = "${dict|pinyin}"
 要两个都显示，有两种写法。
 
 **全都要**：用 `${dict_all}`，所有查到这个词的词库各出一条，按列表顺序排，默认用 `；` 连接。
-冒号后面可以换连接符，如 `${dict_all:/}`：
+冒号后面可以换连接符，如 `${dict_all:/}`、`${dict_all: · }`（两侧空格照样保留）；连接符里不能有
+`|` 和 `}`，它们在模板里另有含义：
 
 ```toml
 comment_template_vertical = "${dict_all}"
 ```
 
-- 每个词库最多出一条（和 `${dict}` 在该库里取的是同一条），内容相同的只留一条
+- 每个词库最多出一条，内容相同的只留一条。`${dict}` 显示的那一条一定在其中
+- 先按原样精确查；只有**所有**词库都查不到时，才按[大小写](#大小写)变形再查一遍
 - 不标来源词库；想区分来源，可以在词库内容里自带前缀（如 `[IT]…`）
 - 适用方案（`schemas`）照样生效；查不到时为空，所在的 `{…}` 整段消失
 - 可能很长，横排慎用；可配合候选注释对话框里的最大字数（[`comment_max_chars_*`](/docs/guides/config/ui)）截断，或放进[悬停提示](/docs/settings/appearance/candidate-tooltip#recipe-dict)
