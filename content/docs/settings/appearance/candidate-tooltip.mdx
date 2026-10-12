@@ -41,8 +41,9 @@ vbg
 | 2 | 编码 | 开 | 这个词在编码来源方案里的全部编码，如 `a/ab/abc`。拼音方案下反查五笔时标题显示为「编码(五笔)」 |
 | 3 | 拼音 | 开 | 逐字列出读音，多音字全部列出 |
 | 4 | 拆字 | 关 | 逐字列出字根与拆字编码（需方案配了[拆字库](/docs/guides/schemas#拆字配置)） |
-| 5 | Unicode | 关 | 逐字列出码位，如 `好：U+597D` |
-| 6 | 调试 | 关 | 编码来源、权重等内部诊断信息 |
+| 5 | 释义 <Since v="0.126" /> | 开 | 所有[注释词库](/docs/settings/appearance/candidate-comment#注释词库)里这个词的释义，每个词库一行；没挂注释词库或查不到时整段不出现 |
+| 6 | Unicode | 关 | 逐字列出码位，如 `好：U+597D` |
+| 7 | 调试 | 关 | 编码来源、权重等内部诊断信息 |
 
 对应的配置（`data/config.toml` 出厂值，想在此基础上改就整段复制过去）：
 
@@ -70,6 +71,10 @@ enabled = false
 label = "拆字"
 each = "han"
 template = "${char}：${chaizi}{ [${chaizi_code}]}"
+
+[[ui.tooltip.sections]]
+label = "释义"
+template = "${dict_all:\n}"   # 各注释词库的释义，每条一行
 
 [[ui.tooltip.sections]]
 enabled = false
@@ -301,13 +306,16 @@ template = "${unicode_all}"
 
 ### 英文候选显示词典释义 [#recipe-dict]
 
-先按[注释词库](/docs/settings/appearance/candidate-comment#注释词库)挂好英汉词典，再加一段（设置页「按预设添加」里的「词库注释」就是这一段）：
+先按[注释词库](/docs/settings/appearance/candidate-comment#注释词库)挂好英汉词典即可：出厂的「释义」段 <Since v="0.126" />
+已经会把所有注释词库里这个词的释义列出来，每个词库一行：
 
 ```toml
 [[ui.tooltip.sections]]
-label = "词库注释"
-template = "${dict}"
+label = "释义"
+template = "${dict_all:\n}"   # 冒号后是分隔符，这里是换行
 ```
+
+只想看排在最前面的那一个词库，把模板换成 `${dict}`（设置页「按预设添加」里的「词库注释」就是这样一段）。
 
 没有释义的候选这一段自动消失，所以中文候选不受影响。与候选注释相比，释义放在气泡里不占候选窗
 的宽度，长释义也看得全。

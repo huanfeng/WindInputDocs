@@ -50,6 +50,7 @@ import { Since } from "@/components/since";
 | `${chaizi_code_all}` <Since v="0.123" /> | 该字在拆字库里的编码，不限字数（逐字拼接） | `wq w` |
 | `${dict}` | 挂载的[注释词库](#注释词库)里该词的注释 | `apple`、`🍎 红苹果` |
 | `${dict:库id}` <Since v="0.126" /> | 只查指定 id 的那个注释词库（见[多个词库并排显示](#dict-by-id)） | `good well` |
+| `${dict_all}` <Since v="0.126" /> | **所有**查到这个词的注释词库各取一条，默认用 `；` 连接；`${dict_all:分隔符}` 换连接符（见[多个词库并排显示](#dict-by-id)） | `v.配置；[IT]配置` |
 
 `${chaizi}` 限单字是有意的：拆字回答的是「这个**字**由哪些字根构成」，词组的字根串既难读、
 又会把候选行推得很宽。确实需要词组字根时用 `${chaizi_all}`。
@@ -463,7 +464,21 @@ comment_template_vertical = "${dict|pinyin}"
 `${dict}` 只显示**一条**：按列表顺序，第一个查到这个词的词库胜出。比如同时挂了英文释义和汉字拆分，
 单字「好」只会显示排在前面的那一个。
 
-要两个都显示，用 `${dict:库id}` 分别指定，`库id` 即词库条目的 `id`：
+要两个都显示，有两种写法。
+
+**全都要**：用 `${dict_all}`，所有查到这个词的词库各出一条，按列表顺序排，默认用 `；` 连接。
+冒号后面可以换连接符，如 `${dict_all:/}`：
+
+```toml
+comment_template_vertical = "${dict_all}"
+```
+
+- 每个词库最多出一条（和 `${dict}` 在该库里取的是同一条），内容相同的只留一条
+- 不标来源词库；想区分来源，可以在词库内容里自带前缀（如 `[IT]…`）
+- 适用方案（`schemas`）照样生效；查不到时为空，所在的 `{…}` 整段消失
+- 可能很长，横排慎用；可配合候选注释对话框里的最大字数（[`comment_max_chars_*`](/docs/guides/config/ui)）截断，或放进[悬停提示](/docs/settings/appearance/candidate-tooltip#recipe-dict)
+
+**指定哪几个、怎么排**：用 `${dict:库id}` 分别指定，`库id` 即词库条目的 `id`：
 
 ```toml
 comment_template_vertical = "${dict:en}{ 〔${dict:chaifen}〕}"
