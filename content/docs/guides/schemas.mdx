@@ -262,7 +262,7 @@ default_weight = 500            # 该库无权重列，整库定档 500
 
 除了逐个写 `[[dictionaries]]`，方案还有**扩展词库目录**：目录里的词库文件在读方案时自动登记为扩展词库（默认不启用），用户放进去就能在设置里开关，不用改方案文件。
 
-拼音、码表方案（`[engine] type` 为 `pinyin` / `codetable`）**不用声明就有一个**：主词库所在目录下的 `ext`（如全拼是 `pinyin/ext`、五笔是 `wubi86/ext`），类型同主词库。要换位置或加多个目录时才需要显式声明，声明后以声明为准；不想要就写 `dictionary_dirs = []`。
+拼音、码表、英文方案（`[engine] type` 为 `pinyin` / `codetable` / `english`）**不用声明就有一个**：主词库所在目录下的 `ext`（如全拼是 `pinyin/ext`、五笔是 `wubi86/ext`、清风英文是 `english/ext`<Since v="0.126" />），类型同主词库。要换位置或加多个目录时才需要显式声明，声明后以声明为准；不想要就写 `dictionary_dirs = []`。
 
 ```toml
 [[dictionary_dirs]]
