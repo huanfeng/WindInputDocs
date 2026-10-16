@@ -96,7 +96,7 @@ import { Since } from "@/components/since";
 | 绝大多数选项 | `config.toml` |
 | 扩展词库开关、双拼布局、方案级码表配置 | `schema_overrides\<方案ID>.toml` |
 | 应用独立初始状态、候选框定位修正 | `compat.toml` |
-| 用户词库、临时词库、词频、候选调整、短语 | `userdata.redb` |
+| 用户词库、临时词库、词频、候选调整、短语 | `data\` 下的文本文件（0.127.0 起），见[用户数据文件](/docs/guides/config#user-data-files) |
 
 每个配置项的确切键名、取值范围与默认值见[配置文件](/docs/guides/config)；也可以用[命令行](/docs/guides/cli#config)读写。
 

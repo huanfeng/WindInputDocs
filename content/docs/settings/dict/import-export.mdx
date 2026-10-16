@@ -405,7 +405,7 @@ state/state.toml                       type="state"       （勾选「包含界�
 
 [输入补全的学习数据](/docs/settings/dict#completion)（邮箱后缀与网址历史）自 0.122 起<Since v="0.122" />一并进包，两类装在同一个 `completions.jsonl` 里，每行自带类别。
 
-用户数据**逐表导出为文本**而非直接搬数据库文件：词库与短语用 WindDict 格式，词频、候选调整、统计用 JSON Lines（每行一个 JSON 对象）。这样跨版本、跨平台都稳，也避开了 Windows 上数据库文件被占用的麻烦。
+用户数据**逐表导出为文本**而非直接搬数据文件：词库与短语用 WindDict 格式，词频、候选调整、统计用 JSON Lines（每行一个 JSON 对象）。这样跨版本、跨平台都稳。
 
 方案与主题按整目录树原样打包；数据表按方案拆分子目录，归属由 `manifest` 条目的 `meta.schema` 标注——因此**有数据但已停用的方案也会被备份到**。
 

@@ -54,7 +54,7 @@ import { Since } from "@/components/since";
 `data\opencc\`（简繁转换表）**不支持覆盖**，它随程序版本整体更新。
 
 <Callout type="warn" title="覆盖 system.phrases.toml 只改「初始内容」">
-系统短语在首次启动时从这个文件读入**用户数据库**，之后一切增删改都以数据库为准。覆盖这个文件会改变系统短语的初始集合（内容变化时会同步进库），但你在设置工具里对单条短语的修改仍然只存在数据库里，不会回写任何文件。日常增删短语请用[自定义短语](/docs/settings/dict/phrases)页的方法。
+这个文件只提供**系统短语**。你在设置工具里新增的短语、对系统短语的修改，都记在用户目录的 `data\phrases.dict.yaml` 里，读取时叠加在系统短语之上，以它为准；覆盖 `system.phrases.toml` 不会动到它，设置工具也不会回写 `system.phrases.toml`。日常增删短语请用[自定义短语](/docs/settings/dict/phrases)页的方法。
 </Callout>
 
 ### 确认覆盖是否生效
@@ -74,7 +74,7 @@ import { Since } from "@/components/since";
 
 默认日志级别即可看到，无需调级别。
 
-日志里**没有**对应记录，说明你的文件没被认到——常见原因是路径层级或文件名不对（必须与 `data\` 下的相对路径完全一致），或者放进了 `%LOCALAPPDATA%` 而不是 `%APPDATA%`。
+日志里**没有**对应记录，说明你的文件没被认到——常见原因是路径层级或文件名不对（必须与程序 `data\` 下的相对路径完全一致），或者放进了 `%LOCALAPPDATA%` 而不是 `%APPDATA%`。
 
 ### 生效时机与撤销 [#apply-timing]
 
@@ -93,7 +93,8 @@ import { Since } from "@/components/since";
 ```text
 %APPDATA%\WindInput\
 ├── config.toml                    # 用户全局配置（diff 保存，仅含与默认值不同的字段）
-├── userdata.redb                  # 用户数据库（自定义词、词频、置顶/删词、短语等）
+├── meta.toml                      # 数据格式版本与目录标识（勿手改）
+├── data\                          # 用户数据（文本文件，见下节）
 ├── compat.toml                    # 用户自定义的应用兼容性规则
 ├── system.phrases.toml            # 覆盖内置系统短语的初始内容（可选）
 ├── system.quick.toml              # 覆盖快捷输入的候选格式表（可选）
@@ -112,9 +113,10 @@ import { Since } from "@/components/since";
 | 文件 / 目录 | 职责 |
 | --- | --- |
 | `config.toml` | 全局配置。采用 **diff 保存**，只写与系统默认不同的字段 |
-| `userdata.redb` | 用户词库、词频、候选调整、短语等用户数据（程序维护，勿手改） |
+| `data\` | 用户词库、词频、候选调整、短语、统计等用户数据，见[用户数据文件](#user-data-files) |
+| `meta.toml` | 数据格式版本与目录标识（程序维护，勿手改） |
 | `compat.toml` | 应用兼容性规则（应用级候选定位规则也在此，不在 `config.toml`） |
-| `system.phrases.toml` | 覆盖内置系统短语的初始内容；日常增删短语走设置工具，存数据库 |
+| `system.phrases.toml` | 覆盖内置系统短语；日常增删短语走设置工具，存 `data\phrases.dict.yaml` |
 | `system.quick.toml` | 覆盖[快捷输入的候选格式表](/docs/settings/input/quick-input#format-table)（可选，整份生效） |
 | `schemas\*.schema.toml` | 用户方案。与程序 `data\schemas\` 同名时**整份替换**内置方案，也可放全新方案 |
 | `schemas\*.dict.yaml` | 方案引用的 RIME 词库，第三方词库文件也放同目录 |
@@ -125,11 +127,35 @@ import { Since } from "@/components/since";
 diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段——只保存了与默认值不同的项，未改动的字段会自动跟随系统默认值的更新。
 </Callout>
 
+### 用户数据文件（`data\`） [#user-data-files]
+
+0.127.0 起，用户数据存在用户目录的 `data\` 下，全是可用文本编辑器打开的文件（此前是单个 `userdata.redb` 数据库）。升级时自动迁移，迁完旧库改名为 `userdata.redb.legacy` 留作兜底，确认无误后可删；要退回旧版本见 [FAQ](/docs/reference/faq#downgrade)。
+
+| 文件 | 内容 |
+| --- | --- |
+| `<方案>\user.dict.yaml` | 用户词（主动造词、导入的词） |
+| `<方案>\shadow.dict.yaml` | 候选调整（置顶、删除） |
+| `<方案>\temp.dict.yaml` | 临时词库 |
+| `<方案>\draft.dict.yaml` | 草稿 |
+| `<方案>\freq.table.yaml` | 选词计数（词频） |
+| `<方案>\assoc.table.yaml` | 联想历史 |
+| `phrases.dict.yaml` | 快捷短语，只记你自建的条目和对系统短语的修改 |
+| `quick_format.toml` | 对快捷输入格式的调整 |
+| `common_chars.yaml` | 常用字的逐字覆盖 |
+| `charsets\<key>.yaml` | 字符类的用户层（设置页「外部编辑」加载写的就是它） |
+| `completion.table.yaml` | 邮箱后缀、网址、快捷输入的历史 |
+| `stats\<年-月>.toml`、`stats\meta.toml` | 输入统计 |
+
+`<方案>` 是数据所属的方案 ID，全拼与双拼共用 `pinyin`。
+
+**手改**：改完后重启输入法服务、切换方案或在设置工具里改一次设置即生效。某一行写坏（列数不够、数字不是数字）只跳过这一行，并原样保留在文件里；整个文件读不了（如编码不是 UTF-8）时，程序按上一次正常的内容继续工作、不会覆盖你的文件，修好后自动恢复。出错的文件与原因会显示在设置工具「词库」页顶部。程序自己写的补全与统计文件若损坏，会从同目录的 `.bak` 恢复，或另存为 `<文件名>.corrupt-<时间>` 后重建。
+
 ## 本机数据目录（`%LOCALAPPDATA%\WindInput\`）
 
 ```text
 %LOCALAPPDATA%\WindInput\
 ├── cache\        # 词库编译缓存（.wdat），可安全删除，下次自动重建
+├── state\        # 本机状态与可重建的加速结构，删掉不丢数据
 ├── logs\         # 运行日志
 └── state.toml    # 运行时状态（工具栏位置、上次中英/标点模式等）
 ```
@@ -137,6 +163,7 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 | 文件 / 目录 | 职责 |
 | --- | --- |
 | `cache\` | 词库编译缓存，可安全删除，会自动重建 |
+| `state\` | 设备相关状态与可重建的加速结构（0.127.0 起），不需要备份或复制，删掉不丢数据 |
 | `logs\` | 日志文件，默认日志目录 |
 | `state.toml` | 运行时状态（上次中英/标点状态、工具栏位置等，程序维护，勿手改） |
 

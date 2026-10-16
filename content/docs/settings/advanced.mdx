@@ -191,7 +191,9 @@ import { Since } from "@/components/since";
 
 漫游目录 `%APPDATA%\WindInput\` 是**完整自包含**的：只要备份该目录，即可保存全部个人化内容（配置、自定义词、主题、方案），不依赖任何注册表项。
 
-`%LOCALAPPDATA%\WindInput\` 下只有缓存 / 日志 / 运行状态，可重建，**无需备份**。目录结构见[核心概念 · 数据存在哪里](/docs/start/concepts#数据存在哪里)。
+`%LOCALAPPDATA%\WindInput\` 下只有缓存 / 日志 / 本机状态，删掉也不丢数据，**无需备份**。目录结构见[核心概念 · 数据存在哪里](/docs/start/concepts#数据存在哪里)。
+
+输入法运行中复制前，先在本页做一次备份，或停手稍等片刻：学到的数据停止输入 30 秒内写回文件，连续输入时最多 5 分钟。
 
 <Callout type="warn" title="删除操作前先备份">
 词库的删除、清空等操作不可恢复。重要数据建议提前备份。
@@ -202,7 +204,7 @@ import { Since } from "@/components/since";
 二选一：
 
 - **用备份包**：旧机器创建 `.zip` 备份 → 新机器安装清风输入法 → 在「高级 → 备份与还原」中还原该包
-- **手工复制**：把旧机器的 `%APPDATA%\WindInput\` 整个目录复制到新机器同一位置即可，不必复制 `%LOCALAPPDATA%\WindInput\`（缓存会自动重建）
+- **手工复制**：把旧机器的 `%APPDATA%\WindInput\` 整个目录复制到新机器同一位置即可，不必复制 `%LOCALAPPDATA%\WindInput\`（缓存与本机状态会自动重建）
 
 ## 命令行
 
