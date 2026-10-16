@@ -83,6 +83,13 @@ def main():
         print("ERROR: release 缺少 tag_name", file=sys.stderr)
         sys.exit(1)
 
+    # 预发布（beta / rc 等）只走 GitHub 预发布，不进站：安装包不在 dl.windinput.com，写进
+    # releases.json 会让下载直链 404、更新记录与版本徽章显示测试版。
+    # 判据与主仓各关卡一致：版本号带 `-` 即预发布（channel_of 只认 alpha / beta / rc）。
+    if "-" in version:
+        print(f"v{version} 是预发布版本，不同步到文档站。")
+        return
+
     raw_date = release.get("published_at", "")
     date = (
         datetime.fromisoformat(raw_date.replace("Z", "+00:00")).strftime("%Y-%m-%d")
@@ -266,9 +273,8 @@ def build_latest(
 
 
 def channel_of(version: str) -> str:
-    """发布通道。取自版本号后缀，**不用 Release 的 prerelease 标记**——
-    主仓的正式发布一直带着那个标记（见 sync-changelog.yml 里的说明），
-    按它判断会把每个正式版都标成预发布。"""
+    """发布通道。取自版本号后缀，不用 Release 的 prerelease 标记——与主仓各发版关卡
+    同一判据（版本号是 tag 定的，标记可以在网页上随手改）。"""
     _, _, pre = version.partition("-")
     if not pre:
         return "stable"

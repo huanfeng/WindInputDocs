@@ -42,12 +42,11 @@ jobs:
           if [ -n "$TAG" ]; then
             gh api "repos/huanfeng/WindInput/releases/tags/$TAG" > /tmp/release.json
           else
-            # 不用 /releases/latest：该端点按 GitHub 的定义跳过 prerelease，而主仓的
-            # 正式发布是带 prerelease 标记的，兜底会因此取到几个月前的旧版本——正好
-            # 让这道"防 dispatch 丢失"的保险在最需要它的场景下失效。
-            # 列表端点按创建时间倒序返回，取第一个非 draft 的即可。
+            # 不用 /releases/latest：它按 prerelease 标记取舍，而预发布与否本仓统一看版本号
+            # 后缀（与主仓各发版关卡同一判据）。
+            # 列表端点按创建时间倒序返回，取第一个非 draft、版本号不带后缀的（预发布不进站）。
             gh api "repos/huanfeng/WindInput/releases?per_page=20" \
-              --jq 'map(select(.draft | not)) | .[0]' > /tmp/release.json
+              --jq 'map(select((.draft | not) and (.tag_name | test("-") | not))) | .[0]' > /tmp/release.json
           fi
           RESOLVED=$(jq -r '.tag_name // empty' /tmp/release.json)
           if [ -z "$RESOLVED" ]; then
