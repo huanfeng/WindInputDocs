@@ -388,17 +388,21 @@ schema = "wubi86"
 ```
 manifest.toml
 config/config.toml                     type="config"
+config/compat.toml                     type="compat"      （有应用兼容设置时；还原时归「配置」）
 userdata/user_words/<方案>.wdict        type="dict"        meta.schema
 userdata/temp_words/<方案>.wdict        type="temp"        meta.schema
 userdata/freq/<方案>.jsonl              type="freq"        meta.schema
+userdata/assoc_history/<方案>.jsonl     type="assoc_history" meta.schema（非空时；还原时归词频）
 userdata/shadow/<方案>.jsonl            type="shadow"      meta.schema
 userdata/phrases.wdict                 type="phrase"
 userdata/common_chars.jsonl            type="common_chars"
+userdata/quick_format.yaml             type="quick_format"（调整过快捷输入时）
 userdata/completions.jsonl             type="completion"  （0.122 起：邮箱后缀 + 网址历史）
 charsets/<字符类>.yaml                  type="charset"
 userdata/stats.jsonl                   type="stats"       （勾选「包含统计数据」时）
 userdata/stats_meta.json               type="stats_meta"  （同上）
 schemas/<用户方案目录整树>               type="schema_file"
+schema_overrides/<方案>.toml            type="schema_override_file"（方案的个人调整，如扩展词库开关；还原时归「方案」）
 themes/<用户主题目录整树>                type="theme_file"
 state/state.toml                       type="state"       （勾选「包含界面状态」时）
 ```
@@ -419,10 +423,10 @@ state/state.toml                       type="state"       （勾选「包含界�
 
 | 勾选项 | 覆盖的 type |
 | --- | --- |
-| 配置 | `config` |
-| 词库数据 | `dict`、`temp`、`phrase`、`freq`、`shadow` |
+| 配置 | `config`、`compat` |
+| 用户数据 | `dict`、`temp`、`phrase`、`freq`（含 `assoc_history`）、`shadow`、`common_chars`、`quick_format`、`charset`、`completion` |
 | 统计 | `stats`、`stats_meta` |
-| 用户方案 | `schema_file` |
+| 用户方案 | `schema_file`、`schema_override_file` |
 | 主题 | `theme_file` |
 | 界面状态 | `state` |
 
