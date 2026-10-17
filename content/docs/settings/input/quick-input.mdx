@@ -53,7 +53,7 @@ import { Since } from "@/components/since";
 
 ### 快捷候选来源
 
-关掉的来源不再产出候选。**列表顺序即候选优先级**，调整顺序需直接编辑配置文件的 `members`。
+关掉的来源不再产出候选。**列表顺序即候选优先级**，按住行首手柄上下拖动即可调整 <Since v="0.117" />。
 
 | 来源 | 内容 |
 | --- | --- |
@@ -64,8 +64,33 @@ import { Since } from "@/components/since";
 | 快捷输入历史 <Since v="0.125" /> | 按前缀补全你在快捷输入里上屏过的文本，**出厂不启用**，见[快捷输入历史](#history) |
 | 拼音 | 跟随[主拼音方案](/docs/settings/schema#main-schema)（全拼 / 双拼） |
 | 英文 | 英文词库候选 |
+| 生僻字 <Since v="0.120" /> | 用当前方案的编码打生僻字，只出单字，**出厂不启用**，见[生僻字模式 · 放进快捷输入](/docs/guides/rare-char-mode#quick-input) |
 
 前四类候选**具体长什么样**（日期用哪几种写法、金额带不带「整」）也可以改，见[自定义候选格式](#format-table)。
+
+### 加入自己的码表方案 [#custom-member]
+
+上表是设置页能列出的全部来源。自己写的码表方案**不会自动出现在这里**，给它加了 `[overlay]` 段也一样——`[overlay]` 管的是能不能被[引导键临时进入](/docs/guides/special-modes)，与快捷输入的候选来源无关。要让它在 `;` 里出候选，需把方案 id（`<方案id>.schema.toml` 的文件名前缀）手动加进 `quick_mix` 的 `members`。
+
+在用户配置 `config.toml` 里写（以方案 id `kuaifu` 为例）：
+
+```toml
+[[schema.mix_modes]]
+id = "quick_mix"
+name = "快捷"
+short_name = "快"
+candidate_layout = "vertical"
+members = [
+  "quick_input.calc", "quick_input.number", "quick_input.date", "quick_input.repeat",
+  "kuaifu",   # ← 自己的方案
+  "$primary_pinyin", "english",
+]
+```
+
+- `schema.mix_modes` 是数组，用户配置里一写就**整体替换**内置那份，所以 `id` 之外的几项也要照写，漏掉的回到字段默认值（如 `candidate_layout` 不写就从出厂的竖排变成跟随全局）。在设置页把候选来源调得与出厂不同后，用户配置里就已经有完整的这一段，在它的 `members` 里加一行即可
+- 写在哪个位置就是什么优先级：上例放在 `$primary_pinyin` 之前，它的候选排在拼音之前
+- 方案加载不了（id 写错、文件有误）时这一项被跳过，不报错
+- 加进去之后，设置页的列表里**仍然看不到**它；但在列表里勾选、拖动不会把它删掉，它与其它来源的相对位置也会保留
 
 ### 英文候选跟临时英文一致 <Since v="0.123" /> [#english-like-temp-english]
 

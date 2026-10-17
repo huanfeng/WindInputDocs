@@ -73,9 +73,29 @@ import { Since } from "@/components/since";
 
 按 `Ctrl + Shift + E` 在已启用的方案之间循环切换，也可以通过[设置工具](/docs/settings)选择。
 
-### 如何输入特殊符号？
+### 如何输入特殊符号？ [#special-symbols]
 
 使用 `zz` 系列快捷编码，例如 `zzbd`（标点）、`zzsz`（圈数）、`zzpy`（拼音声调）。完整列表请参阅[快捷短语 · zz 系列符号](/docs/settings/dict/phrases#zz-symbols)。
+
+也可以打开[软键盘](/docs/guides/soft-keyboard)按键位点选，或开启 [Unicode 输入](/docs/settings/input#unicode)直接打码点。
+
+### 怎么打 √ 和 ×？ [#check-and-cross]
+
+几种办法，任选其一：
+
+- **软键盘**：`Ctrl + Shift + K` 打开，用 `PgUp` / `PgDn` 翻到「数学符号」面，`√` 在 `Q` 键、`×` 在 `3` 键；「特殊符号」面还有 `✓` `✔` `✗` `✘`（`F` `G` `H` `J` 键）。见[软键盘](/docs/guides/soft-keyboard)
+- **zz 符号表**：打 `zzsx` 展开数学符号组，`×` 与 `√` 都在里面，翻页选取即可
+- **Emoji 候选**：在[设置 → 输入 → Emoji/OpenCC](/docs/settings/input#emoji) 打开「启用 emoji 候选」后，打出「对钩」会追加 ✅ ✔，「错误」追加 ❌ ❎（默认只为首选、且至少两个字的词追加）。这些是 emoji 样式的符号，不是 `√` `×` 本身；要 `√` 可再勾上附加模块「单位与杂项」，打「根号」得到 `√`
+- **Unicode 输入**：开启 [Unicode 输入](/docs/settings/input#unicode)后，`u+221a` 得 `√`，`u+d7` 得 `×`
+- **自定义短语**：给符号配一个自己的编码。在 **设置 → 词库 → 快捷短语** 里逐条添加，或复制下面这段，走设置工具的「[从剪贴板导入配置](/docs/settings/advanced#import-export)」一次装好：
+
+  ```
+  wind:p1 对错符号
+  dgou √
+  chah ×
+  ```
+
+  编码可以随意改。拿 `dui`、`cuo` 这类正常拼音作编码也能出，但会排在同编码的常用词后面，原因见[短语权重](/docs/settings/dict/phrases#短语权重)。
 
 ### 如何使用计算器？
 
@@ -111,6 +131,12 @@ import { Since } from "@/components/since";
 也可直接复制整个用户目录：安装版是 `%APPDATA%\WindInput\`，便携版是解压目录下的 `userdata\`，装机时自选了目录的就是那个目录。里面有 `config.toml`、`data\`（用户词、词频、候选调整、短语、统计等，0.127.0 起都是文本文件）、自定义主题与方案。`%LOCALAPPDATA%\WindInput\`（便携版的 `localdata\`）下只有本机状态、缓存与日志，删掉也不丢数据，无需备份。
 
 输入法运行中复制时，先在设置工具里做一次备份，或停手稍等片刻——学到的数据停止输入 30 秒内写回文件，连续输入时最多 5 分钟。
+
+### 能导入一行一个词的 txt、自动生成编码吗？ [#import-word-list]
+
+能，导入到**用户词库**：**设置 → 词库**，选中方案的用户词库后点「导入」，选那份 `.txt` 即可，编码按当前方案现场生成。文件须是 UTF-8，每行一个纯汉字的词。详见[纯词列表（自动出码）](/docs/settings/dict/import-export#plain-word-list)。
+
+[快捷短语](/docs/settings/dict/phrases)不自动出码——它的编码是你自己定的缩写，导入文件里每条都得写出编码。
 
 ### 升级到 0.127.0 后想退回旧版本？ [#downgrade]
 

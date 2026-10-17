@@ -661,9 +661,9 @@ decimal_places = 6       # 计算器结果小数位数
 
 | 想改什么 | 去哪 |
 | --- | --- |
-| 开哪些候选来源、优先级 | `members` —— 有无即开关，顺序即优先级 |
+| 开哪些候选来源、优先级 | `members` —— 有无即开关，顺序即优先级；自己的码表方案要手动加进来，见[加入自己的码表方案](/docs/settings/input/quick-input#custom-member) |
 | 候选窗横排 / 竖排 | `candidate_layout` |
-| 触发键 / 禁用整个功能 | `trigger_keys` —— 清空即进不去，故没有单独的总开关 |
+| 触发键 / 禁用整个功能 | [`keys.key_actions`](/docs/guides/config/keys#key-actions) 里的 `mix:quick_mix` 绑定（出厂 `semicolon = "mix:quick_mix"`）—— 删掉即进不去，故没有单独的总开关 |
 | 自由字面输入 | `free_input` <Since v="0.114" /> —— `off` / `auto` / `always` |
 | 自由输入下 `;` `'` 是字面还是选词 | `free_input_takes_select_keys` <Since v="0.114" /> —— 默认 `true`（字面） |
 
@@ -687,8 +687,8 @@ decimal_places = 6       # 计算器结果小数位数
 | 子字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `id` / `name` / `short_name` | 字符串 | — | 实例标识、显示名、模式指示短称（空则取 `name` 首字） |
-| `trigger_keys` | 字符串数组 | — | 引导键列表；**清空即禁用该实例** |
-| `members` | 字符串数组 | — | 候选来源：有无即开关，顺序即优先级 |
+| `trigger_keys` | 字符串数组 | — | 旧写法，加载时迁移进 [`keys.key_actions`](/docs/guides/config/keys#key-actions)（`mix:<id>`），按键绑定迁移完成后不再读取。改引导键请直接写 `key_actions` |
+| `members` | 字符串数组 | — | 候选来源：有无即开关，顺序即优先级。除内置来源外也可以写方案 id，见[加入自己的码表方案](/docs/settings/input/quick-input#custom-member) |
 | `candidate_layout` | 枚举 | `follow` | 进入本实例期间的候选窗布局，退出后恢复 |
 | `comment_template_vertical` / `_horizontal` | 结构体 | 跟随全局 | 本实例期间的候选注释模板覆盖 |
 | `free_input` | 枚举 | `auto` | 自由字面输入：`off` / `auto` / `always` <Since v="0.114" />。见[快捷输入 · 自由字面输入](/docs/settings/input/quick-input#free-input) |

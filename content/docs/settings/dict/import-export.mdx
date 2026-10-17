@@ -229,6 +229,8 @@ WindDict 文件头带 `engine_type` 时，导入端会与目标方案比对，�
 
 在**设置 → 词库 → 快捷短语**中导入导出，格式同为 WindDict，只含 `phrases` 一段（默认文件名 `phrases.wdict.yaml`）。短语独有 `position` 列（同编码同权重时的先后），导入会保留该列的值。详见[自定义短语](/docs/settings/dict/phrases)。
 
+短语导入**不自动出码**，每条都得带编码。只有词、没有编码的 `.txt` 请按[纯词列表](#plain-word-list)导入到用户词库；几条短语互相分享，用[短语文本](/docs/guides/import-export#phrase-text)更省事。
+
 ## 方案包（`.zip`） [#方案包zip]
 
 单个方案连同其引用资源打成的分发包。在**设置 → 方案**页选中方案后用「导出」/「导入」，也可从[高级页统一导入](/docs/settings/advanced#import-export)进入。
