@@ -442,7 +442,7 @@ global_hotkeys = []  # 提升为系统级全局热键的动作名列表
 
 ## 无效按键策略（keys.overflow）
 
-当按下选择/翻页/以词定字类按键，但**候选数量或词长不足以命中目标位次**时的处理方式。三项共用同一套枚举。
+当按下选择/翻页/以词定字类按键，但**候选数量或词长不足以命中目标位次**时的处理方式。前三项共用同一套枚举；翻页键那一项只有两档，见[翻页键翻不动时](#page-key-overflow)。
 
 <Callout type="info" title="「一个候选都没有」不归这里管">
 本节管的是「有候选，但不够到目标位次」。若**一个候选都没有**——空缓冲，或打了码却没出任何候选（空码，多半是打错了字根）——以词定字用的那几个键（`,` `.` `-` `=` `[` `]`）就不再算以词定字键，而是回归标点身份，交由 [`input.punct_on_empty_behavior`](/docs/guides/config/input) 处置。所以开不开以词定字，不会改变空码时按这些标点的行为。
@@ -453,6 +453,7 @@ global_hotkeys = []  # 提升为系统级全局热键的动作名列表
 number_key = "ignore"       # 数字键超出当前页候选数量时
 select_key = "ignore"       # 次选/三选键候选不足时
 select_char_key = "ignore"  # 以词定字键候选词长度不足时
+page_key = "ignore"         # 翻页键翻不动时（首页上翻 / 末页下翻）
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -460,6 +461,7 @@ select_char_key = "ignore"  # 以词定字键候选词长度不足时
 | `number_key` | 枚举 | `ignore` / `commit` / `commit_and_input` / `clear_and_input` | `ignore` | 数字键位次超出当前页候选数量时的行为；`clear_and_input` <Since v="0.124" /> |
 | `select_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 次选/三选键（见 `select_key_groups`）候选不足时的行为 |
 | `select_char_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 以词定字键（见 `select_char_keys`）候选词长度不足时的行为 |
+| `page_key` <Since v="0.127" /> | 枚举 | `ignore` / `commit_and_input` | `ignore` | 能出字的翻页键（见 `page_keys`）在首页上翻、末页下翻时的行为，触发条件见[下文](#page-key-overflow) |
 
 - 临时拼音里没有候选时按次选/三选键，同样按 `select_key` 处理 <Since v="0.123" />
 
@@ -473,6 +475,37 @@ select_char_key = "ignore"  # 以词定字键候选词长度不足时
 | `clear_and_input` | 清空已输入的编码与候选（含已选定的部分），只上屏该数字。仅 `number_key` 支持 |
 
 联想候选出现后，按 `0` 或超出联想条数的数字键，固定为收起联想并只输出该数字，不受 `number_key` 影响。
+
+### 翻页键翻不动时 <Since v="0.127" /> [#page-key-overflow]
+
+`-` `=` 这类键出厂是翻页键，翻不动时（首页按上翻、末页按下翻）默认什么都不做。`page_key = "commit_and_input"` 让这一下改为**上屏当前高亮候选，再输出这个键的符号**——与打完字直接按标点同一条路，中文标点、全角、自动配对、智能符号照常生效（`,` `.` 作翻页键时出的是「，」「。」）。
+
+以下条件**全部满足**才生效，任一条不满足仍按翻页键处理：
+
+- **普通输入**：临时拼音、快捷输入等模式里的翻页键不受影响。
+- **键能出字**：`-` `=` `,` `.` `[` `]`。`PageUp` / `PageDown` / `Tab` 这类键不受影响。
+- **本批候选还没翻过页**：翻到第 2 页再翻回首页，此刻按 `-` 仍是翻页键（吞键），免得翻页途中手一快打出符号。打下一个字母、候选重新生成后重新算起。
+- **末页下翻没有触发检索范围放宽**：检索范围是「智能」档且开着 [`input.scope_relax.page_end_key`](/docs/guides/config/input)（出厂开）时，末页按 `=` 若放出了被滤掉的字，这一下算翻页；没东西可放才轮到本项。
+
+<Callout type="warn" title="和「编码中可直接输入的符号」的关系">
+[`input.buffer_symbol_chars`](/docs/guides/config/input) 里的符号在组码中**先进编码**，优先于本项。它出厂就是 `"-"`，所以只开本项时，首页按 `-` 仍是接着打码（为了打 `sun-panel` 这类英文）；要让首页的 `-` 也顶屏出字，得把它清空。`=` 不受影响。
+</Callout>
+
+**配方：中文里写 `->` 箭头**（如「首页->设置」）。三处一起改：
+
+```toml
+[input]
+buffer_symbol_chars = ""        # 让首页的 - 不进编码
+
+[keys.overflow]
+page_key = "commit_and_input"   # 首页按 - 顶屏并输出 -
+
+[input.punct]
+custom_enabled = true
+custom_mappings = { ">" = [">"] }   # 中文标点下 Shift+. 出 > 而不是 》
+```
+
+打 `shouye` 按 `-` 上屏「首页-」，再按 `Shift+.` 出 `>`，接着打 `shezhi`。`custom_mappings` 那一行改的是中文半角下 `>` 的输出，不想动它也可以临时 `Ctrl+.` 切到英文标点再按。
 
 ## 相关阅读
 
