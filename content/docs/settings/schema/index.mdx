@@ -5,16 +5,18 @@ description: 输入方案的启用与排序、方案独立设置、导入导出�
 
 import { Since } from "@/components/since";
 
-设置工具的「方案」页自上而下是六张卡片：
+设置工具的「方案」页自上而下是八张卡片：
 
 | 卡片 | 管什么 |
 | --- | --- |
 | 输入方案 | 有哪些方案、用哪个、单个方案的设置与导入导出 |
-| 码表方案配置 | 所有码表方案的默认行为 |
-| 拼音方案配置 | 所有拼音类方案的默认行为 |
-| 混输方案配置 | 混输方案的默认行为 |
-| 英文方案配置 | 英文方案的默认行为 |
-| 主方案设置 | 反查与临时拼音用哪个方案 |
+| 码表 | 所有码表方案的默认行为 |
+| 拼音 | 所有拼音类方案的默认行为 |
+| 混输 | 混输方案的默认行为 |
+| 英文 | 英文方案的默认行为 |
+| 主方案设置 | 反查与临时拼音用哪个方案（二级导航里叫「主方案」） |
+| 临时拼音 | [临时拼音](/docs/settings/input/temp-modes#临时拼音)的触发键、候选窗布局、编码提示 |
+| 临时英文 | [临时英文](/docs/settings/input/temp-modes#临时英文)的触发键、Shift 行为、英文候选 |
 
 四台引擎的配置**直接铺在页面上**（0.121 起；此前要点开四个对话框才看得到）。它们排在「主方案设置」之前——引擎配置是日常会翻的，主方案 id 通常设一次就不再动。
 
@@ -303,10 +305,10 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 四张卡各装一台引擎的**全局默认行为**，卡内第一行会点明这一点。方案级的差异化通过上面的[码表配置](#schema-codetable)覆盖。
 
 <Cards>
-  <Card title="码表方案配置" href="/docs/settings/schema/codetable" description="上屏策略、编码提示、精确匹配、z 键、词频调整、自动造词" />
-  <Card title="拼音方案配置" href="/docs/settings/schema/pinyin" description="编码提示、智能组词、分隔符、词频调整、词组补全、自动学习、模糊音" />
-  <Card title="混输方案配置" href="/docs/settings/schema/mixed" description="候选来源标记、英文候选、拼音简拼、上屏否决策略、触发长度" />
-  <Card title="英文方案配置" href="/docs/settings/schema/english" description="英文引擎的词频调整策略、记账方式、上屏后自动加空格" />
+  <Card title="码表" href="/docs/settings/schema/codetable" description="上屏策略、编码提示、精确匹配、z 键、词频调整、自动造词" />
+  <Card title="拼音" href="/docs/settings/schema/pinyin" description="编码提示、智能组词、分隔符、词频调整、词组补全、自动学习、模糊音" />
+  <Card title="混输" href="/docs/settings/schema/mixed" description="候选来源标记、英文候选、拼音简拼、上屏否决策略、触发长度" />
+  <Card title="英文" href="/docs/settings/schema/english" description="英文引擎的词频调整策略、记账方式、上屏后自动加空格" />
 </Cards>
 
 ## 主方案设置 [#main-schema]
@@ -319,7 +321,7 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 | 主拼音方案 | [临时拼音](/docs/settings/input/temp-modes#临时拼音)、[快捷输入](/docs/settings/input/quick-input)的拼音子模式使用的拼音方案（可选双拼）。留空 = 全拼 |
 
 <Callout type="warn" title="混输方案的拼音不受「主拼音方案」影响">
-混输方案的拼音来自它自己方案文件里 `[engine.mixed]` 的 `secondary_schema` 字段，与这一项无关。改混输用哪个拼音要改方案文件，见[混输方案配置](/docs/settings/schema/mixed#no-own-dict)。
+混输方案的拼音来自它自己方案文件里 `[engine.mixed]` 的 `secondary_schema` 字段，与这一项无关。改混输用哪个拼音要改方案文件，见[混输](/docs/settings/schema/mixed#no-own-dict)。
 </Callout>
 
 确切配置键与取值见[方案与引擎配置](/docs/guides/config/schema#方案选择)。

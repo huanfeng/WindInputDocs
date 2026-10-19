@@ -263,7 +263,7 @@ default_weight = 500            # 该库无权重列，整库定档 500
 `[[dictionaries]]` 只认上表这些键。**字体不在词库级配置**——写 `font_path` / `font_family` 会被忽略，方案字体见[方案字体](#schema-font)。
 
 <Callout type="info" title="混输方案不写 dictionaries">
-混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库。详见[混输方案配置](/docs/settings/schema/mixed#no-own-dict)。
+混输是**引用型方案**，自己不拥有词库：方案文件里没有 `[[dictionaries]]` 段，词库全部来自 `[engine.mixed]` 里 `primary_schema` 与 `secondary_schema` 指向的那两个方案。自制混输方案时不必（也不应）为它配主词库。详见[方案设置 · 混输](/docs/settings/schema/mixed#no-own-dict)。
 </Callout>
 
 ### 扩展词库目录 <Since v="0.125" /> [#dictionary-dirs]

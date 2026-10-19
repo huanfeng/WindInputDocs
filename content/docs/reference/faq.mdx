@@ -85,7 +85,7 @@ import { Since } from "@/components/since";
 
 - **软键盘**：`Ctrl + Shift + K` 打开，用 `PgUp` / `PgDn` 翻到「数学符号」面，`√` 在 `Q` 键、`×` 在 `3` 键；「特殊符号」面还有 `✓` `✔` `✗` `✘`（`F` `G` `H` `J` 键）。见[软键盘](/docs/guides/soft-keyboard)
 - **zz 符号表**：打 `zzsx` 展开数学符号组，`×` 与 `√` 都在里面，翻页选取即可
-- **Emoji 候选**：在[设置 → 输入 → Emoji/OpenCC](/docs/settings/input#emoji) 打开「启用 emoji 候选」后，打出「对钩」会追加 ✅ ✔，「错误」追加 ❌ ❎（默认只为首选、且至少两个字的词追加）。这些是 emoji 样式的符号，不是 `√` `×` 本身；要 `√` 可再勾上附加模块「单位与杂项」，打「根号」得到 `√`
+- **Emoji 候选**：在[设置 → 输入 → Emoji/OpenCC](/docs/settings/input#emoji) 打开「启用 Emoji/OpenCC 候选」后，打出「对钩」会追加 ✅ ✔，「错误」追加 ❌ ❎（默认只为首选、且至少两个字的词追加）。这些是 emoji 样式的符号，不是 `√` `×` 本身；要 `√` 可再勾上附加模块「单位与杂项」，打「根号」得到 `√`
 - **Unicode 输入**：开启 [Unicode 输入](/docs/settings/input#unicode)后，`u+221a` 得 `√`，`u+d7` 得 `×`
 - **自定义短语**：给符号配一个自己的编码。在 **设置 → 词库 → 快捷短语** 里逐条添加，或复制下面这段，走设置工具的「[从剪贴板导入配置](/docs/settings/advanced#import-export)」一次装好：
 
@@ -116,11 +116,11 @@ import { Since } from "@/components/since";
 
 ### 如何切换双拼方案？
 
-在**方案页 → 选中双拼 → 设置 → 方案参数 → 双拼布局**里选，或直接改方案文件 `shuangpin.schema.toml` 的 `[engine.pinyin.shuangpin].layout`。内置 8 种：`xiaohe`（小鹤）、`ziranma`（自然码）、`mspy`（微软）、`sogou`（搜狗）、`abc`（智能ABC）、`ziguang`（紫光）、`jiajia`（拼音加加）、`shoudao`（首道）。详见[拼音方案配置](/docs/settings/schema/pinyin#双拼布局)。
+在**方案页 → 选中双拼 → 设置 → 方案参数 → 双拼布局**里选，或直接改方案文件 `shuangpin.schema.toml` 的 `[engine.pinyin.shuangpin].layout`。内置 8 种：`xiaohe`（小鹤）、`ziranma`（自然码）、`mspy`（微软）、`sogou`（搜狗）、`abc`（智能ABC）、`ziguang`（紫光）、`jiajia`（拼音加加）、`shoudao`（首道）。详见[方案设置 · 拼音](/docs/settings/schema/pinyin#双拼布局)。
 
 ### 双拼可以使用模糊音吗？
 
-可以。模糊音是全局设置，双拼和全拼共享同一份配置——在设置工具「方案 → 拼音方案配置」的模糊音区调整，或编辑 `config.toml` 的 `[schema.pinyin.fuzzy]`。
+可以。模糊音是全局设置，双拼和全拼共享同一份配置——在设置工具「方案 → 拼音」卡的「模糊音」一行调整（打开开关，点「扩展设置」勾选拼音对），或编辑 `config.toml` 的 `[schema.pinyin.fuzzy]`。
 
 ## 词库与备份
 

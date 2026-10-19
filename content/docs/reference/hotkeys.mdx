@@ -47,9 +47,9 @@ import { Since } from "@/components/since";
 | 高亮移动 | `↑` `↓`、`Tab` `Shift+Tab` | 方向键 · Tab |
 | 以词定字 | 全部关闭 | `,` `.` · `-` `=` · `[` `]` |
 
-`Enter` 的行为可配：上屏编码（默认）/ 清空编码 / 上屏并继续输入 / 忽略，见[按键行为](/docs/settings/input#按键行为)。
+`Enter` 的行为可配：上屏编码（默认）/ 清空编码，见[按键行为](/docs/settings/keys#按键行为)。
 
-按了选词键但那个位次没有候选时怎么办，见[候选无效按键](/docs/settings/input#候选无效按键)。
+按了选词键但那个位次没有候选时怎么办，见[候选无效按键](/docs/settings/keys#候选无效按键)。
 
 ## 候选词管理
 
@@ -83,7 +83,7 @@ import { Since } from "@/components/since";
 | 网址输入 | 打出 `http` / `www.` 等前缀 | 前缀列表可编辑 |
 | 引导键特殊模式 | 无预置 | 由方案自行配置 |
 
-**字母键作引导键**不在这三处配——`z` 这类死码字母统一走[码表方案配置的「z 键引导功能」](/docs/settings/schema/codetable#z-key-action)。
+**字母键作引导键**不在这三处配——`z` 这类死码字母统一走[方案页「码表」卡的「z 键引导功能」](/docs/settings/schema/codetable#z-key-action)。
 
 <Callout type="warn" title="触发键之间会冲突">
 这几个触发键在同一输入状态（空缓冲、无候选）下争用，内核的优先级是**临时英文 > 临时拼音 > 引导键特殊模式 > 快捷输入**，输的那个静默失效。设置工具会实时检测并给出警告，见[冲突与优先级](/docs/settings/keys#冲突与优先级)。
