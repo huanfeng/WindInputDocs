@@ -233,11 +233,12 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 | --- | --- | --- | --- | --- |
 | `session_actions` | 表（键名 → 动词） | 见下 | `{}` | 打字期间的「键 → 干什么」表，只存你显式配的键 |
 
-- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`，以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
+- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
 - **`single_char`** <Since v="0.121" />：开关[单字输入](/docs/guides/config/schema#single-char)，动词与 `key_actions` 那份完全一样（`single_char:on` / `:off` / `:toggle` / `:follow`）。按下即开关并**就地重出候选**，不会把正在打的码上屏。写在本表意味着「只在打字时管用」——绑在 Tab 上，没打字时 Tab 仍是宿主的制表符。
 - **与翻页共用一个键**：写 `aux_code:page_next` <Since v="0.118" />，**能进辅助码就进、进不去就翻下一页**。于是 `tab = "aux_code:page_next"` 一键两用：第一次按进筛选，之后按继续翻页；辅助码没开、方案没配码表时它就是个纯翻页键，空闲无候选时仍原样交还给应用。这个形态只有本表有——`key_actions` 解析不出翻页键。
 - `commit_highlighted` <Since v="0.123" />：上屏当前高亮的候选，详见下方[上屏当前高亮候选](#commit-highlighted)
+- `commit_code` <Since v="0.127" />：上屏编码，详见下方[上屏编码](#commit-code)
 - `command:<表达式>` <Since v="0.123" />：命令直通，详见上方[命令直通](#command-action)——正在输入时按下就执行命令，当前输入原样保留；没有输入时这个键不吃
 
 本表与下面的 `page_keys` / `highlight_keys` / `select_key_groups` / `select_char_keys` 各自独立保存，**运行时**才合并（本表写了的键优先）——改一处不会动到另一处。出厂默认留在那四项里，这样把它们清成 `[]` 就真的能关掉对应功能。撞键时按消费顺序裁决：以词定字 > 翻页 / 高亮 > 二三候选。
@@ -288,6 +289,21 @@ session_actions = { tab = "commit_highlighted" }
 [联想](/docs/guides/config/input#association)候选出现时，`commit_highlighted` 跟随联想自己的空格上屏开关 `input.association.space_commits`：开着才上屏当前高亮的联想候选，关掉则不上屏联想候选，按键回落原语义。
 
 设置工具的位置：[全局自定义输入中按键](/docs/settings/keys#commit-highlighted)的「选择候选」分类最前一项「上屏当前高亮候选（同空格）」。
+
+#### 上屏编码：`commit_code` <Since v="0.127" /> [#commit-code]
+
+上屏正在打的编码原文，与回车上屏编码是同一条路：拼音逐步转换的已转换部分、临时拼音 / 快捷输入的引导字母、英文方案的自动造词都与回车一致。极点、小鸭的习惯是单按左 Ctrl 上屏编码：
+
+```toml
+[keys]
+session_actions = { lctrl = "commit_code" }
+```
+
+与回车唯一的不同：**不看 `input.enter_behavior`**。回车设成「清空编码」时，这个键仍然上屏编码。
+
+打了码还没出候选（空码）时也能按。**没在打字、或只有联想候选时这个键不吃**，按键回落原语义（Tab 仍是宿主的制表符）。
+
+设置工具的位置：[全局自定义输入中按键](/docs/settings/keys#commit-code)的「编辑」分类「上屏编码」。
 
 ## 功能快捷键
 
