@@ -335,6 +335,7 @@ cancel_on_mode_switch = false  # 中英模式切换时取消大写锁定
 enabled = true              # 临时拼音总开关
 trigger_keys = ["backtick"] # 旧写法，引导键改写在 keys.key_actions（见下表）
 candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布局」）
+code_hint_source = "auto"   # 拼音候选旁显示哪种编码：off / codetable / shuangpin / auto
 hotkey = ""                 # 专用直达热键，空 = 不注册
 ```
 
@@ -344,6 +345,7 @@ hotkey = ""                 # 专用直达热键，空 = 不注册
 | `trigger_keys` | 字符串数组 | — | `["backtick"]` | 旧写法，加载时迁移进 [`keys.key_actions`](/docs/guides/config/keys#key-actions)（动词 `temp_pinyin`），按键绑定迁移完成后不再读取。出厂的反引号即 `backtick = "temp_pinyin"`，改键请直接写 `key_actions`。只认符号键；`z` 进临拼改由方案的 [`z_key_action`](/docs/settings/schema/codetable#z-key-action) 配 |
 | `hotkey` | 字符串 | — | `""` | 专用直达热键（如 `"ctrl+shift+p"`，空串 = 不注册）；与 `key_actions` 里的 `temp_pinyin` 引导键共存，热键进入时组合区不写引导符。组合键也可以直接写进 `key_actions`：`"ctrl+shift+p" = "temp_pinyin"`。默认空 |
 | `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临拼期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局) |
+| `code_hint_source` <Since v="0.123" /> | 字符串 | `off` / `codetable` / `shuangpin` / `auto` | `"auto"` | 临时拼音与快捷输入期间，拼音候选的注释里放行哪种编码。四档含义同拼音方案的 [`schema.pinyin.code_hint_source`](/docs/guides/config/schema#拼音引擎schemapinyin)，但两份各自独立、出厂值也不同（拼音方案出厂 `off`）：临拼本来就是码表用户借拼音查码，出厂就放行。写错的值回落 `auto` |
 
 ## 反查模式（input.reverse） <Since v="0.125" /> [#reverse]
 
