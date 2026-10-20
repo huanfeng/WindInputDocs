@@ -95,6 +95,17 @@ CapsLock 那个键位在面板上被画成**当前面按钮**（显示面名，�
 - **换 DPI 缩放会回到默认位置**。同一块屏改了缩放而分辨率没变时，你摆的那个落点已经不是原来那个地方了，与其错着不如重来
 - **默认开在你正在打字的那块屏**上，而不是恒定的主屏
 
+## Linux 版 <Since v="0.127" /> [#linux]
+
+Linux 版（Fcitx5）也有软键盘，入口、各面和操作与上面相同。几点差异：
+
+- 从旧版升级后，要在桌面终端运行 `fcitx5 -rd` 或注销重登，软键盘才能打开
+- `Ctrl + Shift + K` 以前原样传给程序，现在用来开关软键盘；程序里要用这个键，到[按键设置](/docs/settings/keys#function-keys)把「显示/隐藏软键盘」清空
+- 按住键盘上的 Shift **不会**切到第二层；点面板上的 Shift 键照常切换
+- 自定义键盘面：出厂文件在 `/usr/lib/windinput/data/system.softkeyboard.toml`，拷到 `~/.config/WindInput/` 下同名再改
+
+更多见 [Linux 版 · 工具栏与软键盘](/docs/reference/linux#toolbar)。
+
 ## 绑更多键 [#key-actions]
 
 在 `config.toml` 的 `[keys].key_actions`，或方案文件的 `[key_actions]` 里写：

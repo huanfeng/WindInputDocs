@@ -66,6 +66,7 @@ import { Since } from "@/components/since";
 | --- | --- | --- |
 | `Ctrl + Shift + ]` | 打开设置工具 | ✅ |
 | `Ctrl + Shift + \` | 显示 / 隐藏工具栏 | ✅ |
+| `Ctrl + Shift + K` <Since v="0.120" /> | 显示 / 隐藏[软键盘](/docs/guides/soft-keyboard) | —— |
 | 不绑定 | 打开词库管理页（跳到当前方案域） | ✅ |
 | `Ctrl + =` | 快捷加词（从当前组合造词） | —— |
 | `Ctrl + Shift + =` | 打开加词界面 | —— |
@@ -114,10 +115,10 @@ macOS 版的默认键位与 Windows 相同，且额外支持 `⌘`(Command) / `�
 
 ## Linux 差异 <Since v="0.125" /> [#linux]
 
-Linux 版跑在 Fcitx5 之上，输入法激活时的键位与 Windows 相同。三点差异：
+Linux 版跑在 Fcitx5 之上，输入法激活时的键位与 Windows 相同，工具栏与软键盘的热键也一样生效 <Since v="0.127" />。三点差异：
 
 - **切换到 / 离开清风输入法用 Fcitx5 的切换热键**（默认 `Ctrl + Space`），在 Fcitx5 配置里改
-- **没有工具栏与全局热键**，上面「全局热键」一节不适用，快捷键只在输入法激活时响应
+- **没有全局热键**，上面「全局热键」一节不适用，快捷键只在输入法激活时响应
 - **左 Shift 单击默认被 Fcitx5 截走**，「Shift 切换中英」要先到 Fcitx5 的全局选项里腾出这个键，见 [Linux 版 · 想用 Shift 单击切换中英](/docs/reference/linux#shift-toggle)
 
 见 [Linux 版](/docs/reference/linux)。
