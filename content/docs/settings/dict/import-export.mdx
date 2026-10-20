@@ -401,6 +401,8 @@ userdata/common_chars.jsonl            type="common_chars"
 userdata/quick_format.yaml             type="quick_format"（调整过快捷输入时）
 userdata/completions.jsonl             type="completion"  （0.122 起：邮箱后缀 + 网址历史）
 charsets/<字符类>.yaml                  type="charset"
+data/<方案>/dicts/<名>.dict.yaml         type="user_dict_file" meta.schema（0.127 起：用户分库，文件原样）
+data/<方案>/dicts.toml                  type="user_dicts_meta" meta.schema（0.127 起：分库开关）
 userdata/stats.jsonl                   type="stats"       （勾选「包含统计数据」时）
 userdata/stats_meta.json               type="stats_meta"  （同上）
 schemas/<用户方案目录整树>               type="schema_file"
@@ -411,7 +413,7 @@ state/state.toml                       type="state"       （勾选「包含界�
 
 [输入补全的学习数据](/docs/settings/dict#completion)（邮箱后缀与网址历史）自 0.122 起<Since v="0.122" />一并进包，两类装在同一个 `completions.jsonl` 里，每行自带类别。
 
-用户数据**逐表导出为文本**而非直接搬数据文件：词库与短语用 WindDict 格式，词频、候选调整、统计用 JSON Lines（每行一个 JSON 对象）。这样跨版本、跨平台都稳。
+用户数据**逐表导出为文本**而非直接搬数据文件：词库与短语用 WindDict 格式，词频、候选调整、统计用 JSON Lines（每行一个 JSON 对象）。[用户分库](/docs/settings/dict#user-dict-libs)例外，按文件原样进包。这样跨版本、跨平台都稳。
 
 方案与主题按整目录树原样打包；数据表按方案拆分子目录，归属由 `manifest` 条目的 `meta.schema` 标注——因此**有数据但已停用的方案也会被备份到**。
 
@@ -426,7 +428,7 @@ state/state.toml                       type="state"       （勾选「包含界�
 | 勾选项 | 覆盖的 type |
 | --- | --- |
 | 配置 | `config`、`compat` |
-| 用户数据 | `dict`、`temp`、`phrase`、`freq`（含 `assoc_history`）、`shadow`、`common_chars`、`quick_format`、`charset`、`completion` |
+| 用户数据 | `dict`、`temp`、`phrase`、`freq`（含 `assoc_history`）、`shadow`、`common_chars`、`quick_format`、`charset`、`completion`、`user_dict_file` 与 `user_dicts_meta` <Since v="0.127" /> |
 | 统计 | `stats`、`stats_meta` |
 | 用户方案 | `schema_file`、`schema_override_file` |
 | 主题 | `theme_file` |
@@ -436,7 +438,7 @@ state/state.toml                       type="state"       （勾选「包含界�
 
 | | 合并还原 | 替换还原 |
 | --- | --- | --- |
-| 文件域（配置、方案、主题、界面状态） | 已存在的文件**跳过**，计入冲突数 | 覆盖同名文件 |
+| 文件域（配置、方案、主题、界面状态、用户分库） | 已存在的文件**跳过**，计入冲突数 | 覆盖同名文件 |
 | 数据域（词库、短语、词频、候选调整） | 逐条 upsert 合并 | 先清空该域再导入 |
 | 统计 | 已存在的日期跳过 | 先清空再导入 |
 
