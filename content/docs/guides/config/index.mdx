@@ -171,6 +171,10 @@ diff 保存下，用户配置文件可能只包含 `version = 1` 和少量字段
 
 全局配置为 **TOML 格式**，用户配置文件首行带版本号 `version = 1`。方案配置（`*.schema.toml`）也是 TOML；RIME 词库文件（`*.dict.yaml`）为 YAML 格式。
 
+<Callout type="warn" title="配置文件只支持 UTF-8 编码">
+带不带 BOM 都可以。用记事本另存时编码要选「UTF-8」，不要选「ANSI」。<Since v="0.127" /> 起，`config.toml` 不是 UTF-8 时整份不加载，设置工具顶部会提示，文件不会被覆盖；另存为 UTF-8 后点「重新加载」即可。
+</Callout>
+
 配置采用**三层合并**，优先级从低到高：
 
 1. **代码默认值** — 程序内置默认配置
