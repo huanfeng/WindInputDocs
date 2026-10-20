@@ -168,6 +168,7 @@ caret_use_top = true
 | `status_x` / `status_y` <Since v="0.123" /> | 整数（物理像素） | `0` | `status_position_mode = "fixed"` 时本应用的气泡位置。拖动气泡自动记录，`(0,0)` = 尚未设定 |
 | `composition_placeholder` <Since v="0.125" /> | 枚举 | 不写 = `space` | 编码不显示在程序里时，输入区里临时放的占位字符：`space`（空格）/ `zwsp`（零宽空格）/ `blank`（盲文空白），见[下文](#composition-placeholder) |
 | `status_fallback_position` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用报不出光标位置时气泡落在哪，取值同全局 [`ui.status.fallback_position`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
+| `multiline_commit` <Since v="0.127" /> | 枚举 | 不写 = `commit` | 含换行的文本怎么交给程序：`commit`（直接上屏）/ `paste`（经剪贴板 Ctrl+V 粘贴），见[下文](#multiline-commit) |
 
 `initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
 
@@ -179,7 +180,7 @@ caret_use_top = true
 
 | 进程 | 规则 | 为什么 |
 | --- | --- | --- |
-| `Weixin.exe` | `caret_use_top` + `stale_probe_guard` | 微信的 Qt WebView 输入框，`GetTextExt` 返回的 height 在 1↔20px 间跳变，导致 bottom 漂移约 20px，但 top 始终稳定；组合期间上报的矩形还会停在上一次组合的位置 |
+| `Weixin.exe` | `caret_use_top` + `stale_probe_guard` + `multiline_commit = "paste"` <Since v="0.127" /> | 微信的 Qt WebView 输入框，`GetTextExt` 返回的 height 在 1↔20px 间跳变，导致 bottom 漂移约 20px，但 top 始终稳定；组合期间上报的矩形还会停在上一次组合的位置；新版微信直接上屏多行文本会残留编码，见[多行文本上屏方式](#multiline-commit) |
 | `SearchHost.exe` / `searchapp.exe` / `startmenuexperiencehost.exe` | `host_render = true` | Win11 / Win10 的开始菜单与任务栏搜索框，候选窗盖不过它们的 Band 层级 |
 | `EXCEL.EXE` / `et.exe` | `first_show_mode = "wait"` | 进单元格时先在编辑栏建临时编辑上下文、约 0.5s 后才切到单元格，`fast` 档的试探坐标会抢在切换前把候选窗显示在编辑栏 |
 | `QQ.exe` / `Code.exe` / `Feishu.exe` <Since v="0.121" /> | `composition_start_pair_guard = true` | 长组合时交替上报组合起点降级帧与当前 selection，跨度不是锚点错误 |
@@ -471,10 +472,47 @@ style = "cr"
 | `style` | `keep`（原样透传）/ `cr` / `lf` / `crlf` |
 | `comment` | 备注，不参与匹配 |
 
-出厂名单只有 `WINWORD.EXE`。同一次实测里**记事本与 WPS 文字都能正常分段**，所以 WPS 刻意不在名单上——按「富文本模型」推理会想当然地把它加进来，实测说的是反话。
+出厂名单：
+
+| 进程 | `style` | 为什么 |
+| --- | --- | --- |
+| `WINWORD.EXE` | `cr` | Word 的段落边界是 `CR`，`LF` 不构成换行 |
+| `QQ.exe` <Since v="0.127" /> | `crlf` | QQNT 聊天框收到 `LF` 换行的多行文本会乱序，`CR` 会丢换行，`CRLF` 正常 |
+
+同一次实测里**记事本与 WPS 文字都能正常分段**，所以 WPS 刻意不在名单上——按「富文本模型」推理会想当然地把它加进来，实测说的是反话。
+
+换行字符换了也不行（如新版微信，怎么上屏都残留编码）的程序，改用[多行文本上屏方式](#multiline-commit)走粘贴。
 
 <Callout type="warn" title="这是与 [[apps]] 并列的另一个段，不是 apps 的字段">
 两段各管各的：`[[commit_newline]]` 在设置端也是「应用兼容性与独立配置」窗口里独立的一个分类。0.123 及更早版本同名进程是整条覆盖，当时把它做成 `[[apps]]` 的字段，你给 `WINWORD.EXE` 写任何一条自己的规则都会让出厂那条 `cr` 消失，所以拆成了独立段；现在合并语义是字段级叠加，分开放仍然更清晰，互不影响。
+</Callout>
+
+## 多行文本上屏方式 multiline_commit <Since v="0.127" /> [#multiline-commit]
+
+新版微信收到含换行的上屏文本时，会把刚才输入的编码残留在输入框里，[换行字符](#commit-newline)换成哪种都一样。`multiline_commit = "paste"` 改为：先结束输入，再把文本写入剪贴板、模拟按一次 `Ctrl+V` 粘贴进去，就没有残留了。
+
+```toml
+[[apps]]
+process = "SomeApp.exe"
+multiline_commit = "paste"
+```
+
+| 取值 | 效果 |
+| --- | --- |
+| `commit`（不写即此档） | 直接上屏，原来的行为 |
+| `paste` | 经剪贴板粘贴上屏。**只影响含换行的上屏**，单行文本照常直接上屏 |
+
+微信已内置（出厂 `paste`），不用自己写。
+
+- **会覆盖剪贴板**：粘贴后剪贴板里留的是刚上屏的文本，原来的内容不会恢复。这份内容不进 `Win+V` 剪贴板历史、不同步云剪贴板，并请第三方剪贴板工具忽略它。
+- **退回直接上屏**：上屏那一刻按住了 `Shift` / `Alt` / `Win`（注入的 `Ctrl+V` 会变成别的快捷键），或前台窗口已经不是这个程序，或剪贴板写不进去，这一次就照常直接上屏，不会丢字。
+- 粘贴时换行统一写成 `CRLF`（剪贴板文本的惯例）。
+- 和其它字段一样[逐字段叠加](#overlay)、可 `unset`，支持 `process = "*"` 通配与[类名 / 标题条件](#window-match)。不想让微信走粘贴，在用户层写 `multiline_commit = "commit"`。
+- 在[应用兼容性与独立配置窗口](/docs/settings/compat)里叫「多行文本上屏方式」，属高级选项；右键菜单的应用独立配置里没有这一项。
+- 仅 Windows 生效。
+
+<Callout type="warn" title="终端这类程序不要开">
+`Ctrl+V` 在终端等程序里不是粘贴，开了多行文本就贴不进去。只给确实遇到多行上屏问题、且 `Ctrl+V` 就是粘贴的程序开。
 </Callout>
 
 ## 排查：某个程序里输入法没反应

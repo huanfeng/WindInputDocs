@@ -41,7 +41,7 @@ import { Since } from "@/components/since";
 | --- | --- |
 | 应用规则 | 候选窗定位、状态提示位置、初始中英状态、符号自动配对、宿主兼容等，绝大多数选项都在这里 |
 | 窗口作用域 | 某个软件里**哪些窗口**在切入时重新应用「初始输入模式」（按窗口类名） |
-| 上屏换行 | 某个软件里上屏换行时用 CR / LF / CRLF 哪一种，见[应用兼容性规则](/docs/guides/compat) |
+| 上屏换行 | 某个软件里上屏换行时用 CR / LF / CRLF 哪一种，见[上屏换行的字符样式](/docs/guides/compat#commit-newline)。多行文本改走粘贴上屏不在这里，是「应用规则」里的「多行文本上屏方式」 |
 
 ### 规则的状态
 
@@ -168,6 +168,7 @@ import { Since } from "@/components/since";
 | 宿主关闭输入法 | `ignore_host_ime_close` | ✅ |
 | 软件自绘候选窗 | `host_drawn_candidates` | ✅ |
 | 占位字符 <Since v="0.125" /> | `composition_placeholder` | ✅ |
+| 多行文本上屏方式 <Since v="0.127" /> | `multiline_commit` | ✅ |
 | 允许重算的窗口类（窗口作用域） | `classes` | |
 | 上屏换行形式（上屏换行） | `style` | |
 

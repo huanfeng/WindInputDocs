@@ -93,7 +93,7 @@ process = "WINWORD.EXE"
 style = "cr"
 ```
 
-出厂名单只有 `WINWORD.EXE`——同一次实测里记事本与 WPS 文字都能正常分段，所以 WPS 刻意不在名单上。写法与 `compat.toml` 其余段一致，见[应用兼容配置](/docs/guides/compat#commit-newline)。
+出厂名单里 `WINWORD.EXE` 转 CR——同一次实测里记事本与 WPS 文字都能正常分段，所以 WPS 刻意不在名单上；另有 QQ 转 CRLF，完整名单见[上屏换行](/docs/guides/compat#commit-newline)。写法与 `compat.toml` 其余段一致，见[应用兼容配置](/docs/guides/compat#commit-newline)。
 
 <Callout type="info" title="为什么出厂不是继续转 CR">
 两个方向的漏配代价不对称：名单里漏一个富文本程序，你立刻看得见换行显示不对，加一行即可；反过来默认转换而漏掉一个按字节存储的程序，行尾被改写却看不出来，可能很久之后才发现。可见的失败优于静默的失败。

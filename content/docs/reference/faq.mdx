@@ -171,6 +171,10 @@ import { Since } from "@/components/since";
 
 清风输入法内置了微信的兼容性规则，会自动修正候选框定位。如果其他应用也有类似问题，可在 `compat.toml` 中添加规则。详见[配置文件](/docs/guides/config)。
 
+### 多行文本上屏后残留编码或顺序错乱？ <Since v="0.127" /> [#multiline-commit]
+
+微信、QQ 已内置规则：微信的多行文本改经剪贴板粘贴上屏（会覆盖剪贴板），QQ 的换行改用 CRLF。别的程序有同样问题，照[多行文本上屏方式](/docs/guides/compat#multiline-commit)与[上屏换行的字符样式](/docs/guides/compat#commit-newline)给它加一条规则。
+
 ### 密码框里打不出中文？
 
 这是有意设计：检测到密码输入框时会**自动强制英文**，避免密码经候选窗、编码组合区暴露。离开密码框后自动恢复原来的中英文状态。
