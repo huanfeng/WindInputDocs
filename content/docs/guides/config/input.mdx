@@ -319,12 +319,14 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 ```toml
 [input.capslock]
 cancel_on_mode_switch = false  # 中英模式切换时取消大写锁定
+commit_upper = false           # 打字中按 CapsLock 切换时，编码转大写上屏
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `cancel_on_mode_switch` | 布尔 | — | `false` | 中英模式切换时是否同时取消 CapsLock 大写锁定状态 |
 | `mode_after_cancel` <Since v="0.125" /> | 枚举 | `chinese` / `english` / `toggle` | `"chinese"` | 上一项取消了大写之后落到哪个模式：`chinese` = Shift 回到中文、Ctrl+空格 按它自己的切换方向（即原有行为）；`english` = 一律进英文，适合「打完大写接着打小写」；`toggle` = 照常切换（Shift 翻转中英，Ctrl+空格 同 `chinese`）。仅 Windows |
+| `commit_upper` <Since v="0.127" /> | 布尔 | — | `false` | 打字中按 CapsLock 切换时，把正在打的编码转大写上屏（`wps` → `WPS`）：开大写那一下，以及 CapsLock 作中英切换键切到英文那一下。上不上屏仍由 [`keys.commit_on_switch`](/docs/guides/config/keys) 决定（临时英文总会上屏），本项只管大小写；已转换的字词不转。CapsLock 在打字时绑了别的动作（[输入中按键](/docs/guides/config/keys)、英文大小写档位键）时不适用。Windows / Linux |
 
 ## 临时拼音（input.temp_pinyin）
 
