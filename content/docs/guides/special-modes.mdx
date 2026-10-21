@@ -321,7 +321,8 @@ backslash = "special:quick_symbols"
 特殊模式的候选检索是否走**精确匹配**、以及空码时是否**补全后续编码**，同样由该方案的 `[engine.codetable]` 决定，规则与它作普通方案时完全一致（见[码表引擎配置](/docs/guides/config/schema#码表引擎schemacodetable)）：
 
 - `single_code_input`：精确匹配模式，关闭前缀枚举，只显示编码完全匹配的候选
-- `single_code_complete`：精确匹配下当前编码无精确候选、但更长前缀有候选时，补一条「首位后续码」。只要词库里还收着以当前编码开头的更长编码就补，不限码长：打满全码（0.126 起）、超过满码长（0.128 起，适合收了长码的音形方案）都照样补
+- `single_code_complete`：精确匹配下当前编码无精确候选、但更长前缀有候选时，补一条「首位后续码」，打满全码时也照样补（0.126 起）
+- 超过满码长时 `single_code_complete` 同样补，适合收了长码的音形方案 <Since v="0.128" />
 
 <Callout type="info" title="这些项在设置工具里也能配">
 不必手写：在方案页勾选「显示特殊方案」，选中该方案 → **设置 → 方案自定义**，勾上要改的那几项即可（顶码上屏、精确匹配、调频等）。见[方案级码表配置](/docs/settings/schema#schema-codetable)。
