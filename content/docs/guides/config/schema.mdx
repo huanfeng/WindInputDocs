@@ -453,6 +453,8 @@ ian_iang = false
 uan_uang = false
 un_ong = false
 eng_ong = false
+hint = false
+hint_scope = "first"
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -471,6 +473,8 @@ eng_ong = false
 | `uan_uang` | 布尔 | — | `false` | uan ↔ uang 不分 |
 | `un_ong` <Since v="0.123" /> | 布尔 | — | `false` | un ↔ ong 不分 |
 | `eng_ong` <Since v="0.123" /> | 布尔 | — | `false` | eng ↔ ong 不分 |
+| `hint` <Since v="0.128" /> | 布尔 | — | `false` | [显示正确拼音](/docs/settings/schema/pinyin#fuzzy-hint)：靠模糊音匹配上的字，在候选里内嵌正确全拼并着色（「苹(ping)果」），上屏不受影响。仅在 `enabled` 开启时生效 |
+| `hint_scope` <Since v="0.128" /> | 字符串 | `first` / `all` | `"first"` | 提示范围：`first` 只标第一个带提示的候选，`all` 标全部模糊候选。颜色用主题 `[text.roles]` 的 `fuzzy_hint` |
 
 ## 拼音调频（schema.pinyin.frequency）
 
