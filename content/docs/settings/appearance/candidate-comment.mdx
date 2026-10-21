@@ -67,7 +67,7 @@ ${code_hint|code_rev}{ ${fuzzy_pinyin}}
 例如开着 zh ↔ z 不分，输入 `zongguo` 时「中国」的注释是 `zhong guo`；普通候选仍只显示编码。
 
 - 值是整词的正确拼音，不是只有被替换的那个音节；字数与音节数对不上时为空。
-- 开着[提示带声调](/docs/settings/schema/pinyin#fuzzy-hint)时带声调（`zhōng guo`）。
+- 开着[提示带声调](/docs/settings/schema/pinyin#fuzzy-hint)时带声调（`zhōng guó`）。
 - 不受「提示范围」限制，每个模糊命中的候选都有值；放在哪由模板决定。
 - 它和「显示正确拼音」是两条独立的路：只想在注释里看、不想正文内嵌时，可以关掉「显示正确拼音」，只写模板，注释照样有值。
 - 颜色用主题 `[comment.roles]` 的 `fuzzy_pinyin` 角色，出厂主题配的是橙色，与正文提示同色。

@@ -476,7 +476,7 @@ hint_tone = false
 | `eng_ong` <Since v="0.123" /> | 布尔 | — | `false` | eng ↔ ong 不分 |
 | `hint` <Since v="0.128" /> | 布尔 | — | `false` | [显示正确拼音](/docs/settings/schema/pinyin#fuzzy-hint)：靠模糊音匹配上的字，在候选里内嵌正确全拼并着色（「苹(ping)果」），上屏不受影响。仅在 `enabled` 开启时生效 |
 | `hint_scope` <Since v="0.128" /> | 字符串 | `first` / `all` | `"first"` | 提示范围：`first` 只标第一个带提示的候选，`all` 标全部模糊候选。颜色用主题 `[text.roles]` 的 `fuzzy_hint` |
-| `hint_tone` <Since v="0.128" /> | 布尔 | — | `false` | 提示带声调：「苹(píng)果」。同音异调取最常用读音，查不到读音的字不带调；注释变量 `${fuzzy_pinyin}` 同样跟随。仅在 `hint` 开启时生效 |
+| `hint_tone` <Since v="0.128" /> | 布尔 | — | `false` | 提示带声调：「苹(píng)果」。作用于内嵌提示与 `${fuzzy_pinyin}`，不依赖 `hint`。同音异调取最常用读音，查不到读音的字不带调 |
 
 ## 拼音调频（schema.pinyin.frequency）
 
