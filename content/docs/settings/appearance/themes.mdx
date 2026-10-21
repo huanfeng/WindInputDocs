@@ -199,6 +199,7 @@ readings = "#9AD0FF"
 | `code_rev_all` | 反查编码（全部） | `${code_rev_all}`（含旧名 `${code_all}`） |
 | `shuangpin` | 双拼编码 | `${shuangpin}` |
 | `pinyin` | 拼音 | `${pinyin}` |
+| `fuzzy_pinyin` <Since v="0.128" /> | 模糊音正确拼音 | `${fuzzy_pinyin}` |
 | `chaizi` | 拆字 | `${chaizi}` |
 | `chaizi_code` | 拆字编码 | `${chaizi_code}` |
 | `chaizi_all` | 拆字（逐字） | `${chaizi_all}` |
@@ -240,6 +241,8 @@ fuzzy_hint = { light = "#C2410C", dark = "#FDBA74" }
 4. 候选注释色。
 
 所以不配就整体跟随注释色；出厂主题配了橙色。值的写法同上。
+
+注释里的 `${fuzzy_pinyin}`（[模糊音的正确拼音](/docs/settings/appearance/candidate-comment#fuzzy-pinyin)）用的是 `[comment.roles]` 里的 `fuzzy_pinyin` 角色，出厂主题同样配了橙色，与这里的正文提示同色；主题没配时随注释色。
 
 #### 哪个颜色生效 [#role-color-order]
 
