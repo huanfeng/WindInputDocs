@@ -177,7 +177,7 @@ readings = "#9AD0FF"
 | `[comment_above.hover.roles]` <Since v="0.124" /> | 上方注释条，鼠标悬停时 |
 | `[tooltip.roles]` | 悬停提示（气泡没有选中、悬停之分，写 `[tooltip.selected.roles]` 不生效） |
 
-只有注释、上方注释条与悬停提示读这张表，写在其它节点下的 `roles` 被忽略。
+只有注释、上方注释条与悬停提示读这张表，写在其它节点下的 `roles` 被忽略。唯一例外是候选正文节点的 `[text.roles]`，见下一小节。
 
 **值的写法**与节点的 `color` 相同：`"${token}"`、`"#RRGGBB"`、`{ light = "…", dark = "…" }`。另外：
 
@@ -199,6 +199,7 @@ readings = "#9AD0FF"
 | `code_rev_all` | 反查编码（全部） | `${code_rev_all}`（含旧名 `${code_all}`） |
 | `shuangpin` | 双拼编码 | `${shuangpin}` |
 | `pinyin` | 拼音 | `${pinyin}` |
+| `fuzzy_pinyin` <Since v="0.128" /> | 模糊音正确拼音 | `${fuzzy_pinyin}` |
 | `chaizi` | 拆字 | `${chaizi}` |
 | `chaizi_code` | 拆字编码 | `${chaizi_code}` |
 | `chaizi_all` | 拆字（逐字） | `${chaizi_all}` |
@@ -222,6 +223,26 @@ readings = "#9AD0FF"
 - 段名里的变量（如 `编码{(${code_source})}` 里的 `五笔`）没单独配色时跟 `title` 走，整个段名同色。
 - 变量名拼错而原样显示的 `${pinyn}` 没有角色，始终是正文色，在段名里也不跟 `title`。
 - 截断加的 `…` 与它前面那个字同色。
+
+#### 候选正文：模糊音提示的颜色 <Since v="0.128" /> [#text-roles-fuzzy-hint]
+
+候选正文里内嵌的正确拼音（「苹(ping)果」里的 `(ping)`，见[显示正确拼音](/docs/settings/schema/pinyin#fuzzy-hint)）单独配色，`[text.roles]` 只认一个角色 `fuzzy_hint`：
+
+```toml
+[text.roles]
+fuzzy_hint = { light = "#C2410C", dark = "#FDBA74" }
+```
+
+取色按下面的顺序，前一项没配或不适用才看后一项：
+
+1. 当前状态单列的表（如 `[text.selected.roles]`、`[text.hover.roles]`）里的 `fuzzy_hint`；
+2. 该状态的正文色若被主题改过（与平时不同）：第 3 项的提示色放在该状态的候选底色上对比度够（不低于 3:1）就照用；对比度不够，或底色用了背景图、渐变、覆盖图、半透明窗口这类没法确定颜色的写法，就改用该状态下的注释色；
+3. 平时的 `[text.roles]` 里的 `fuzzy_hint`；
+4. 候选注释色。
+
+所以不配就整体跟随注释色；出厂主题配了橙色。值的写法同上。
+
+注释里的 `${fuzzy_pinyin}`（[模糊音的正确拼音](/docs/settings/appearance/candidate-comment#fuzzy-pinyin)）用的是 `[comment.roles]` 里的 `fuzzy_pinyin` 角色，出厂主题同样配了橙色，与这里的正文提示同色；主题没配时随注释色。
 
 #### 哪个颜色生效 [#role-color-order]
 
