@@ -220,7 +220,7 @@ available = ["wubi86", "wubi86_pinyin"]        # 已启用列表，顺序即循�
 那些项与全局那份逐条相同（顶码上屏、精确匹配、词频调整、出简让全等），改的只是作用范围。可覆盖的项还包括：
 
 - [单字输入](/docs/settings/schema/codetable#single-char) <Since v="0.121" />
-- [英文候选](/docs/settings/schema/codetable#english-merge)的三项 <Since v="0.121" />
+- [英文候选](/docs/settings/schema/codetable#english-merge)的各项（开关、触发长度、否决上屏 <Since v="0.121" />；补全码长、位次、条数等 <Since v="0.128" />）
 
 <Callout type="info" title="每一项各自决定跟不跟随" >
 勾选是**逐项**的（0.119 起）：勾上哪一项，就只有那一项脱离基线，其余照旧跟随。不必为了改一个开关让整个方案都不再跟随全局。
