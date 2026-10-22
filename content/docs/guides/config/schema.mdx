@@ -783,7 +783,7 @@ decimal_places = 6       # 计算器结果小数位数
 | `trigger_keys` | 字符串数组 | — | 旧写法，加载时迁移进 [`keys.key_actions`](/docs/guides/config/keys#key-actions)（`mix:<id>`），按键绑定迁移完成后不再读取。改引导键请直接写 `key_actions` |
 | `members` | 字符串数组 | — | 候选来源：有无即开关，顺序即优先级。除内置来源外也可以写方案 id，见[加入自己的码表方案](/docs/settings/input/quick-input#custom-member) |
 | `candidate_layout` | 枚举 | `follow` | 进入本实例期间的候选窗布局，退出后恢复 |
-| `comment_template_vertical` / `_horizontal` | 结构体 | 跟随全局 | 本实例期间的候选注释模板覆盖 |
+| `comment_template_vertical` / `_horizontal` | 字符串 | 不再读取 | 旧写法，升级时自动迁入 `ui.comment.assign.mode."mix:<id>"`（见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)）。本实例的注释改在[候选注释分配](/docs/settings/appearance/candidate-comment#assign)里配 |
 | `free_input` | 枚举 | `auto` | 自由字面输入：`off` / `auto` / `always` <Since v="0.114" />。见[快捷输入 · 自由字面输入](/docs/settings/input/quick-input#free-input) |
 | `free_input_takes_select_keys` | 布尔 | `true` | 自由输入时把第 2 / 3 候选键（默认 `;` `'`）当作字面字符 <Since v="0.114" />。关掉则它们恢复选词，代价是 `rock'n'roll` 这类内容打不出。数字键 `1`–`9` 始终选词，不受本项影响 |
 | `numeric_letter_select` <Since v="0.128" /> | 布尔 | `true` | 数字或符号开头时用字母 a、b、c 选候选。关掉后字母按字面输入（`;2fa`、`;1.5x`），序号显示为数字，改用 `keys.quick_input_select`（出厂 Ctrl+数字）、空格或方向键选。见[快捷输入 · 选词键](/docs/settings/input/quick-input#select-keys) |

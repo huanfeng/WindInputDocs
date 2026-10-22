@@ -484,17 +484,16 @@ macOS 直接用字体文件的字节建描述符作级联回退，用不到家�
 [overlay]
 show_all_on_enter = false        # 进入模式即展示候选
 candidate_layout = "follow"      # 本模式期间的候选窗布局
-comment_template_vertical   = "" # 本模式期间的候选注释模板（竖排）
-comment_template_horizontal = "" # 同上（横排）
 ```
 
 | 键 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `show_all_on_enter` | 布尔 | `false` | 刚进入、尚未敲码时就铺开本方案码表的首页候选。面向小符号表；大码表要遍历整表取首页，有开销 |
 | `candidate_layout` | 枚举 | `follow` | `follow` / `vertical` / `horizontal`。进入本模式期间覆盖全局，退出自动恢复 |
-| `comment_template_vertical` / `_horizontal` | 字符串 | 不写=跟随全局 | 本模式期间的候选注释模板。三态：不写=跟随全局，写模板=改用它，写空串=不显示 |
 
-这一段装的**不是「这张码表是什么」**（那是 `[engine.codetable]`），而是「这张码表**被叠加使用时**怎么表现」——三个字段的语义都依赖「进入 / 退出」这条生命周期。
+这一段装的**不是「这张码表是什么」**（那是 `[engine.codetable]`），而是「这张码表**被叠加使用时**怎么表现」——两个字段的语义都依赖「进入 / 退出」这条生命周期。
+
+本模式期间的候选注释不在这里配：`[overlay]` 里的 `comment_template_*` 已不再读取，改在用户配置的 `ui.comment.assign.mode."special:<方案id>"` 下，见[引导键特殊模式 · 注释模板](/docs/guides/special-modes#注释模板)。
 
 <Callout type="warn" title="引导键不写在这里">
 `[overlay]` 里**没有** `trigger_keys` / `hotkey`。引导键与直达热键统一住在 `config.toml` 的 [`[keys.key_actions]`](/docs/guides/config/keys#key-actions)（写作 `special:<方案id>`）与方案文件的 `[key_actions]` 两张表里。在这里再开一个入口就成了第三个真相源。
@@ -506,11 +505,11 @@ comment_template_horizontal = "" # 同上（横排）
 
 ## 方案级行为 <Since v="0.119" /> [#schema-behavior]
 
-三段可选配置，声明「**切到本方案时**，标点、候选呈现（排列、文字排列、字体与注释）、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
+三段可选配置，声明「**切到本方案时**，标点、候选呈现（排列、文字排列、字体）、短语加载各是什么状态」。三段都**不写才是常态**——不写即「跟随全局」，与本功能出现之前的行为完全一致。
 
 设置工具位置：**方案 → 选中一个方案 → 方案自定义 → 本方案行为**（`enabled` 之外的两个短语字段仅配置文件）。
 
-注释模板那两项在界面上是**「自定义」勾选框 + 输入框**：不勾 = 跟随全局，勾上填模板 = 本方案改用它，勾上留空 = 本方案不显示注释。这三态与配置文件里的「不写 / 写模板 / 写空串」一一对应。
+本方案的候选注释不在方案文件里配：`[candidate]` 里的 `comment_template_*` 已不再读取（启动时日志警告一次），改在设置工具「候选注释」对话框「分配」页的方案行里配，对应用户配置的 `ui.comment.assign.schema.<方案id>`，见[候选注释 · 模板、两态与分配](/docs/settings/appearance/candidate-comment#assign)。
 
 ```toml
 [punct]
@@ -526,9 +525,6 @@ mode = "follow"        # follow（默认，跟随全局）/ chinese / english
 layout = "follow"      # follow（默认，跟随全局）/ vertical / horizontal
 text_orientation = "normal"   # 横排时文字怎么排：normal / rotated / upright
 # font_family = "Noto Sans Mongolian"   # 只改候选文字的字体（不写 = 跟随全局）
-# 本方案的候选注释模板（不写这两个键 = 跟随全局；写空串 "" = 本方案不显示注释）
-# comment_template_vertical   = "${code_hint}"
-# comment_template_horizontal = ""
 
 [phrases]
 enabled = true                # 本方案是否加载短语
@@ -543,8 +539,6 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
 | `candidate.text_orientation` | 枚举 <Since v="0.120" /> | `normal` / `rotated` / `upright` | `"normal"` | **横排时**文字怎么排：`normal` 照常水平、`rotated` 整项顺时针转 90°、`upright` 逐字直立下行（对联式）。竖排时不生效，详见[横排时文字排列](#text-orientation) |
 | `candidate.font_family` | 字符串 <Since v="0.120" /> | — | 不写 | 本方案候选**文字**的字体；不写 = 用[全局字体](/docs/guides/config/ui#ui-font)。只作用于候选词本身，序号、编码栏、注释不跟着换。填**已安装**字体的家族名，不按文件加载，见[方案字体](#schema-font) |
-| `candidate.comment_template_vertical` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**竖排**候选的[注释](/docs/settings/appearance/candidate-comment)模板。**不写 = 跟随全局**，写空串 `""` = 本方案不显示注释 |
-| `candidate.comment_template_horizontal` | 字符串 <Since v="0.119" /> | — | 不写 | 本方案**横排**候选的注释模板。两个方向各自独立，只配一个、另一个跟随全局是常见用法 |
 | `phrases.enabled` | 布尔 | — | `true` | 本方案是否加载[短语](/docs/settings/dict/phrases)。关掉后不出短语候选，短语也不再占用码位 |
 | `phrases.categories` | 字符串数组 | — | `[]` | **只**加载列出的分类。空数组 = 不施加这项限制（全部加载） |
 | `phrases.exclude_categories` | 字符串数组 | — | `[]` | 在上一项的结果里再**排除**这些分类。空数组 = 不排除 |
@@ -573,7 +567,7 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | `text_orientation` | 方案 | 这套**文字**本身怎么写 |
 
 蒙古文这类纵向书写的文字用 `rotated`：整项顺时针转 90°，而候选摆位仍走横排那一套——
-所以横排的注释模板、窗口宽度下限这些配置照常生效，不必为它再配一遍。
+所以横排的注释分配、窗口宽度下限这些配置照常生效，不必为它再配一遍。
 `upright` 则是「字不转、逐字往下走」，像中文对联。
 
 因为是两根轴，**切换候选排列不会丢掉方案的声明**：在蒙古文方案里把候选切成竖排、

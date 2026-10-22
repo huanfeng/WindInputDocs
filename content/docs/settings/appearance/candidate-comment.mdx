@@ -15,14 +15,17 @@ import { Since } from "@/components/since";
 
 设置位置：设置工具 →「外观」→ 候选标注 →「显示候选注释」→ **设置**。
 
-完全用不到注释时，取消同一行「显示候选注释」的「启用」勾选（`ui.candidate.comment_enabled`）即可：
+完全用不到注释时，取消同一行「显示候选注释」的「启用」勾选（`ui.comment.enabled`；对话框「切换」页里是同一个开关）即可：
 
-- 它在下文所有模板之上，方案或模式里另配的模板也一并不生效。<Since v="0.125" />
+- 它在下文所有模板之上，各层分配的模板也一并不生效。<Since v="0.125" />
 - 关掉后不再计算注释，也不再预载它所需的反查编码、拆字等数据，省内存。<Since v="0.125" />
 
 ## 快速上手
 
-| 想要的效果 | 竖排注释填 |
+注释显示什么，由**模板**决定；用哪个模板，在「分配」里选（见[模板、两态与分配](#assign)）。入门只需要：
+在「模板库」里新建一个模板、填上下表的模板串，再到「分配」页把「全局 · 默认·竖」选成它。
+
+| 想要的效果 | 模板串 |
 | --- | --- |
 | 只显示编码提示（默认） | `${code_hint\|code}` |
 | 显示带声调注音 | `${pinyin}` |
@@ -32,7 +35,7 @@ import { Since } from "@/components/since";
 | 悬停提示同款（字根 + 编码 + 读音） | `{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}` |
 | 拼音在候选上方、拆字在右侧 <Since v="0.124" /> | `{${pinyin}}\n${chaizi}`，并打开[「注释首行显示在候选上方」](#comment-above) |
 
-横排注释建议留 `${code_hint|code_rev|shuangpin}` 或干脆留空：横排候选窗的宽度由所有候选共享，放注音或
+横排那一格建议留 `${code_hint|code_rev|shuangpin}` 或选「不显示」：横排候选窗的宽度由所有候选共享，放注音或
 字根很容易把窗口撑得很宽。
 
 ## 变量
@@ -367,7 +370,8 @@ $[accent_text]{${code_hint|code_rev}}{ $[text_dim]{(${pinyin})}}
 - **词库自带的 `comment` 列**：自动识别，无需配置
 - **单独挂载的注释词库**：由你放置文件并添加
 
-输入法**不随附**独立的注释词库（词典内容多有版权），需要你自己准备文件。
+输入法自带两个中英释义词库（见[内置的中英释义](#builtin-dicts)）；其余的（Emoji 名称、专业词典等）
+需要你自己准备文件。
 
 ## 词库自带的注释 <Since v="0.121" /> [#builtin-comment]
 
@@ -471,10 +475,9 @@ path = "comments/emoji.dict.yaml"
 
 配好后把 `${dict}` 放进模板即可：
 
-```toml
-comment_template_vertical = "${dict}"
-# 或与自动信息并列，优先显示词库释义、没有则退回注音
-comment_template_vertical = "${dict|pinyin}"
+```
+${dict}
+${dict|pinyin}      ← 优先显示词库释义，没有则退回注音
 ```
 
 ### 多个词库并排显示 <Since v="0.126" /> [#dict-by-id]
@@ -488,8 +491,8 @@ comment_template_vertical = "${dict|pinyin}"
 冒号后面可以换连接符，如 `${dict_all:/}`、`${dict_all: · }`（两侧空格照样保留）；连接符里不能有
 `|` 和 `}`，它们在模板里另有含义：
 
-```toml
-comment_template_vertical = "${dict_all}"
+```
+${dict_all}
 ```
 
 - 每个词库最多出一条，内容相同的只留一条。`${dict}` 显示的那一条一定在其中
@@ -500,8 +503,8 @@ comment_template_vertical = "${dict_all}"
 
 **指定哪几个、怎么排**：用 `${dict:库id}` 分别指定，`库id` 即词库条目的 `id`：
 
-```toml
-comment_template_vertical = "${dict:en}{ 〔${dict:chaifen}〕}"
+```
+${dict:en}{ 〔${dict:chaifen}〕}
 ```
 
 - 只在那一个词库里查，查不到就为空，不会退到别的词库
@@ -550,66 +553,210 @@ columns:
 源文件改动后**下次加载该词库时**会自动重建（重启输入法，或在设置里改动挂载列表），
 你不需要手动清理缓存文件。已经卸载的词库，其缓存也会被自动清掉。
 
-## 分模式设置
+## 模板、两态与分配 <Since v="0.128" /> [#assign]
 
-<Callout type="warn" title="高级功能，需手工编辑配置文件">
-本节的配置项没有图形界面，需要直接编辑 `config.toml`。
-</Callout>
+注释分三件事，各管一处：
 
-反查类的信息（注音、拆字、词典释义）在大多数时候是干扰，只在特定场景才想看到。
-临时英文、临时拼音、网址输入、快捷输入、引导键特殊模式都可以有自己的注释模板，
-进入该模式期间覆盖全局设置，退出自动恢复。
+- **模板**：一个 `id`、一个显示名、一条模板串（语法见上文）。集中放在「模板库」，其它地方只引用模板 id，不再现场写模板串。
+- **两态**：「默认」和「详细」，**全局只有一份**。平时看默认（最简），偶尔想多看一眼就切到详细。
+- **分配**：每个作用范围有四格——默认·竖排、默认·横排、详细·竖排、详细·横排，每格填一个模板。
 
-```toml
-[input.temp_english]
-comment_template_vertical   = "${dict}"
-comment_template_horizontal = "${dict}"
+设置位置：设置工具 →「外观」→ 候选标注 →「显示候选注释」→ **设置**。对话框有四个页签：
 
-[input.temp_pinyin]
-comment_template_vertical   = ""     # 临拼期间不显示任何注释
-comment_template_horizontal = ""
+| 页签 | 内容 |
+| --- | --- |
+| 分配 | 「作用范围 × 四列」的总表，每格一个下拉框；下方是选中格的实时预览。全局和五个方案类型常驻，方案行、模式行只列出已覆盖的，用底部「添加方案覆盖」「添加模式覆盖」按钮添加 |
+| 模板库 | 左边是模板列表（内置 / 自定义），右边编辑名称与模板串，带预览。内置模板只读，可「复制为自定义」；改过同 id 的内置模板会标「已修改」，可「恢复内置」 |
+| 注释词库 | 挂载与管理[注释词库](#注释词库)，内置的两个也在这里 |
+| 切换 | 总开关、当前状态、Alt 键的作用，以及「显示」小节（上方注释条、最大字数） |
+
+### 内置模板
+
+随包提供、不可直接改，需要时复制为自定义模板再改。
+
+| id | 显示名 | 模板串 |
+| --- | --- | --- |
+| `code_hint` | 编码提示 | `${code_hint\|code_rev\|shuangpin}` |
+| `pinyin` | 拼音 | `${pinyin}` |
+| `chaizi` | 拆字 | `${chaizi}` |
+| `chaizi_code` | 拆字+编码 | `${chaizi} ${chaizi_code}` |
+| `chaizi_pinyin` | 拆字+拼音 | `${chaizi}{ · ${pinyin}}` |
+| `en_meaning` | 英文释义 | `${dict:en_zh}` |
+| `zh_english` | 中文对应英文 | `${dict:zh_en}` |
+| `pinyin_english` | 拼音+英文 | `${pinyin}{ · ${dict:zh_en}}` |
+| `detail_full` | 详细（全部） | `${chaizi}{ · ${pinyin}}{ · ${dict:zh_en}}` |
+
+自定义模板的 `id` 只能用小写字母、数字和下划线（`[a-z0-9_]+`），设置工具新建时自动生成；改名改的是显示名，不是 `id`。用户模板与内置模板同 `id` 时，用户的覆盖内置的。
+
+### 出厂分配
+
+下表没列的格都是「跟随」，落到下一层。
+
+| 作用范围 | 默认·竖 | 详细·竖 |
+| --- | --- | --- |
+| 全局 | `code_hint` | `detail_full` |
+| 码表方案 | 跟随 | `chaizi_pinyin` |
+| 拼音 / 双拼方案 | 跟随 | `pinyin_english` |
+| 英文方案 | 不显示 | `en_meaning` |
+| 临时英文 | 不显示 | `en_meaning` |
+| 临时拼音 | 跟随 | `chaizi_code` |
+
+横排四格出厂都不写，同各自的竖排格。所以只配全局两格就能用；日常看到的和升级前一样，仍是编码提示。
+
+### 解析链
+
+按「当前态 × 当前排布（横 / 竖）」取一格，从具体到一般逐层找，**第一个有值的胜出**：
+
+```
+模式 → 方案 → 方案类型 → 全局
 ```
 
-键名与全局的两个键完全一致，横排竖排也是各配各的。三种状态：
+- **方案类型**共五类：`codetable`（码表）/ `pinyin`（全拼）/ `shuangpin`（双拼）/ `mixed`（混输）/ `english`（英文）。
+- **方案层**按当前方案算；方案文件不参与，见[升级说明](#upgrade)。
+- **模式层**的键：`temp_pinyin`、`temp_english`、`url`、`email`、`unicode`、`mix:<融合模式id>`（如快捷输入是 `mix:quick_mix`）、`special:<方案id>`（引导键特殊模式）。生僻字、反查、辅助码没有模式层。
+
+格的取值：
 
 | 写法 | 含义 |
 | --- | --- |
-| **不写这个键** | 跟随全局设置（默认） |
-| 写一个模板 | 本模式期间改用它 |
-| 写空串 `""` | 本模式期间不显示注释 |
+| 模板 id | 用这个模板 |
+| `none` | **不显示注释**，压过下层。与「不写」是两回事：不写是跟随 |
+| `inherit` | 跟随上一层的同一格（主要给横排格用） |
+| 不写 | 跟随；横排格不写时，本层竖排格有值就**同竖排**，竖排也没有才跟随上一层 |
 
-「不写」和「写空串」是两回事：前者跟随全局，后者是明确要求不显示。
+分配总表里跟随的格显示成灰色斜体，并标出它实际落到的模板。全局四格必有值：删掉某格时按内置的 `code_hint` / `detail_full` 补。
 
-可用位置：
+引用了不存在的模板 id 时，启动日志警告一次，该格按「不写」处理，不会报错。
+
+### 默认 / 详细怎么切
+
+- **持久状态** `ui.comment.state`：`default` / `detail`，写回配置，重启保持，所有作用范围共用。设置对话框「切换」页的「注释状态」改的就是它。
+- **临时状态**：只对当前这个候选窗，把持久状态**取反**；候选窗关闭（上屏、取消、清空）即丢弃，下一次输入回到持久状态。输入途中切进临时拼音这类模式，临时状态保留。
+
+**Alt 键** `ui.comment.alt_switch`（设置里叫「Alt 键」）：
+
+| 取值 | 设置里的名称 | 行为 |
+| --- | --- | --- |
+| `off` | 不使用 | 不拦 Alt |
+| `session`（出厂） | 临时切换（本次候选窗） | 单击 Alt，切本次候选窗的临时状态 |
+| `persist` | 切换当前状态 | 单击 Alt，切持久状态并写回 |
+| `hold` | 按住时显示另一态 | 按住 Alt 期间显示另一态，松开恢复 |
+
+Alt 只在**候选窗可见**时才被认领，其余时候照常归应用；也只认「干净的单击」——Alt 按下到松开之间按过别的键（Alt+数字、Alt+Tab 等），就不算切换。
+被认领的那次 Alt 松开会被吃掉，不会激活应用的菜单栏。`hold` 档下按住 Alt 再按 Alt+数字，上屏的是眼前这份注释（配合 [`alt_commit = "comment"`](/docs/guides/config/input)）。
+总开关关掉时，Alt 一概不拦。切换只重绘当前页，不重新查询，也不改变候选顺序和高亮。
+
+**按键与命令**：
+
+| 方式 | 写法 |
+| --- | --- |
+| 按键动词（`keys.key_actions` 与 `keys.session_actions` 都认） | `comment_state` 切持久状态；`comment_state:default` / `comment_state:detail` 直达 |
+| 按键动词（只在 `session_actions`，即正在输入时） | `comment_state:session` 切本次候选窗的临时状态 |
+| 命令栏 | `ime.toggle("comment")` 切持久状态；`ime.set("comment", "default")` / `ime.set("comment", "detail")` 直达 |
+| 系统短语 | 打 `cozs`，选「切注释」，等价于 `ime.toggle("comment")` |
+
+按键在「按键」页绑定，动词在列表里显示为「注释：…」。动词细节见[按键配置](/docs/guides/config/keys)，命令栏用法见[命令直通车](/docs/guides/command-bar)。
+
+### 配置文件写法
+
+对话框读写的就是用户配置的 `[ui.comment]`：
 
 ```toml
-# config.toml
-[input.temp_english]      # 临时英文
-[input.temp_pinyin]       # 临时拼音
-[input.url]               # 网址输入
-[[schema.mix_modes]]      # 快捷输入等融合模式（每个实例独立）
+[ui.comment]
+enabled = true            # 总开关
+state = "default"         # 持久状态：default / detail
+alt_switch = "session"    # off / session（出厂）/ persist / hold
 
-# <方案id>.schema.toml 或 schema_overrides/<方案id>.toml
-[overlay]                 # 引导键特殊模式（每个方案独立）
+# 用户模板；与内置同 id 时覆盖内置
+[[ui.comment.templates]]
+id = "wubi_learn"
+name = "五笔学习"
+text = "${chaizi} ${code_rev}{ · ${pinyin}}"
+
+# 作用范围 → 四格：default_vertical / default_horizontal / detail_vertical / detail_horizontal
+[ui.comment.assign.global]
+default_vertical = "code_hint"
+detail_vertical = "detail_full"
+
+[ui.comment.assign.type.codetable]
+detail_vertical = "wubi_learn"
+
+[ui.comment.assign.schema.wubi86]
+default_vertical = "code_hint"
+
+[ui.comment.assign.mode.temp_english]
+default_vertical = "none"
+detail_vertical = "en_meaning"
+detail_horizontal = "inherit"
+
+[ui.comment.assign.mode."mix:quick_mix"]   # 表名里带冒号要加引号
+default_vertical = "pinyin"
 ```
+
+内置模板与出厂分配在安装目录的 `data/system.comments.toml`，不要改它；想让某条出厂分配失效，在用户分配里写 `inherit`。
+
+### 内置的中英释义 <Since v="0.128" /> [#builtin-dicts]
+
+输入法自带两个注释词库，供模板里的 `${dict:en_zh}` 与 `${dict:zh_en}` 用：
+
+| id | 名称 | 内容 |
+| --- | --- | --- |
+| `en_zh` | 英汉释义 | 英文词 → 词性与基础中文义项 |
+| `zh_en` | 汉英释义 | 中文词 → 词性与基础英文义项 |
+
+它们在「注释词库」页里标「内置」，只能启停和调顺序，不能改路径；关掉后对应的模板（如 `en_meaning`、`detail_full` 里的英文部分）就查不到内容，所在可选段消失。词条的收录范围以随包数据为准，没有释义的词不显示。
+
+## 分模式设置
+
+反查类的信息（注音、拆字、词典释义）在大多数时候是干扰，只在特定场景才想看到。每个模式都可以在「分配」里有自己的一行，
+进入该模式期间覆盖更一般的层，退出自动恢复。
+
+可以配置的模式：
+
+| 模式 | 分配里的键 |
+| --- | --- |
+| 临时拼音 | `temp_pinyin` |
+| 临时英文 | `temp_english` |
+| 网址输入 | `url` |
+| 邮箱输入 | `email` |
+| Unicode 输入 | `unicode` |
+| 快捷输入等融合模式（每个实例独立） | `mix:<融合模式id>` |
+| 引导键特殊模式（每个方案独立） | `special:<方案id>` |
+
+在「分配」页用「添加模式覆盖」添加；某格留「跟随」就是不管这一格，沿用方案、方案类型、全局的设置。要明确不显示，选「不显示」（`none`）。
 
 ### 推荐用法：把词典释义只留给英文
 
-如果你挂了英汉注释库，最好**不要**把 `${dict}` 写进全局模板，而是只写进临时英文：
+如果你挂了英汉注释库，最好**不要**把 `${dict}` 放进全局的模板，而是只给临时英文（和英文方案）用：
 
 ```toml
-[ui.candidate]
-comment_template_vertical = "${code_hint|code_rev}"  # 中文输入时只显示编码提示
+[ui.comment.assign.global]
+default_vertical = "code_hint"          # 中文输入时只显示编码提示
 
-[input.temp_english]
-comment_template_vertical = "${dict}"              # 打英文时才查词典
+[ui.comment.assign.mode.temp_english]
+default_vertical = "en_meaning"         # 打英文时才查词典
 ```
 
-这样中文输入时输入法根本不会去查注释词库——不是"查得快"，而是压根不查。
+这样中文输入时输入法根本不会去查注释词库——不是"查得快"，而是压根不查。出厂的临时英文与英文方案就是这样分配的：
+默认态不显示注释，详细态显示英文释义。
+
+## 升级说明 [#upgrade]
+
+升级后第一次启动会**自动迁移**旧配置，无需手动改：
+
+- `ui.candidate.comment_enabled` → `ui.comment.enabled`。
+- `ui.candidate.comment_template_vertical` / `_horizontal`、`input.temp_english` / `temp_pinyin` / `url` / `email` / `unicode` 与 `schema.mix_modes[]` 里的 `comment_template_*`：每条非空模板串生成一个用户模板（名为「迁移自 …」，`id` 为 `migrated_1`、`migrated_2` …，内容相同的合并），再填进对应作用范围的「默认」格；旧的空串迁成 `none`。
+- 迁出了自定义的全局模板时，出厂里写了同名格的方案类型与模式行会补上 `inherit`，保持旧版「跟随全局」的效果。
+- 内容与旧出厂值相同的全局模板不迁移；新配置里已有的格不覆盖。
+
+迁移后旧键不再生效；要查看或调整，去「候选注释」对话框的「分配」与「模板库」页。
+
+**方案文件里的注释配置作废了**：方案文件（含 `schema_overrides\<方案ID>.toml`）里的 `[candidate]` 与 `[overlay]` 的 `comment_template_vertical` / `_horizontal` 不再读取，启动时日志警告一次。
+请改到分配总表的「方案」行（方案级）或「模式」行（引导键特殊模式的 `special:<方案id>`）。这些旧键**不会**被自动迁移。
 
 ## 长度控制
 
-「注释最大字数」在「外观 → 候选标注 → 显示候选注释」的设置对话框里，横排、竖排各一份；超出后截断并加省略号，`0` 表示不限。
+「注释最大字数」在「外观 → 候选标注 → 显示候选注释」设置对话框的「切换」页（「显示」小节）里，横排、竖排各一份；超出后截断并加省略号，`0` 表示不限。
 它与「候选文本最大字数」（只管候选词本身）、候选项提示的「单行最大字数」（只管悬停提示）是三个不同的设置，
 调那两个对注释不起作用。
 
@@ -627,32 +774,19 @@ comment_template_vertical = "${dict}"              # 打英文时才查词典
 
 ## 完整示例
 
-```toml
-# 五笔用户：竖排看注音和字根，横排只留编码提示
-comment_template_vertical   = "{〔${chaizi}〕}{ ${pinyin}}"
-comment_template_horizontal = "${code_hint}"
+下表每行是一个模板串，在「模板库」新建后分配到相应的格。
 
-# 拼音用户：学五笔，竖排显示该词的五笔编码
-comment_template_vertical   = "{[${code_rev}]}"
-comment_template_horizontal = "${code_hint|code_rev}"
-
-# 忘了某个字的双拼怎么敲时，候选后面就摆着它的双拼码（全拼方案下同样有效）
-comment_template_vertical   = "${shuangpin}"
-
-# 双拼 + 五笔两种码一起看（需把「编码提示来源」设为 auto）
-comment_template_vertical   = "${code_hint|code_rev}{ [${shuangpin}]}"
-
-# 悬停提示同款信息（字根 + 编码 + 读音），只对单字有完整效果
-comment_template_vertical   = "{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}"
-comment_template_horizontal = ""
-
-# 拼音悬在候选上方，拆字和词库释义留在右侧（需打开「注释首行显示在候选上方」）
-comment_template_vertical   = "{拼:${pinyin}}\n{〔${chaizi}〕}${dict}"
-
-# 完全关闭注释
-comment_template_vertical   = ""
-comment_template_horizontal = ""
-```
+| 场景 | 模板串 | 分到 |
+| --- | --- | --- |
+| 五笔用户：看注音和字根 | `{〔${chaizi}〕}{ ${pinyin}}` | 详细·竖 |
+| 五笔用户：横排只留编码提示 | `${code_hint}` | 默认·横 |
+| 拼音用户学五笔：显示五笔编码 | `{[${code_rev}]}` | 默认·竖 |
+| 拼音用户学五笔：横排 | `${code_hint\|code_rev}` | 默认·横 |
+| 忘了某个字的双拼怎么敲（全拼方案下同样有效） | `${shuangpin}` | 默认·竖 |
+| 双拼 + 五笔两种码一起看（需把「编码提示来源」设为 `auto`） | `${code_hint\|code_rev}{ [${shuangpin}]}` | 默认·竖 |
+| 悬停提示同款信息（字根 + 编码 + 读音），只对单字有完整效果 | `{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}` | 详细·竖 |
+| 拼音悬在候选上方，拆字和词库释义留在右侧（需打开「注释首行显示在候选上方」） | `{拼:${pinyin}}\n{〔${chaizi}〕}${dict}` | 详细·竖 |
+| 完全不显示 | —— | 选「不显示」，或关掉总开关 |
 
 <Callout type="info" title="配置项参考">
 对应的配置键、取值范围与默认值见[外观配置](/docs/guides/config/ui)。

@@ -413,36 +413,25 @@ lookup_disabled_dicts = false      # 反查模式里也查未启用的扩展词�
 
 ## 模式级注释模板
 
-与上面的 `candidate_layout` 同一个思路：各模式可以覆盖[候选注释](/docs/settings/appearance/candidate-comment)的模板，
-进入该模式期间生效，退出自动恢复。**仅配置文件，无图形界面。**
+各模式的[候选注释](/docs/settings/appearance/candidate-comment)模板不再写在 `input.*` 段里，统一在用户配置的 `ui.comment.assign.mode.<模式>` 下，进入该模式期间生效，退出自动恢复。
+设置工具的「候选注释」对话框里有图形界面（「分配」页，添加模式覆盖）。
 
 ```toml
-[input.temp_english]
-comment_template_vertical   = "${dict}"   # 打英文时显示词典释义
-comment_template_horizontal = "${dict}"
+[ui.comment.assign.mode.temp_english]
+default_vertical = "none"          # 打英文时默认态不显示
+detail_vertical  = "en_meaning"    # 详细态显示词典释义
 
-[input.temp_pinyin]
-comment_template_vertical   = ""          # 临拼期间不显示注释
-comment_template_horizontal = ""
+[ui.comment.assign.mode.temp_pinyin]
+default_vertical = "none"          # 临拼期间不显示注释
 ```
 
-键名与全局的 `ui.candidate.comment_template_vertical` / `_horizontal` 一致，横竖各配各的，各自三态：
+模式键：`temp_pinyin` / `temp_english` / `url` / `email` / `unicode` / `mix:<融合模式id>` / `special:<方案id>`（[引导键特殊模式](/docs/guides/special-modes#注释模板)）。
+每格的值是模板 id、`none`（不显示）或 `inherit`（跟随上一层）；不写 = 跟随，且横排格不写时同本层竖排格。「不写」与 `none` 是两回事：前者跟随，后者明确要求不显示。
 
-| 状态 | 含义 |
-| --- | --- |
-| **不写该键** | 跟随全局同方向的模板（默认） |
-| 非空字符串 | 本模式期间改用它 |
-| 空串 `""` | 本模式期间不显示注释 |
-
-「不写」与「写空串」是两回事——前者跟随全局，后者明确要求不显示。也因此这两个键
-**不会**出现在出厂 `data/config.toml` 里：写进去就等于给了它一个值，而任何值都不等于「跟随」。
-
-可用位置：`config.toml` 的 `input.temp_english`、`input.temp_pinyin`、`input.url`、
-`schema.mix_modes[]`（每实例独立），以及**方案文件**的 `[overlay]` 段（每方案独立，
-见[引导键特殊模式](/docs/guides/special-modes#注释模板)）。
+旧的 `input.temp_english` / `temp_pinyin` / `url` / `email` / `unicode` 与 `schema.mix_modes[]` 里的 `comment_template_vertical` / `_horizontal` 升级时自动迁入，见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)。
 快捷加词面板不支持——它走独立绘制路径，本就不渲染注释。
 
-典型用法见[候选注释 · 分模式设置](/docs/settings/appearance/candidate-comment#分模式设置)。
+完整说明见[候选注释 · 模板、两态与分配](/docs/settings/appearance/candidate-comment#assign)与[分模式设置](/docs/settings/appearance/candidate-comment#分模式设置)。
 
 ## 快捷加词（input.add_word）
 

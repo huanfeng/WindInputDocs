@@ -123,6 +123,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**。写在方案级时切过去就没有回程了，见下方提示 |
 | `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_t2s` <Since v="0.121" />、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`open_dictionary`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
 | `single_char` <Since v="0.121" /> | 开关[单字输入](/docs/guides/config/schema#single-char)（候选只出单字）。裸写 = 切换；也可写 `single_char:on` / `:off` / `:toggle` 直达，`:follow` 取消临时切换、回到配置里的值。切的是**临时态**，不写配置——重启或切方案后失效 |
+| `comment_state` <Since v="0.128" /> | 切换[候选注释](/docs/settings/appearance/candidate-comment#assign)的持久状态（默认 ⇄ 详细），写回 `ui.comment.state`。也可写 `comment_state:default` / `comment_state:detail` 直达 |
 | `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
 | `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |
 | `command:<表达式>` <Since v="0.123" /> | 命令直通：执行一段[命令直通车](/docs/guides/command-bar)表达式，如 `command:proc.run("charmap.exe")`。详见下方[命令直通](#command-action) |
@@ -235,6 +236,7 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 
 - **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
+- **`comment_state`** <Since v="0.128" />：与 `key_actions` 那份相同（`comment_state` / `comment_state:default` / `comment_state:detail`，改持久状态）。另有只在本表认的 `comment_state:session`：只翻**本次候选窗**的注释状态，候选窗关闭即丢弃，不写配置。
 - **`single_char`** <Since v="0.121" />：开关[单字输入](/docs/guides/config/schema#single-char)，动词与 `key_actions` 那份完全一样（`single_char:on` / `:off` / `:toggle` / `:follow`）。按下即开关并**就地重出候选**，不会把正在打的码上屏。写在本表意味着「只在打字时管用」——绑在 Tab 上，没打字时 Tab 仍是宿主的制表符。
 - **与翻页共用一个键**：写 `aux_code:page_next` <Since v="0.118" />，**能进辅助码就进、进不去就翻下一页**。于是 `tab = "aux_code:page_next"` 一键两用：第一次按进筛选，之后按继续翻页；辅助码没开、方案没配码表时它就是个纯翻页键，空闲无候选时仍原样交还给应用。这个形态只有本表有——`key_actions` 解析不出翻页键。
 - `commit_highlighted` <Since v="0.123" />：上屏当前高亮的候选，详见下方[上屏当前高亮候选](#commit-highlighted)
