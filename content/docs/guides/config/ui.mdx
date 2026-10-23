@@ -42,7 +42,7 @@ comment_above = false   # 注释首行（模板里第一个 \n 之前）显示�
 | `index_labels` | 字符串数组 <Since v="0.117" /> | — | `[]` | 自定义序号标签，一槽一项（如 `["a","s","d"]`、`["Ⅰ","Ⅱ","Ⅲ"]`）。**每项是一个完整标签**，可含多个字符；空表 = 默认 `1`–`9`，第 10 个显示 `0`（与选它的数字键对应，0.128 起）。槽内空串或槽位不足处让位主题 `index.labels`，主题也未定义才回退数字 |
 | `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽。开启 `comment_above` 后按上下两段各自计算 |
 | `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数。开启 `comment_above` 后按上下两段各自计算 |
-| `comment_above` | 布尔 <Since v="0.124" /> | — | `false` | 注释首行显示在候选上方：模板里**字面写的第一个 `\n`** 把注释拆成两段，上段在候选上方一行，下段仍在右侧；变量值自带的换行不算。写法约束与版面见[注释显示在候选上方](/docs/settings/appearance/candidate-comment#comment-above)；上方条样式见主题的 `[comment_above]` 节点。设置位置：外观 → 候选标注 → 候选注释 → 设置 |
+| `comment_above` | 布尔 <Since v="0.124" /> | — | `false` | 注释首行显示在候选上方：模板里**字面写的第一个 `\n`** 把注释拆成两段，上段在候选上方一行，下段仍在右侧；变量值自带的换行不算。写法约束与版面见[注释显示在候选上方](/docs/settings/appearance/candidate-comment#comment-above)；上方条样式见主题的 `[comment_above]` 节点。设置位置：外观 → 候选标注 → 注释切换与显示 → 设置… |
 | `auto_comment_dicts` | 布尔 <Since v="0.121" /> | — | `true` | 词库在 `columns` 中声明 `comment` 列时，自动将该列作为 `${dict}` 的注释源。判据是显式声明；`import_tables` 引入的子表逐一检测。识别结果在[注释词库](#comment-dicts)列表中标「自动」 |
 
 ### 候选注释（ui.comment） <Since v="0.128" /> [#ui-comment]
@@ -53,14 +53,16 @@ comment_above = false   # 注释首行（模板里第一个 \n 之前）显示�
 [ui.comment]
 enabled = true         # 总开关
 state = "default"      # 持久状态：default / detail
-alt_switch = "session" # off / session / persist / hold
+switch_key = "ctrl"     # ctrl / lctrl / rctrl / alt / lalt / ralt
+switch_mode = "session" # off / session / persist / hold
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `enabled` | 布尔 | — | `true` | 候选注释总开关。关掉后候选不再显示注释（含 `${code_hint}` 编码提示与 `comment_above` 上方注释条），各层分配的模板一律不生效；关掉后不再计算注释，也不再为它预载反查编码、拆字等数据，省内存。此时 `input.alt_commit = "comment"` 按 `off` 处理：Alt+数字 / Alt+空格不再被认领，照常归程序（`pinyin` / `pinyin_plain` 不受影响），Alt 单击切换也不拦。设置位置：外观 → 候选标注 → 显示候选注释 |
-| `state` | 枚举 | `default` / `detail` | `"default"` | 持久的注释状态，全局一份。按键、命令或 Alt（`persist` 档）切换时写回 |
-| `alt_switch` | 枚举 | `off` / `session` / `persist` / `hold` | `"session"` | 候选窗可见时单击 Alt 的作用：`off` 不拦；`session` 切本次候选窗的临时状态；`persist` 切持久状态；`hold` 按住期间显示另一态 |
+| `enabled` | 布尔 | — | `true` | 候选注释总开关。关掉后候选不再显示注释（含 `${code_hint}` 编码提示与 `comment_above` 上方注释条），各层分配的模板一律不生效；关掉后不再计算注释，也不再为它预载反查编码、拆字等数据，省内存。此时 `input.alt_commit = "comment"` 按 `off` 处理：Alt+数字 / Alt+空格不再被认领，照常归程序（`pinyin` / `pinyin_plain` 不受影响），切换键也不拦。设置位置：外观 → 候选标注 → 候选注释 |
+| `state` | 枚举 | `default` / `detail` | `"default"` | 持久的注释状态，全局一份。按键、命令或切换键（`persist` 档）切换时写回 |
+| `switch_key` | 枚举 | `ctrl` / `lctrl` / `rctrl` / `alt` / `lalt` / `ralt` | `"ctrl"` | 候选窗出现时，单击哪个键切换注释状态（`ctrl`、`alt` 为左右任一）。与中英切换键、选词键组、会话按键绑定撞键时那些功能优先。选 Alt 时 Windows 上会装全局键盘钩子，选 Ctrl 不装；功能键请在按键绑定里绑 `comment_state` |
+| `switch_mode` | 枚举 | `off` / `session` / `persist` / `hold` | `"session"` | 单击切换键的作用：`off` 不使用；`session` 切本次候选窗的临时状态；`persist` 切持久状态并写回；`hold` 按住期间显示另一态（只配 Alt，选 Ctrl 时按 `session` 生效） |
 
 模板与分配写在同一段里，不在出厂配置中预置（内置的在 `data/system.comments.toml`）：
 

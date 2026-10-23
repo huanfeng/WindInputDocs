@@ -80,11 +80,11 @@ import { Since } from "@/components/since";
 
 | 默认键 | 功能 | 可配置为 |
 | --- | --- | --- |
-| 候选窗可见时单击 `Alt`（左右均可） | 切本次候选窗的注释状态（默认 ⇄ 详细），候选窗关闭后恢复 | 不使用 / 临时切换（出厂）/ 切换当前状态并写回 / 按住时显示另一态 |
+| 候选窗可见时单击 `Ctrl`（左右均可） | 切本次候选窗的注释状态（默认 ⇄ 详细），候选窗关闭后恢复 | 切换键：Ctrl / 左右 Ctrl / Alt / 左右 Alt；方式：不使用 / 临时切换（出厂）/ 切换当前状态并写回 / 按住时显示另一态（仅 Alt） |
 | 不绑定 | 切换注释的持久状态（动词 `comment_state`，直达写 `comment_state:default` / `comment_state:detail`） | 「按键」页的引导键或输入中按键 |
 | 不绑定 | 切本次候选窗的临时状态（动词 `comment_state:session`） | 仅输入中按键 |
 
-Alt 选项在「候选注释」对话框的「切换」页；只在候选窗可见时认领，按下到松开之间按过别的键就不算。命令栏里也可以用 `ime.toggle("comment")`，打 `cozs` 选「切注释」同样有效。详见[候选注释 · 默认 / 详细怎么切](/docs/settings/appearance/candidate-comment#assign)。
+切换键与切换方式在「外观 → 候选标注 → 注释切换与显示 → 设置…」；只在候选窗出现时生效，按下到松开之间按过别的键就不算。功能键不能作切换键，请在「按键」页绑动词。命令栏里也可以用 `ime.toggle("comment")`，打 `cozs` 选「切注释」同样有效。详见[候选注释 · 默认 / 详细怎么切](/docs/settings/appearance/candidate-comment#assign)。
 
 ## 临时模式的触发键
 
