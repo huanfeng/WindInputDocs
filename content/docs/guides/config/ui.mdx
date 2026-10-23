@@ -69,7 +69,7 @@ switch_mode = "session" # off / session / persist / hold
 | 键 | 说明 |
 | --- | --- |
 | `ui.comment.templates`（`[[ui.comment.templates]]`） | 用户模板：`id`（`[a-z0-9_]+`）、`name`、`text`。与内置同 `id` 时覆盖内置 |
-| `ui.comment.assign.global` | 全局四格：`default_horizontal` / `default_vertical` / `detail_horizontal` / `detail_vertical`。值为模板 `id`、`none`（不显示）或 `inherit`（跳过本层，看下一层同排布那格）；竖排格不写 = 同本行横排 |
+| `ui.comment.assign.global` | 全局四格：`default_horizontal` / `default_vertical` / `detail_horizontal` / `detail_vertical`。值为模板 `id`、`none`（不显示）或 `inherit`（跳过本层，看下一层同排布那格）；竖排格不写：本行横排有值时同横排，否则跟随 |
 | `ui.comment.assign.type` | 方案类型一层，表名 `[ui.comment.assign.type.<类型>]`，类型取 `codetable` / `pinyin` / `shuangpin` / `mixed` / `english` |
 | `ui.comment.assign.schema` | 方案一层，表名 `[ui.comment.assign.schema.<方案id>]` |
 | `ui.comment.assign.mode` | 模式一层，表名 `[ui.comment.assign.mode.<模式>]`，模式取`temp_pinyin` / `temp_english` / `url` / `email` / `unicode` / `mix:<融合模式id>` / `special:<方案id>`；带冒号的表名要加引号，如 `[ui.comment.assign.mode."mix:quick_mix"]` |
