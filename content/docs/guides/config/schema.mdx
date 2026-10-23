@@ -694,6 +694,7 @@ decimal_places = 6       # 计算器结果小数位数
 | 候选窗横排 / 竖排 | `candidate_layout` |
 | 触发键 / 禁用整个功能 | [`keys.key_actions`](/docs/guides/config/keys#key-actions) 里的 `mix:quick_mix` 绑定（出厂 `semicolon = "mix:quick_mix"`）—— 删掉即进不去，故没有单独的总开关 |
 | 自由字面输入 | `free_input` <Since v="0.114" /> —— `off` / `auto` / `always` |
+| 数字开头时是否用字母选词 | `numeric_letter_select` <Since v="0.128" /> —— 默认 `true` |
 | 自由输入下 `;` `'` 是字面还是选词 | `free_input_takes_select_keys` <Since v="0.114" /> —— 默认 `true`（字面） |
 
 更多用法见[快捷输入](/docs/settings/input/quick-input)。
@@ -722,6 +723,7 @@ decimal_places = 6       # 计算器结果小数位数
 | `comment_template_vertical` / `_horizontal` | 结构体 | 跟随全局 | 本实例期间的候选注释模板覆盖 |
 | `free_input` | 枚举 | `auto` | 自由字面输入：`off` / `auto` / `always` <Since v="0.114" />。见[快捷输入 · 自由字面输入](/docs/settings/input/quick-input#free-input) |
 | `free_input_takes_select_keys` | 布尔 | `true` | 自由输入时把第 2 / 3 候选键（默认 `;` `'`）当作字面字符 <Since v="0.114" />。关掉则它们恢复选词，代价是 `rock'n'roll` 这类内容打不出。数字键 `1`–`9` 始终选词，不受本项影响 |
+| `numeric_letter_select` <Since v="0.128" /> | 布尔 | `true` | 数字或符号开头时用字母 a、b、c 选候选。关掉后字母按字面输入（`;2fa`、`;1.5x`），序号显示为数字，改用 `keys.quick_input_select`（出厂 Ctrl+数字）、空格或方向键选。见[快捷输入 · 选词键](/docs/settings/input/quick-input#select-keys) |
 
 <Callout type="warn" title="这两项不要写进 data/config.toml">
 它们的默认值定义在程序内部。系统预置文件 `data/config.toml` 一旦写出这两个数组，就会**整体替换**内置默认、把当时的定义冻结成快照——日后版本给内置「快捷」加候选来源或改触发键，都会被这份陈旧快照静默遮蔽。

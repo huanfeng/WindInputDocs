@@ -349,6 +349,19 @@ delete_candidate = "ctrl+shift+number"  # 删除候选（Ctrl+Shift+数字）
 修饰键按**完全相同**匹配：配成 `ctrl+number` 时，按 Ctrl+Alt+3 不会触发置顶，而是照旧交给应用处理。
 </Callout>
 
+## 快捷输入选词键 <Since v="0.128" /> [#quick-input-select]
+
+```toml
+[keys]
+quick_input_select = "ctrl+number"      # 快捷输入里的选词上屏键
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `quick_input_select` | 热键字符串（模板） | `ctrl+number` / `ctrl+shift+number` / `ctrl+alt+number` / `none` | `ctrl+number` | 只在[快捷输入](/docs/settings/input/quick-input#select-keys)里生效：对当前页第 N 个候选上屏（数字键 1–9，0 为第 10 个），优先于置顶与删除。选 `ctrl+number` 且 NumLock 开时，小键盘数字同样可用 |
+
+模板写法与上面的 `pin_candidate` 相同；填其它值会被忽略，等同于不绑定。
+
 ## 候选选择键组
 
 ```toml
