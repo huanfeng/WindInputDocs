@@ -62,7 +62,7 @@ switch_mode = "session" # off / session / persist / hold
 | `enabled` | 布尔 | — | `true` | 候选注释总开关。关掉后候选不再显示注释（含 `${code_hint}` 编码提示与 `comment_above` 上方注释条），各层分配的模板一律不生效；关掉后不再计算注释，也不再为它预载反查编码、拆字等数据，省内存。此时 `input.alt_commit = "comment"` 按 `off` 处理：Alt+数字 / Alt+空格不再被认领，照常归程序（`pinyin` / `pinyin_plain` 不受影响），切换键也不拦。设置位置：外观 → 候选标注 → 候选注释 |
 | `state` | 枚举 | `default` / `detail` | `"default"` | 持久的注释状态，全局一份。按键、命令或切换键（`persist` 档）切换时写回 |
 | `switch_key` | 枚举 | `ctrl` / `lctrl` / `rctrl` / `alt` / `lalt` / `ralt` | `"ctrl"` | 候选窗出现时，单击哪个键切换注释状态（`ctrl`、`alt` 为左右任一）。与中英切换键、选词键组、会话按键绑定撞键时那些功能优先。选 Alt 时 Windows 上会装全局键盘钩子，选 Ctrl 不装；功能键请在按键绑定里绑 `comment_state` |
-| `switch_mode` | 枚举 | `off` / `session` / `persist` / `hold` | `"session"` | 单击切换键的作用：`off` 不使用；`session` 切本次候选窗的临时状态；`persist` 切持久状态并写回；`hold` 按住期间显示另一态（只配 Alt，选 Ctrl 时按 `session` 生效） |
+| `switch_mode` | 枚举 | `off` / `session` / `persist` / `hold` | `"session"` | 单击切换键的作用：`off` 不使用；`session` 切本次候选窗的临时状态；`persist` 切持久状态并写回；`hold` 按住期间显示另一态，松开恢复（Ctrl、Alt 都可配；用 Ctrl 时按住期间按 Ctrl 组合键，如 Ctrl+C，注释会短暂闪一下） |
 
 模板与分配写在同一段里，不在出厂配置中预置（内置的在 `data/system.comments.toml`）：
 
