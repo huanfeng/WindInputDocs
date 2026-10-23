@@ -560,7 +560,7 @@ columns:
 - **两态**：「默认」和「详细」，**全局只有一份**。平时看默认（最简），偶尔想多看一眼就切到详细。
 - **分配**：每个作用范围有四格——默认·横排、默认·竖排、详细·横排、详细·竖排，每格填一个模板。
 
-设置位置：设置工具 →「外观」→「候选标注」，这一区有四行：
+设置位置：设置工具 →「外观」→「候选标注」，这一区有五行（另一行是「自动使用词库自带的注释」，见[下文](#builtin-comment)），与本页相关的四行：
 
 | 行 | 内容 |
 | --- | --- |
@@ -742,10 +742,11 @@ default_horizontal = "pinyin"
 
 ```toml
 [ui.comment.assign.global]
-default_vertical = "code_hint"          # 中文输入时只显示编码提示
+default_horizontal = "code_hint"        # 中文输入时只显示编码提示
 
 [ui.comment.assign.mode.temp_english]
-default_vertical = "en_meaning"         # 打英文时才查词典
+detail_horizontal = "en_meaning"        # 打英文时，详细态才查词典
+default_horizontal = "none"             # 默认态不显示
 ```
 
 这样中文输入时输入法根本不会去查注释词库——不是"查得快"，而是压根不查。出厂的临时英文与英文方案就是这样分配的：

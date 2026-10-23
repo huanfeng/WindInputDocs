@@ -391,12 +391,12 @@ single_code_input = true
 
 ## 注释模板
 
-本模式期间的[候选注释](/docs/settings/appearance/candidate-comment)模板，在用户配置的 `ui.comment.assign.mode."special:<方案id>"` 里配，也可以在设置工具「候选注释」对话框的「分配」页添加该模式的覆盖行。`[overlay]` 里的 `comment_template_*` 不再读取：
+本模式期间的[候选注释](/docs/settings/appearance/candidate-comment)模板，在用户配置的 `ui.comment.assign.mode."special:<方案id>"` 里配，也可以在设置工具 外观 → 候选标注 → 候选注释 → 分配… 里添加该模式的覆盖行。`[overlay]` 里的 `comment_template_*` 不再读取：
 
 ```toml
 [ui.comment.assign.mode."special:quick_symbols"]   # 表名带冒号要加引号
-default_vertical = "code_hint"
 default_horizontal = "none"
+default_vertical = "code_hint"
 ```
 
 格的取值（模板 id / `none` / `inherit`、不写=跟随）与其它模式完全一致，见[模式级注释模板](/docs/guides/config/input#模式级注释模板)。

@@ -414,19 +414,19 @@ lookup_disabled_dicts = false      # 反查模式里也查未启用的扩展词�
 ## 模式级注释模板
 
 各模式的[候选注释](/docs/settings/appearance/candidate-comment)模板不再写在 `input.*` 段里，统一在用户配置的 `ui.comment.assign.mode.<模式>` 下，进入该模式期间生效，退出自动恢复。
-设置工具的「候选注释」对话框里有图形界面（「分配」页，添加模式覆盖）。
+设置工具有图形界面（外观 → 候选标注 → 候选注释 → 分配…，「添加模式覆盖」）。
 
 ```toml
 [ui.comment.assign.mode.temp_english]
-default_vertical = "none"          # 打英文时默认态不显示
-detail_vertical  = "en_meaning"    # 详细态显示词典释义
+default_horizontal = "none"          # 打英文时默认态不显示
+detail_horizontal  = "en_meaning"    # 详细态显示词典释义
 
 [ui.comment.assign.mode.temp_pinyin]
-default_vertical = "none"          # 临拼期间不显示注释
+default_horizontal = "none"          # 临拼期间不显示注释
 ```
 
 模式键：`temp_pinyin` / `temp_english` / `url` / `email` / `unicode` / `mix:<融合模式id>` / `special:<方案id>`（[引导键特殊模式](/docs/guides/special-modes#注释模板)）。
-每格的值是模板 id、`none`（不显示）或 `inherit`（跟随上一层）；不写 = 跟随，且横排格不写时同本层竖排格。「不写」与 `none` 是两回事：前者跟随，后者明确要求不显示。
+每格的值是模板 id、`none`（不显示）或 `inherit`（跟随上一层）；不写 = 跟随；竖排格不写时，本行横排有值就同横排，否则跟随。「不写」与 `none` 是两回事：前者跟随，后者明确要求不显示。
 
 旧的 `input.temp_english` / `temp_pinyin` / `url` / `email` / `unicode` 与 `schema.mix_modes[]` 里的 `comment_template_vertical` / `_horizontal` 升级时自动迁入，见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)。
 快捷加词面板不支持——它走独立绘制路径，本就不渲染注释。
