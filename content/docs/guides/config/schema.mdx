@@ -353,14 +353,20 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 [schema.pinyin.english_merge]
 enable = false
 min_length = 3
-prefix_complete = false
+complete_min_length = 0  # 中文侧有候选时，达到几个字母起也补英文前缀词（0 = 不补）
+exact_position = 0       # 完整单词英文最靠前排第几位（0 = 按方案自动：全拼 1、双拼 2）
+complete_position = 2    # 前缀补全英文最靠前排第几位
+max_count = 2            # 中文侧有候选时英文最多几条
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enable` | 布尔 | — | `false` | 总开关 |
 | `min_length` | 整数 | — | `3` | 有中文候选时的最小触发长度（`0` = 回退 3）。中文候选为空时不受约束 |
-| `prefix_complete` <Since v="0.128" /> | 布尔 | — | `false` | 有中文候选时也补至多 2 条英文前缀词。只在输入至少 5 个字母（`min_length` 更大时取它）且整串任何切法都切不成完整全拼音节时补；双拼方案下不生效。见[英文前缀补全](/docs/settings/schema/pinyin#english-prefix-complete) |
+| `complete_min_length` <Since v="0.128" /> | 整数 | — | `0` | 中文侧有候选时，输入达到几个字母起也补英文前缀词（开时建议 `5`）；`0` = 不补，只在中文侧没有候选时补全。另外只在整串任何切法都切不成完整全拼音节时补；双拼方案下不生效。见[英文补全](/docs/settings/schema/pinyin#english-complete) |
+| `exact_position` <Since v="0.128" /> | 整数 | ≥ 0 | `0` | 完整单词英文最靠前排第几位。`0` = 按方案自动：全拼 1、双拼 2（双拼下 `the`、`good` 这类词几乎都解得出中文，英文不抢首选）；写了非 0 值则全拼双拼都用它。仍先让过开头的完整匹配中文，只会更靠后 |
+| `complete_position` <Since v="0.128" /> | 整数 | ≥ 1 | `2` | 前缀补全英文最靠前排第几位（`0` = 默认 2），恒在完整单词之后 |
+| `max_count` <Since v="0.128" /> | 整数 | ≥ 1 | `2` | 中文侧有候选时英文最多几条（完整单词优先，再补前缀补全；`0` = 默认 2）；中文侧没有候选时给一页补全，不受此限 |
 
 **本段刻意没有 `block_commit`**：那一项否决的是满码自动上屏与顶码上屏，拼音方案两者都没有——放在这里会是一个恒不生效的开关。拼音侧暂无方案级覆盖。
 
