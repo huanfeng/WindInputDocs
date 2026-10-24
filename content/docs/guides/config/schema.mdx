@@ -469,9 +469,6 @@ ian_iang = false
 uan_uang = false
 un_ong = false
 eng_ong = false
-hint = false
-hint_scope = "first"
-hint_tone = false
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
@@ -490,9 +487,69 @@ hint_tone = false
 | `uan_uang` | 布尔 | — | `false` | uan ↔ uang 不分 |
 | `un_ong` <Since v="0.123" /> | 布尔 | — | `false` | un ↔ ong 不分 |
 | `eng_ong` <Since v="0.123" /> | 布尔 | — | `false` | eng ↔ ong 不分 |
-| `hint` <Since v="0.128" /> | 布尔 | — | `false` | [显示正确拼音](/docs/settings/schema/pinyin#fuzzy-hint)：靠模糊音匹配上的字，在候选里内嵌正确全拼并着色（「苹(ping)果」），上屏不受影响。仅在 `enabled` 开启时生效 |
-| `hint_scope` <Since v="0.128" /> | 字符串 | `first` / `all` | `"first"` | 提示范围：`first` 只标第一个带提示的候选，`all` 标全部模糊候选。颜色用主题 `[text.roles]` 的 `fuzzy_hint` |
-| `hint_tone` <Since v="0.128" /> | 布尔 | — | `false` | 提示带声调：「苹(píng)果」。作用于内嵌提示与 `${fuzzy_pinyin}`，不依赖 `hint`。同音异调取最常用读音，查不到读音的字不带调 |
+
+## 纠错与正确拼音提示（input.correction） <Since v="0.128" /> [#correction]
+
+拼写纠错与正确拼音提示。键在 `input` 下，但只作用于拼音：纠错只用于全拼（混输的拼音侧随全拼），提示在双拼里同样显示全拼；临时拼音同样生效。全局生效，不分方案。各项的效果与例子见[纠错与提示](/docs/settings/input/correction)。
+
+```toml
+[input.correction]
+enabled = true
+marker = "*"
+custom = []
+
+[input.correction.rules]
+gn_ng = false
+on_ong = true
+vowel_swap = true
+legacy_spelling = false
+h_misplaced = false
+mg_ng = false
+n_before_g = false
+ai_ia = false
+
+[input.correction.hint]
+enabled = false
+fuzzy = true
+misread = true
+correction = false
+scope = "first"
+tone = false
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `true` | 拼写纠错总开关：打错的拼写（如 `gogn`）也按纠正后的拼写出候选。只纠本身不合法的拼写；双拼不纠 |
+| `marker` | 字符串 | — | `"*"` | 加在纠错候选前的标记（「\*公平」），按正文色画；空串 = 不加。移动端候选不显示 |
+| `custom` | 字符串数组 | — | `[]` | 自定义规则，每项 `"错误写法=正确写法"`（如 `"ogn=ong"`），作用于单个音节内的一段字母；两侧须为不同的小写字母串。不受 `rules` 各开关控制，只跟随 `enabled`。无效或生成不出可用拼写的规则记日志后跳过 |
+
+**`[input.correction.rules]`**：内置规则逐条开关，覆盖范围与可能的误纠见[纠错规则](/docs/settings/input/correction#rules)。
+
+| 键 | 默认 | 纠什么 |
+| --- | --- | --- |
+| `gn_ng` | `false` | ng 打成 gn：`ogn` → `ong` 等 |
+| `on_ong` | `true` | 漏打 g：`on` → `ong`、`ion` → `iong` |
+| `vowel_swap` | `true` | 韵母字母颠倒：`ia` → `ai`、`ie` ↔ `ei`、`oa` → `ao`、`iu` ↔ `ui` 等（部分只对特定声母） |
+| `legacy_spelling` | `false` | 旧式拼写：`uei` / `iou` / `uen` → `ui` / `iu` / `un` |
+| `h_misplaced` | `false` | h 错位：`hz` → `zh`、`zih` → `zhi` 等 |
+| `mg_ng` | `false` | ng 打成 mg |
+| `n_before_g` | `false` | ng 打成 nag / neg / nig / nog |
+| `ai_ia` | `false` | 与简拼冲突的一类：`qai` / `xai` → `qia` / `xia`、`nu` → `un`、`na` / `ne` / `ni` → `an` / `en` / `in` |
+
+**`[input.correction.hint]`**：正确拼音提示，候选正文里内嵌正确全拼（「苹(ping)果」），上屏不受影响。
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `false` | 显示正确拼音（正文内嵌）。颜色用主题 `[text.roles]` 的 `pinyin_hint` |
+| `fuzzy` | 布尔 | — | `true` | 来源：模糊音命中的字。只在模糊音开着时有结果 |
+| `misread` | 布尔 | — | `true` | 来源：[误读提示](/docs/settings/input/correction#misread)，含误读表带出的候选；关掉后误读表也不再带出候选 |
+| `correction` | 布尔 | — | `false` | 来源：拼写纠错得来的候选。只在 `enabled`（纠错）开着时有结果 |
+| `scope` | 字符串 | `first` / `all` | `"first"` | 提示范围：`first` 只标第一个带提示的候选（各来源合起来算），`all` 标全部。只影响正文内嵌 |
+| `tone` | 布尔 | — | `false` | 提示带声调：「苹(píng)果」。也作用于 `${correct_pinyin}`，不依赖 `enabled`。同音异调取最常用读音，查不到读音的字不带调 |
+
+三个来源同时决定注释变量 [`${correct_pinyin}`](/docs/settings/appearance/candidate-comment#correct-pinyin) 有没有值，不依赖 `enabled` 与 `scope`。
+
+误读表不在 `config.toml` 里：用户追加条目写在用户数据目录的 `data/pinyin_misread.txt`，格式见[误读表的写法](/docs/settings/input/correction#misread-table)。
 
 ## 拼音调频（schema.pinyin.frequency）
 
