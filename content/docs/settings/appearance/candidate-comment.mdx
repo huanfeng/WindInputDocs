@@ -104,14 +104,18 @@ ${code_hint|code_rev}{ ${correct_pinyin}}
 出厂模板用 `${code_rev}`（只给全码）而不是 `${code_rev_all}`：一个字往往有三四个码位，
 全列出来会把候选行推得很宽，横排尤其明显。想一眼看全简码、又用竖排的话再换 `${code_rev_all}`。
 
-<Callout title="哪些变量能出，还受一个开关管">
-「方案 → 拼音 → 编码提示来源」决定放行哪一类编码：`codetable` 只放行 `${code_rev}` /
-`${code_rev_all}`，`shuangpin` 只放行 `${shuangpin}`，`auto` 两者都放行，`off`（出厂）都不放行。
-临时拼音另有一份（「方案 → 临时拼音 → 临时拼音编码提示」，出厂 `auto`）；混输方案读「方案 → 混输 → 拼音候选显示码表编码」（出厂开，只放行码表反查）。
+### 编码类变量由分配决定 [#code-vars-by-assign]
 
-开关管「允许哪些来源」，模板管「按什么顺序和格式摆」。所以把来源设成 `codetable` 之后，
-即使模板里写着 `${shuangpin}` 也不会显示——这是按配置办事，不是坏了。
-</Callout>
+`${code_rev}` / `${code_rev_all}` / `${shuangpin}` 只看候选是不是**拼音来源**：拼音来源的候选才有值，码表候选恒为空。它们没有别的开关，显不显示、显示哪种编码，只看你给当前方案或模式分配了哪个模板：
+
+| 想看 | 分配的模板 |
+| --- | --- |
+| 拼音候选旁显示码表编码（如五笔码） | `code_rev`（码表编码） |
+| 拼音候选旁显示双拼键位 | `shuangpin`（双拼编码） |
+| 码表补全剩余码，拼音候选给码表编码，没有码表再给双拼 | `code`（编码） |
+| 不显示 | `none` |
+
+0.129 前这件事由拼音、临时拼音、混输三处各一个独立开关管，现已并入分配，旧设置升级时自动迁入，对照见[升级说明](#upgrade)。上述三处设置页现在只留一行说明和按钮「在 候选注释 · 分配 中设置」。
 
 <Callout type="info" title="旧名 `${code}` / `${code_all}` 仍然有效">
 它们是 `${code_rev}` / `${code_rev_all}` 的别名，会一直保留，老模板不用改。
@@ -575,15 +579,20 @@ columns:
 
 | id | 显示名 | 模板串 |
 | --- | --- | --- |
-| `code_hint` | 编码提示 | `${code_hint\|code_rev\|shuangpin}` |
+| `code` | 编码 | `${code_hint\|code_rev\|shuangpin}` |
+| `code_hint` | 补全编码 | `${code_hint}` |
+| `code_rev` | 码表编码 | `${code_hint\|code_rev}` |
+| `shuangpin` | 双拼编码 | `${code_hint\|shuangpin}` |
 | `pinyin` | 拼音 | `${pinyin}` |
 | `chaizi` | 拆字 | `${chaizi}` |
-| `chaizi_code` | 拆字+编码 | `${chaizi} ${chaizi_code}` |
-| `chaizi_pinyin` | 拆字+拼音 | `${chaizi}{ · ${pinyin}}` |
-| `en_meaning` | 英文释义 | `${dict:en_zh}` |
-| `zh_english` | 中文对应英文 | `${dict:zh_en}` |
-| `pinyin_english` | 拼音+英文 | `${pinyin}{ · ${dict:zh_en}}` |
-| `detail_full` | 详细（全部） | `${chaizi}{ · ${pinyin}}{ · ${dict:zh_en}}` |
+| `chaizi_code` | 拆字 · 编码 | `${chaizi}{ · ${code_rev\|chaizi_code}}` |
+| `chaizi_pinyin` | 拆字 · 拼音 | `${chaizi}{ · ${pinyin}}` |
+| `zh_en` | 英文释义 | `${dict:zh_en}` |
+| `en_zh` | 中文释义 | `${dict:en_zh}` |
+| `pinyin_en` | 拼音 · 英文 | `${pinyin}{ · ${dict:zh_en}}` |
+| `full` | 拆字 · 拼音 · 英文 | `${chaizi}{ · ${pinyin}}{ · ${dict:zh_en}}` |
+
+注意模板名与变量名：模板 `code_hint`（补全编码）只是 `${code_hint}` 这一个变量，通用的完整回退链是模板 `code`。
 
 自定义模板的 `id` 只能用小写字母、数字和下划线（`[a-z0-9_]+`），设置工具新建时自动生成；改名改的是显示名，不是 `id`。用户模板与内置模板同 `id` 时，用户的覆盖内置的。
 
@@ -593,14 +602,18 @@ columns:
 
 | 作用范围 | 默认·横 | 详细·横 |
 | --- | --- | --- |
-| 全局 | `code_hint` | `detail_full` |
+| 全局 | `code` | `full` |
 | 码表方案 | 跟随 | `chaizi_pinyin` |
-| 拼音 / 双拼方案 | 跟随 | `pinyin_english` |
-| 英文方案 | 不显示 | `en_meaning` |
-| 临时英文 | 不显示 | `en_meaning` |
-| 临时拼音 | 跟随 | `chaizi_code` |
+| 拼音 / 双拼方案 | 不显示 | `pinyin_en` |
+| 混输方案 | `code_rev` | 跟随 |
+| 英文方案 | 不显示 | `en_zh` |
+| 临时英文 | 不显示 | `en_zh` |
+| 临时拼音 | `code` | `chaizi_code` |
+| 快捷输入（`mix:quick_mix`） | `code` | 跟随 |
 
-竖排四格出厂都不写，同本行的横排格。所以只配全局两格就能用；日常看到的和升级前一样，仍是编码提示。
+码表默认态不覆盖：码表主路上没有拼音来源候选，`code` 与 `code_hint` 效果相同，改全局时码表方案跟着变。临时拼音与快捷输入的上级是当前方案，拼音方案下会落到「不显示」，所以默认态显式写 `code`。
+
+竖排四格出厂都不写，同本行的横排格。所以只配全局两格就能用；日常看到的和升级前一样：码表补全剩余码，拼音候选按所在方案给编码或不显示。
 
 ### 解析链
 
@@ -623,13 +636,13 @@ columns:
 | `inherit`（界面里的「跟随」） | 跳过本层，看下一层的同排布那一格 |
 | 不写 | 横排格不写 = 跟随下一层；竖排格不写时，本行横排有值就**同横排**，横排也没有才跟随下一层 |
 
-全局四格必有值：删掉某格时按内置的 `code_hint` / `detail_full` 补。
+全局四格必有值：删掉某格时按内置的 `code` / `full` 补。
 
 ### 分配框 [#assign-dialog]
 
-上方是「全局」：「默认」「详细」两态各一行，横排选模板或「不显示」，竖排第一项是「同横排」。下方只列**有单独设置的**方案类型、方案、模式，每项一张卡片，折叠时写明两态（如「默认 跟随上级」「详细 拼音+英文」），点开编辑：
+上方是「全局」：「默认」「详细」两态各一行，横排选模板或「不显示」，竖排第一项是「同横排」。下方只列**有单独设置的**方案类型、方案、模式，每项一张卡片，折叠时写明两态（如「默认 跟随上级」「详细 拼音 · 英文」），点开编辑：
 
-- 每一态只有「跟随上级」「自定义」两种。跟随时写明跟到了谁、值是什么，如「与全局相同：编码提示」；模式的上级随当前方案变，写「当前方案怎么显示，这里就怎么显示」。
+- 每一态只有「跟随上级」「自定义」两种。跟随时写明跟到了谁、值是什么，如「与全局相同：编码」；模式的上级随当前方案变，写「当前方案怎么显示，这里就怎么显示」。
 - 自定义时选横排模板；竖排选「同横排」或单独指定。
 - 「删除」后这一项按上级显示。删掉的出厂设置会在列表下方提示，重新添加或「恢复默认」可找回；改过的出厂项展开后可「恢复此项出厂设置」。
 
@@ -697,8 +710,8 @@ text = "${chaizi} ${code_rev}{ · ${pinyin}}"
 # 作用范围 → 四格：default_horizontal / default_vertical / detail_horizontal / detail_vertical
 # 竖排格不写 = 同本行横排格
 [ui.comment.assign.global]
-default_horizontal = "code_hint"
-detail_horizontal = "detail_full"
+default_horizontal = "code"
+detail_horizontal = "full"
 
 [ui.comment.assign.type.codetable]
 detail_horizontal = "wubi_learn"
@@ -708,7 +721,7 @@ default_horizontal = "code_hint"
 
 [ui.comment.assign.mode.temp_english]
 default_horizontal = "none"
-detail_horizontal = "en_meaning"
+detail_horizontal = "en_zh"
 detail_vertical = "inherit"        # 竖排跳过本层，看下一层的竖排格
 
 [ui.comment.assign.mode."mix:quick_mix"]   # 表名里带冒号要加引号
@@ -727,7 +740,7 @@ default_horizontal = "pinyin"
 | `en_zh` | 英汉释义 | 英文词 → 词性与基础中文义项 |
 | `zh_en` | 汉英释义 | 中文词 → 词性与基础英文义项 |
 
-它们在「注释词库」页里标「内置」，只能启停，不能改路径；关掉后对应的模板（如 `en_meaning`、`detail_full` 里的英文部分）就查不到内容，所在可选段消失。词条的收录范围以随包数据为准，没有释义的词不显示。
+它们在「注释词库」页里标「内置」，只能启停，不能改路径；关掉后对应的模板（如 `en_zh`、`full` 里的英文部分）就查不到内容，所在可选段消失。词条的收录范围以随包数据为准，没有释义的词不显示。
 
 ## 分模式设置
 
@@ -754,10 +767,10 @@ default_horizontal = "pinyin"
 
 ```toml
 [ui.comment.assign.global]
-default_horizontal = "code_hint"        # 中文输入时只显示编码提示
+default_horizontal = "code"             # 中文输入时只显示编码
 
 [ui.comment.assign.mode.temp_english]
-detail_horizontal = "en_meaning"        # 打英文时，详细态才查词典
+detail_horizontal = "en_zh"              # 打英文时，详细态才查词典
 default_horizontal = "none"             # 默认态不显示
 ```
 
@@ -774,6 +787,16 @@ default_horizontal = "none"             # 默认态不显示
 - 内容与旧出厂值相同的全局模板不迁移；新配置里已有的格不覆盖。
 
 迁移后旧键不再生效；要查看或调整，去「分配…」与「注释模板」的「管理…」。
+
+<Since v="0.129" /> 三个编码来源开关并入分配，升级时按下表迁入（只迁你写过的值，目标格已有你的值时不覆盖）：
+
+| 旧键与值 | 写到的分配格（`default_horizontal`） | 值 |
+| --- | --- | --- |
+| 拼音 `code_hint_source` = `codetable` / `shuangpin` / `auto` | 拼音、双拼方案类型 | `code_rev` / `shuangpin` / `code` |
+| 临时拼音 `code_hint_source` = `off` / `codetable` / `shuangpin` | 临时拼音与各融合模式（如快捷输入） | `none` / `code_rev` / `shuangpin` |
+| 混输 `pinyin_code_hint` = `false` | 混输方案类型 | `code_hint` |
+
+若你自定义过全局模板，拼音方案里原先被旧开关挡住的编码变量会开始显示，这是唯一的行为差异。
 
 **方案文件里的注释配置作废了**：方案文件（含 `schema_overrides\<方案ID>.toml`）里的 `[candidate]` 与 `[overlay]` 的 `comment_template_vertical` / `_horizontal` 不再读取，启动时日志警告一次。
 请改到分配框里添加「方案」覆盖（方案级），或「模式」覆盖（引导键特殊模式的 `special:<方案id>`）。这些旧键**不会**被自动迁移。
@@ -807,7 +830,7 @@ default_horizontal = "none"             # 默认态不显示
 | 拼音用户学五笔：显示五笔编码 | `{[${code_rev}]}` | 默认·竖 |
 | 拼音用户学五笔：横排 | `${code_hint\|code_rev}` | 默认·横 |
 | 忘了某个字的双拼怎么敲（全拼方案下同样有效） | `${shuangpin}` | 默认·竖 |
-| 双拼 + 五笔两种码一起看（需把「编码提示来源」设为 `auto`） | `${code_hint\|code_rev}{ [${shuangpin}]}` | 默认·竖 |
+| 双拼 + 五笔两种码一起看（拼音方案下把默认态分配给这条模板即可） | `${code_hint\|code_rev}{ [${shuangpin}]}` | 默认·竖 |
 | 悬停提示同款信息（字根 + 编码 + 读音），只对单字有完整效果 | `{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}` | 详细·竖 |
 | 拼音悬在候选上方，拆字和词库释义留在右侧（需打开「注释首行显示在候选上方」） | `{拼:${pinyin}}\n{〔${chaizi}〕}${dict}` | 详细·竖 |
 | 完全不显示 | —— | 选「不显示」，或关掉总开关 |
