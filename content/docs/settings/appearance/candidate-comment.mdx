@@ -609,9 +609,9 @@ columns:
 | 英文方案 | 不显示 | `en_zh` |
 | 临时英文 | 不显示 | `en_zh` |
 | 临时拼音 | `code` | `chaizi_code` |
-| 快捷输入（`mix:quick_mix`） | `code` | 跟随 |
+| 全部快捷输入（`mix`） | `code` | 跟随 |
 
-码表默认态不覆盖：码表主路上没有拼音来源候选，`code` 与 `code_hint` 效果相同，改全局时码表方案跟着变。临时拼音与快捷输入的上级是当前方案，拼音方案下会落到「不显示」，所以默认态显式写 `code`。
+码表默认态不覆盖：码表主路上没有拼音来源候选，`code` 与 `code_hint` 效果相同，改全局时码表方案跟着变。临时拼音与快捷输入的上级是当前方案，拼音方案下会落到「不显示」，所以默认态显式写 `code`；快捷输入写在通配全部快捷输入的 `mix` 上，自己新建的快捷输入也一样。
 
 竖排四格出厂都不写，同本行的横排格。所以只配全局两格就能用；日常看到的和升级前一样：码表补全剩余码，拼音候选按所在方案给编码或不显示。
 
@@ -625,7 +625,7 @@ columns:
 
 - **方案类型**共五类：`codetable`（码表）/ `pinyin`（全拼）/ `shuangpin`（双拼）/ `mixed`（混输）/ `english`（英文）。
 - **方案层**按当前方案算；方案文件不参与，见[升级说明](#upgrade)。
-- **模式层**的键：`temp_pinyin`、`temp_english`、`url`、`email`、`unicode`、`mix:<融合模式id>`（如快捷输入是 `mix:quick_mix`）、`special:<方案id>`（引导键特殊模式）。生僻字、反查、辅助码没有模式层。
+- **模式层**的键：`temp_pinyin`、`temp_english`、`url`、`email`、`unicode`、`mix:<融合模式id>`（如快捷输入是 `mix:quick_mix`）、`mix`（全部快捷输入：某个融合模式自己没写的格先落到这里）、`special:<方案id>`（引导键特殊模式）。生僻字、反查、辅助码没有模式层。
 
 格的取值：
 
@@ -756,7 +756,8 @@ default_horizontal = "pinyin"
 | 网址输入 | `url` |
 | 邮箱输入 | `email` |
 | Unicode 输入 | `unicode` |
-| 快捷输入等融合模式（每个实例独立） | `mix:<融合模式id>` |
+| 全部快捷输入 | `mix` |
+| 快捷输入等融合模式（每个实例独立，没写的格同「全部快捷输入」） | `mix:<融合模式id>` |
 | 引导键特殊模式（每个方案独立） | `special:<方案id>` |
 
 在「分配…」里用「添加模式覆盖」添加；某格留「跟随」就是不管这一格，沿用方案、方案类型、全局的设置。要明确不显示，选「不显示」（`none`）。
@@ -793,10 +794,10 @@ default_horizontal = "none"             # 默认态不显示
 | 旧键与值 | 写到的分配格（`default_horizontal`） | 值 |
 | --- | --- | --- |
 | 拼音 `code_hint_source` = `codetable` / `shuangpin` / `auto` | 拼音、双拼方案类型 | `code_rev` / `shuangpin` / `code` |
-| 临时拼音 `code_hint_source` = `off` / `codetable` / `shuangpin` | 临时拼音与各融合模式（如快捷输入） | `none` / `code_rev` / `shuangpin` |
+| 临时拼音 `code_hint_source` = `off` / `codetable` / `shuangpin` | 临时拼音与全部快捷输入（`mix`） | `none` / `code_rev` / `shuangpin` |
 | 混输 `pinyin_code_hint` = `false` | 混输方案类型 | `code_hint` |
 
-若你自定义过全局模板，拼音方案里原先被旧开关挡住的编码变量会开始显示，这是唯一的行为差异。
+若你自定义过全局模板，这些范围继续跟随你的全局模板，旧开关不再迁入：原先被旧开关挡住的编码变量会按你的模板照常显示。要关掉，在「分配…」里给对应范围选「不显示」或别的模板。
 
 **方案文件里的注释配置作废了**：方案文件（含 `schema_overrides\<方案ID>.toml`）里的 `[candidate]` 与 `[overlay]` 的 `comment_template_vertical` / `_horizontal` 不再读取，启动时日志警告一次。
 请改到分配框里添加「方案」覆盖（方案级），或「模式」覆盖（引导键特殊模式的 `special:<方案id>`）。这些旧键**不会**被自动迁移。

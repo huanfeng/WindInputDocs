@@ -335,7 +335,7 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 | 旧键 | 旧值 | 迁到 |
 | --- | --- | --- |
 | `schema.pinyin.code_hint_source` | `codetable` / `shuangpin` / `auto` | `type.pinyin`、`type.shuangpin` 的 `default_horizontal` = `code_rev` / `shuangpin` / `code` |
-| `input.temp_pinyin.code_hint_source` | `off` / `codetable` / `shuangpin` | `mode.temp_pinyin` 与各 `mode."mix:<id>"` 的 `default_horizontal` = `none` / `code_rev` / `shuangpin` |
+| `input.temp_pinyin.code_hint_source` | `off` / `codetable` / `shuangpin` | `mode.temp_pinyin` 与 `mode.mix`（全部快捷输入）的 `default_horizontal` = `none` / `code_rev` / `shuangpin` |
 | `schema.mix.pinyin_code_hint` | `false` | `type.mixed` 的 `default_horizontal` = `code_hint` |
 
 更早的布尔键 `schema.pinyin.show_code_hint` 先折成 `code_hint_source` 再按上表迁。
