@@ -542,6 +542,7 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
 | `ime.theme(name)` / `ime.theme_cycle(dir?)` | 切换主题 / 循环切换（`dir` ∈ `next` / `prev`） |
 | `ime.undo_commit()` | **撤销上屏**：删除最近一次上屏的内容，见下文 |
+| `ime.reload()` <Since v="0.129" /> | **重载配置**：重新读取用户配置并应用，等同设置端保存后的热重载；手改 `config.toml` 后用。读取失败（语法错误等）时沿用当前配置并提示 |
 | `ime.pair(left, right, jump?)` | **上屏配对符号**：光标落两段之间，可用跳出键越过右段，见下文 |
 | `setting.open(page, args?)` | 打开设置的指定页（`page` 见下；`args` 为附加命令行参数） |
 | `web.search(engine, q)` | 打开搜索页，`engine` ∈ `baidu` / `bing` / `google` / `zdic`，见下 |
