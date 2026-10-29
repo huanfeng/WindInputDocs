@@ -535,8 +535,8 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `clip.copy(s)` / `clip.paste()` | 写入剪贴板 / 模拟 Ctrl+V |
 | `dict.add(s)` / `dict.add(s, code)` | 加词到用户库（不给 `code` 就按当前方案的取码规则推导） |
 | `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `t2s` / `preedit` / `toolbar` |
-| `ime.toggle("comment")` <Since v="0.128" /> | 切换[候选注释](/docs/settings/appearance/candidate-comment#assign)的持久状态（默认 ⇄ 详细），写回配置；系统短语 `cozs`「切注释」就是它 |
-| `ime.set("comment", "default")` / `ime.set("comment", "detail")` <Since v="0.128" /> | 直达指定状态；已是该状态则不改动。注意这里的状态值是 `default` / `detail`，不是 `on` / `off` |
+| `ime.toggle("comment")` <Since v="0.129" /> | 切换[候选注释](/docs/settings/appearance/candidate-comment#assign)的持久状态（默认 ⇄ 详细），写回配置；系统短语 `cozs`「切注释」就是它 |
+| `ime.set("comment", "default")` / `ime.set("comment", "detail")` <Since v="0.129" /> | 直达指定状态；已是该状态则不改动。注意这里的状态值是 `default` / `detail`，不是 `on` / `off` |
 | `ime.toggle("emoji")` / `ime.toggle("emoji:模块id")` / `ime.toggle("dict:库id")` <Since v="0.126" /> | **数据开关**：emoji 候选总开关 / 某个 emoji 附加模块 / 某个注释词库，见[下文](#data-toggles) |
 | `ime.set(target, 状态)` <Since v="0.126" /> | 把开关**设为**指定状态（`on` / `off`），已是该状态则不改动。target 可以是 `cn-en`（`on` = 中文）/ `fullshape` / `s2t` / `t2s` / `toolbar`，也可以是下文的数据开关；`layout` / `candwin` / `preedit` 是循环切换，只能用 `ime.toggle` |
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |

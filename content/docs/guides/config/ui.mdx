@@ -45,7 +45,7 @@ comment_above = false   # 注释首行（模板里第一个 \n 之前）显示�
 | `comment_above` | 布尔 <Since v="0.124" /> | — | `false` | 注释首行显示在候选上方：模板里**字面写的第一个 `\n`** 把注释拆成两段，上段在候选上方一行，下段仍在右侧；变量值自带的换行不算。写法约束与版面见[注释显示在候选上方](/docs/settings/appearance/candidate-comment#comment-above)；上方条样式见主题的 `[comment_above]` 节点。设置位置：外观 → 候选标注 → 注释切换与显示 → 设置… |
 | `auto_comment_dicts` | 布尔 <Since v="0.121" /> | — | `true` | 词库在 `columns` 中声明 `comment` 列时，自动将该列作为 `${dict}` 的注释源。判据是显式声明；`import_tables` 引入的子表逐一检测。识别结果在[注释词库](#comment-dicts)列表中标「自动」 |
 
-### 候选注释（ui.comment） <Since v="0.128" /> [#ui-comment]
+### 候选注释（ui.comment） <Since v="0.129" /> [#ui-comment]
 
 候选注释的总开关、两态与模板分配。取代原来的 `ui.candidate.comment_enabled` 与 `comment_template_vertical` / `_horizontal`（旧键不再读取、不迁移，见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)）。概念与解析链见[模板、两态与分配](/docs/settings/appearance/candidate-comment#assign)。
 

@@ -123,7 +123,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | `switch_schema:<方案id>` <Since v="0.118" /> | 切到指定方案，**单向**。写在方案级时切过去就没有回程了，见下方提示 |
 | `toggle_mode`、`switch_engine`、`toggle_punct`、`toggle_s2t`、`toggle_t2s` <Since v="0.121" />、`toggle_full_width`、`toggle_toolbar`、`open_settings`、`open_dictionary`、`take_screenshot` | 与同名快捷键完全一样的状态切换 |
 | `single_char` <Since v="0.121" /> | 开关[单字输入](/docs/guides/config/schema#single-char)（候选只出单字）。裸写 = 切换；也可写 `single_char:on` / `:off` / `:toggle` 直达，`:follow` 取消临时切换、回到配置里的值。切的是**临时态**，不写配置——重启或切方案后失效 |
-| `comment_state` <Since v="0.128" /> | 切换[候选注释](/docs/settings/appearance/candidate-comment#assign)的持久状态（默认 ⇄ 详细），写回 `ui.comment.state`。也可写 `comment_state:default` / `comment_state:detail` 直达 |
+| `comment_state` <Since v="0.129" /> | 切换[候选注释](/docs/settings/appearance/candidate-comment#assign)的持久状态（默认 ⇄ 详细），写回 `ui.comment.state`。也可写 `comment_state:default` / `comment_state:detail` 直达 |
 | `softkeyboard` <Since v="0.120" /> | 开 / 关[软键盘](/docs/guides/soft-keyboard)面板。开关键的出厂绑定不在本表，而在 `[keys] softkeyboard`（见上方[功能快捷键](#功能快捷键)） |
 | `softkeyboard:<面id>` <Since v="0.120" /> | 开软键盘并直接切到那一面（面 id 见 `system.softkeyboard.toml`，如 `punct` / `num` / `math` / `greek`）。已开着时按它只切面、不关闭，所以给几个面各配一个键不会互相打架 |
 | `command:<表达式>` <Since v="0.123" /> | 命令直通：执行一段[命令直通车](/docs/guides/command-bar)表达式，如 `command:proc.run("charmap.exe")`。详见下方[命令直通](#command-action) |
@@ -140,7 +140,7 @@ rshift = "toggle_schema:english"          # 轻敲右 Shift 切英文方案，�
 | 组合键（`ctrl+shift+u`） | 热键 | 不与输入争键，可全局拦截 |
 | 纯修饰键（`rshift`、`lctrl`） | 松开时的**轻敲**判定 | 按下时不能吃——宿主还要看到这个修饰键 |
 | 单个有字符的键（`backslash`、`;`） | 引导键链 | 排在中英文分水岭之后，英文模式下照常出字符 |
-| 裸功能键 `f1`–`f12` <Since v="0.128" /> | 热键 | 不产出字符，空闲时只有进热键表输入法才收得到。**中文模式下该键归输入法、不再到达应用**（英文模式不受影响），所以出厂不绑 |
+| 裸功能键 `f1`–`f12` <Since v="0.129" /> | 热键 | 不产出字符，空闲时只有进热键表输入法才收得到。**中文模式下该键归输入法、不再到达应用**（英文模式不受影响），所以出厂不绑 |
 
 <Callout type="warn" title="同一个键在两处配，只有一处生效">
 [功能快捷键](#功能快捷键)那些字段（`switch_engine`、`toggle_s2t` 等）与本表编译进**同一张**热键表，且排在本表前面——同一个组合键两处都配时，**本表这条会静默失效**。
@@ -175,7 +175,7 @@ backslash = "none"      # 本方案关掉全局配的 \ 引导键
 
 **字母键只能按方案配**，不能写进全局表：字母天然是编码键，能不能借用取决于这张码表里它是不是死码。全局表里配字母就成了无条件抢键，那个字母在所有方案里都打不出编码了。
 
-字母键只在**空缓冲**（还没敲任何编码）时当引导键，组码中间的同一个字母照常是编码。码表方案里活码前缀会让位，见下方提示；**拼音 / 混输方案不做这层判断** <Since v="0.128" />——绑了就生效，哪些字母适合借用由你自己定。全拼里 `i`、`u`、`v` 不能作音节开头，适合拿来进[快捷输入](/docs/settings/input/quick-input)之类的模式（`u = "mix:quick_mix"`）；双拼里它们往往已是声母（如小鹤的 `u` = sh），借用后那个声母就打不出来了。设置工具的方案级入口选了字母会提示「仅空缓冲生效」。
+字母键只在**空缓冲**（还没敲任何编码）时当引导键，组码中间的同一个字母照常是编码。码表方案里活码前缀会让位，见下方提示；**拼音 / 混输方案不做这层判断** <Since v="0.129" />——绑了就生效，哪些字母适合借用由你自己定。全拼里 `i`、`u`、`v` 不能作音节开头，适合拿来进[快捷输入](/docs/settings/input/quick-input)之类的模式（`u = "mix:quick_mix"`）；双拼里它们往往已是声母（如小鹤的 `u` = sh），借用后那个声母就打不出来了。设置工具的方案级入口选了字母会提示「仅空缓冲生效」。
 
 要在某个方案里**关掉**一个全局绑定，写显式的 `"none"`。覆盖是深合并，只能新增或改写——从覆盖文件里删掉一行是删不掉全局那条的。
 
@@ -237,10 +237,10 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 | --- | --- | --- | --- | --- |
 | `session_actions` | 表（键名 → 动词） | 见下 | `{}` | 打字期间的「键 → 干什么」表，只存你显式配的键 |
 
-- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`f1`–`f12` <Since v="0.128" />（可带 `shift+`；只在有编码或候选时生效，空闲时的裸 F 键仍归宿主）、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
+- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`f1`–`f12` <Since v="0.129" />（可带 `shift+`；只在有编码或候选时生效，空闲时的裸 F 键仍归宿主）、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
-- **`toggle_tip`** <Since v="0.128" />：显示 / 收起当前高亮候选的悬停提示（与鼠标悬停同一个气泡），再按一次收起；移动高亮或翻页也会收起。例：`right = "toggle_tip"` 用 → 键看提示，代价是 → 不再移动高亮。
-- **`comment_state`** <Since v="0.128" />：与 `key_actions` 那份相同（`comment_state` / `comment_state:default` / `comment_state:detail`，改持久状态）。另有只在本表认的 `comment_state:session`：只翻**本次候选窗**的注释状态，候选窗关闭即丢弃，不写配置。
+- **`toggle_tip`** <Since v="0.129" />：显示 / 收起当前高亮候选的悬停提示（与鼠标悬停同一个气泡），再按一次收起；移动高亮或翻页也会收起。例：`right = "toggle_tip"` 用 → 键看提示，代价是 → 不再移动高亮。
+- **`comment_state`** <Since v="0.129" />：与 `key_actions` 那份相同（`comment_state` / `comment_state:default` / `comment_state:detail`，改持久状态）。另有只在本表认的 `comment_state:session`：只翻**本次候选窗**的注释状态，候选窗关闭即丢弃，不写配置。
 - **`single_char`** <Since v="0.121" />：开关[单字输入](/docs/guides/config/schema#single-char)，动词与 `key_actions` 那份完全一样（`single_char:on` / `:off` / `:toggle` / `:follow`）。按下即开关并**就地重出候选**，不会把正在打的码上屏。写在本表意味着「只在打字时管用」——绑在 Tab 上，没打字时 Tab 仍是宿主的制表符。
 - **与翻页共用一个键**：写 `aux_code:page_next` <Since v="0.118" />，**能进辅助码就进、进不去就翻下一页**。于是 `tab = "aux_code:page_next"` 一键两用：第一次按进筛选，之后按继续翻页；辅助码没开、方案没配码表时它就是个纯翻页键，空闲无候选时仍原样交还给应用。这个形态只有本表有——`key_actions` 解析不出翻页键。
 - `commit_highlighted` <Since v="0.123" />：上屏当前高亮的候选，详见下方[上屏当前高亮候选](#commit-highlighted)
