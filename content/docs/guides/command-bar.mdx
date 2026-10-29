@@ -535,6 +535,8 @@ cohelp = $CC("{default(help(clip()), "复制一个函数名再查")}", type(help
 | `clip.copy(s)` / `clip.paste()` | 写入剪贴板 / 模拟 Ctrl+V |
 | `dict.add(s)` / `dict.add(s, code)` | 加词到用户库（不给 `code` 就按当前方案的取码规则推导） |
 | `ime.toggle(target)` | 切换状态：`cn-en` / `fullshape` / `layout` / `candwin` / `s2t` / `t2s` / `preedit` / `toolbar` |
+| `ime.toggle("comment")` <Since v="0.128" /> | 切换[候选注释](/docs/settings/appearance/candidate-comment#assign)的持久状态（默认 ⇄ 详细），写回配置；系统短语 `cozs`「切注释」就是它 |
+| `ime.set("comment", "default")` / `ime.set("comment", "detail")` <Since v="0.128" /> | 直达指定状态；已是该状态则不改动。注意这里的状态值是 `default` / `detail`，不是 `on` / `off` |
 | `ime.toggle("emoji")` / `ime.toggle("emoji:模块id")` / `ime.toggle("dict:库id")` <Since v="0.126" /> | **数据开关**：emoji 候选总开关 / 某个 emoji 附加模块 / 某个注释词库，见[下文](#data-toggles) |
 | `ime.set(target, 状态)` <Since v="0.126" /> | 把开关**设为**指定状态（`on` / `off`），已是该状态则不改动。target 可以是 `cn-en`（`on` = 中文）/ `fullshape` / `s2t` / `t2s` / `toolbar`，也可以是下文的数据开关；`layout` / `candwin` / `preedit` 是循环切换，只能用 `ime.toggle` |
 | `ime.schema(id)` | 切换并持久化方案，如 `"wubi86"` / `"pinyin"` |
@@ -680,7 +682,7 @@ copy = $CC("拼音词频", setting.open("dict", "--schema=pinyin --type=freq"))
 
 ```
 cojk = $CC("「」", ime.pair("「", "」"))
-cozs = $CC("注释", ime.pair("<!--", "-->"))
+cozg = $CC("注释符", ime.pair("<!--", "-->"))
 ```
 
 两段都可以是任意文本，不限于单个符号：
@@ -693,7 +695,7 @@ cozs = $CC("注释", ime.pair("<!--", "-->"))
 **`jump`：跳出时光标右移的格数。** 省略时按右段的字符数推导（`"-->"` → 3），一般不用写。它存在是因为跳出靠合成方向键，而"一次右键越过多少内容"是宿主行为——多数宿主一次跨整个 emoji，少数按编码单元走。若在某个程序里发现跳出后光标位置差了几格，用它手动校准：
 
 ```
-cozs = $CC("注释", ime.pair("<!--", "-->", jump=3))
+cozg = $CC("注释符", ime.pair("<!--", "-->", jump=3))
 ```
 
 **分级跳出**：同一条词条里写多个 `ime.pair` 即可，无需额外语法。后写的是内层，跳出时也先出内层：
@@ -823,18 +825,18 @@ cobu = $CC("备份到用户目录", wind.cli("backup", "create", "${USER_DATA}\\
 
 #### 照搬终端命令的两道坎 [#cli-args]
 
-从终端里跑通一条命令、再原样贴进 `wind.cli(...)`，是最常见的写法，也最容易连撞两道坎。拿一条真实的命令举例——把竖排候选的注释模板设成 `{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}`（这是模板**本身**的样子，下面写进短语时还要再转义一层）：
+从终端里跑通一条命令、再原样贴进 `wind.cli(...)`，是最常见的写法，也最容易连撞两道坎。拿一条命令举例——把某个字符串类配置键（下面用 `some.template_key` 代称）设成 `{${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}`（这是字符串**本身**的样子，下面写进短语时还要再转义一层）：
 
 ```toml
 # ❌ 错误：整条命令行塞进一个参数，大括号也没转义
 [[phrases]]
 code = 'comm'
-text = '$CC1("切注释全", wind.cli("config set ui.candidate.comment_template_vertical {${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}"))'
+text = '$CC1("设模板串", wind.cli("config set some.template_key {${chaizi}}{ [${chaizi_code}]}{ ${pinyin}}"))'
 
 # ✅ 正确：按空格拆成 4 个参数，大括号写成 \{ \}
 [[phrases]]
 code = 'comm'
-text = '$CC1("切注释全", wind.cli("config", "set", "ui.candidate.comment_template_vertical", "\{${chaizi}\}\{ [${chaizi_code}]\}\{ ${pinyin}\}"))'
+text = '$CC1("设模板串", wind.cli("config", "set", "some.template_key", "\{${chaizi}\}\{ [${chaizi_code}]\}\{ ${pinyin}\}"))'
 weight = 1000
 position = 1
 ```

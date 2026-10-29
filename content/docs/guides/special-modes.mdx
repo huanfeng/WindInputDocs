@@ -195,7 +195,7 @@ backslash = "special:quick_symbols"
 
 「特殊模式」这一节**只在方案已声明 `[overlay]` 时出现**——「是不是特殊方案」是方案的固有属性，由方案文件决定，不是随手勾选的开关。所以第一次必须手写方案文件，之后才有图形界面可用。
 
-注释模板两项没有图形界面，始终需要手写。
+注释模板不在方案文件里配，见下文[注释模板](#注释模板)。
 </Callout>
 
 工作原理：
@@ -391,15 +391,16 @@ single_code_input = true
 
 ## 注释模板
 
-`[overlay]` 段还可以覆盖本模式期间的[候选注释](/docs/settings/appearance/candidate-comment)模板，横竖各配一份，退出自动恢复。**无图形界面，只能手写**：
+本模式期间的[候选注释](/docs/settings/appearance/candidate-comment)模板，在用户配置的 `ui.comment.assign.mode."special:<方案id>"` 里配，也可以在设置工具 外观 → 候选标注 → 候选注释 → 设置 里添加该模式的覆盖行。`[overlay]` 里的 `comment_template_*` 不再读取：
 
 ```toml
-[overlay]
-comment_template_vertical   = "${code_hint|code_rev}"
-comment_template_horizontal = ""
+[ui.comment.assign.mode."special:quick_symbols"]   # 表名带冒号要加引号
+default_horizontal = "none"
+default_vertical = "code"
 ```
 
-三态语义（不写=跟随全局 / 写模板=本模式改用它 / 写空串=本模式不显示注释）与其它模式完全一致，见[模式级注释模板](/docs/guides/config/input#模式级注释模板)。
+格的取值（模板 id / `none` / `inherit`、不写=跟随）与其它模式完全一致，见[模式级注释模板](/docs/guides/config/input#模式级注释模板)。
+旧的 `[overlay]` 注释键不会自动迁移，启动时日志警告一次，见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)。
 
 ## 候选行为
 

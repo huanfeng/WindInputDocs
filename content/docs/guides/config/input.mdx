@@ -45,7 +45,7 @@ password_force_english = true       # 密码框强制英文
 | `numpad_behavior` | 枚举 | `direct` / `follow_main` | `"direct"` | 小键盘按键语义：`direct` = 小键盘数字键直接输出数字（不当选词 / 翻页键）；`follow_main` = 小键盘键重写为主键盘等价键，跟随主键盘语义 |
 | `numpad_half_width` <Since v="0.120" /> | 布尔 | — | `false` | 开启后，小键盘的 `0`–`9` 与 `. + - * /` 在**全角状态下仍输出半角原形**，且整条标点流水线一并跳过（自定义标点映射、中文标点、全半角转换三步都不走）。与 `numpad_behavior` **正交**，见[小键盘恒半角](#numpad-half-width) |
 | `english_case_cycle_key` <Since v="0.121" /> | 字符串（隐性枚举） | `""` / `capslock` / `tab` / `enter` / `space` / `escape` | `""` | 打英文时（英文方案或临时英文）临时夺取哪个键，在「跟随输入 → 全大写 → 全小写」三档之间循环，一次组合结束即复位。留空 = 关闭。**键即开关**，没有另一个启用项。Windows 建议 `capslock`，macOS 上 CapsLock 到不了输入法（系统只传锁定态、不传按键），建议 `tab`。⚠️ 被夺取的键在打英文期间用不出原本的语义（`capslock` 的大写锁定、`tab` 的辅助码 / 配对跳出 / 会话动作），其余时候一律照旧；撞车时启动会告警。详见[临时模式 · 切换候选大小写的键](/docs/settings/input/temp-modes#case-cycle-key) |
-| `alt_commit` <Since v="0.123" /> | 枚举 | `off` / `pinyin` / `pinyin_plain` / `comment` | `"off"` | 有候选时按 Alt+数字 N 上屏当前页第 N 个候选的**拼音或注释**而非候选字，Alt+空格 取高亮那条。`pinyin` = 带调（`nǐ hǎo`）；`pinyin_plain` = 不带调（`ni hao`）；`comment` = 候选注释段原文（按当前注释模板，不截断）。键不可改，本项同时是开关。只在「中文 + 有候选」时吃键；`keys.key_actions` 里已绑的 Alt 组合优先。没有可上屏的内容时什么都不做，不回落成候选字。`comment` 档在候选注释关着（`ui.candidate.comment_enabled = false`）时按 `off` 处理 <Since v="0.125" />。详见[设置 · Alt+数字上屏注释/拼音](/docs/settings/keys#alt-commit) |
+| `alt_commit` <Since v="0.123" /> | 枚举 | `off` / `pinyin` / `pinyin_plain` / `comment` | `"off"` | 有候选时按 Alt+数字 N 上屏当前页第 N 个候选的**拼音或注释**而非候选字，Alt+空格 取高亮那条。`pinyin` = 带调（`nǐ hǎo`）；`pinyin_plain` = 不带调（`ni hao`）；`comment` = 候选注释段原文（按当前注释模板，不截断）。键不可改，本项同时是开关。只在「中文 + 有候选」时吃键；`keys.key_actions` 里已绑的 Alt 组合优先。没有可上屏的内容时什么都不做，不回落成候选字。`comment` 档在候选注释关着（`ui.comment.enabled = false`）时按 `off` 处理 <Since v="0.125" />。详见[设置 · Alt+数字上屏注释/拼音](/docs/settings/keys#alt-commit) |
 | `commit_newline` <Since v="0.122" /> | 枚举 | `keep` / `cr` / `lf` / `crlf` | `"keep"` | 上屏文本里的**换行用什么字符表达**：`keep` = 原样透传，词条里写什么就上屏什么；`cr` / `lf` / `crlf` = 一律折成该形态。0.121 及以前是无条件折成 `cr`，见[上屏换行的字符样式](#commit-newline)。⚠️ 仅 Windows 生效——macOS 的输入法框架用 LF，不参与本项 |
 | `top_commit_mode` | 枚举 | `pre_confirm` / `direct_commit` | `"direct_commit"` | 顶码上屏时「已确认文字」如何落到宿主。内部 / 实验项，见下方 Callout |
 | `password_force_english` | 布尔 | — | `true` | 宿主报出密码框时强制英文，避免密码经候选窗、编码组合区暴露；离开密码框自动恢复。个别程序会把普通输入框误报成密码框，那里就打不出中文。菜单入口见[菜单功能 · 密码框强制英文](/docs/settings/menu#密码框强制英文) |
@@ -337,7 +337,6 @@ commit_upper = false           # 打字中按 CapsLock 切换时，编码转大�
 enabled = true              # 临时拼音总开关
 trigger_keys = ["backtick"] # 旧写法，引导键改写在 keys.key_actions（见下表）
 candidate_layout = "follow" # 候选窗布局（见本页「模式级候选布局」）
-code_hint_source = "auto"   # 拼音候选旁显示哪种编码：off / codetable / shuangpin / auto
 hotkey = ""                 # 专用直达热键，空 = 不注册
 ```
 
@@ -347,7 +346,10 @@ hotkey = ""                 # 专用直达热键，空 = 不注册
 | `trigger_keys` | 字符串数组 | — | `["backtick"]` | 旧写法，加载时迁移进 [`keys.key_actions`](/docs/guides/config/keys#key-actions)（动词 `temp_pinyin`），按键绑定迁移完成后不再读取。出厂的反引号即 `backtick = "temp_pinyin"`，改键请直接写 `key_actions`。只认符号键；`z` 进临拼改由方案的 [`z_key_action`](/docs/settings/schema/codetable#z-key-action) 配 |
 | `hotkey` | 字符串 | — | `""` | 专用直达热键（如 `"ctrl+shift+p"`，空串 = 不注册）；与 `key_actions` 里的 `temp_pinyin` 引导键共存，热键进入时组合区不写引导符。组合键也可以直接写进 `key_actions`：`"ctrl+shift+p" = "temp_pinyin"`。默认空 |
 | `candidate_layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 临拼期间的候选窗排列方向，见[模式级候选布局](#模式级候选布局) |
-| `code_hint_source` <Since v="0.123" /> | 字符串 | `off` / `codetable` / `shuangpin` / `auto` | `"auto"` | 临时拼音与快捷输入期间，拼音候选的注释里放行哪种编码。四档含义同拼音方案的 [`schema.pinyin.code_hint_source`](/docs/guides/config/schema#拼音引擎schemapinyin)，但两份各自独立、出厂值也不同（拼音方案出厂 `off`）：临拼本来就是码表用户借拼音查码，出厂就放行。写错的值回落 `auto` |
+
+<Callout type="warn" title="已退役：`code_hint_source`">
+`input.temp_pinyin.code_hint_source` 自 0.129 起不再读取，**不迁移**：改过它的要在候选注释分配里重设 `ui.comment.assign.mode.temp_pinyin` 与 `mode.mix`（界面叫「快捷输入（默认）」）的默认态，`off` / `codetable` / `shuangpin` 对应模板 `none` / `code_rev` / `shuangpin`。显示哪种编码现在只看分配到的模板，见[候选注释](/docs/settings/appearance/candidate-comment#code-vars-by-assign)。
+</Callout>
 
 ## 反查模式（input.reverse） <Since v="0.125" /> [#reverse]
 
@@ -413,36 +415,25 @@ lookup_disabled_dicts = false      # 反查模式里也查未启用的扩展词�
 
 ## 模式级注释模板
 
-与上面的 `candidate_layout` 同一个思路：各模式可以覆盖[候选注释](/docs/settings/appearance/candidate-comment)的模板，
-进入该模式期间生效，退出自动恢复。**仅配置文件，无图形界面。**
+各模式的[候选注释](/docs/settings/appearance/candidate-comment)模板不再写在 `input.*` 段里，统一在用户配置的 `ui.comment.assign.mode.<模式>` 下，进入该模式期间生效，退出自动恢复。
+设置工具有图形界面（外观 → 候选标注 → 候选注释 → 设置，「添加模式覆盖」）。
 
 ```toml
-[input.temp_english]
-comment_template_vertical   = "${dict}"   # 打英文时显示词典释义
-comment_template_horizontal = "${dict}"
+[ui.comment.assign.mode.temp_english]
+default_horizontal = "none"          # 打英文时默认态不显示
+detail_horizontal  = "en_zh"          # 详细态显示中文释义
 
-[input.temp_pinyin]
-comment_template_vertical   = ""          # 临拼期间不显示注释
-comment_template_horizontal = ""
+[ui.comment.assign.mode.temp_pinyin]
+default_horizontal = "none"          # 临拼期间不显示注释
 ```
 
-键名与全局的 `ui.candidate.comment_template_vertical` / `_horizontal` 一致，横竖各配各的，各自三态：
+模式键：`temp_pinyin` / `temp_english` / `url` / `email` / `unicode` / `mix`（界面叫「快捷输入（默认）」） / `mix:<融合模式id>` / `special:<方案id>`（[引导键特殊模式](/docs/guides/special-modes#注释模板)）。
+每格的值是模板 id、`none`（不显示）或 `inherit`（跟随上一层）；不写 = 跟随；竖排格不写时，本行横排有值就同横排，否则跟随。「不写」与 `none` 是两回事：前者跟随，后者明确要求不显示。
 
-| 状态 | 含义 |
-| --- | --- |
-| **不写该键** | 跟随全局同方向的模板（默认） |
-| 非空字符串 | 本模式期间改用它 |
-| 空串 `""` | 本模式期间不显示注释 |
-
-「不写」与「写空串」是两回事——前者跟随全局，后者明确要求不显示。也因此这两个键
-**不会**出现在出厂 `data/config.toml` 里：写进去就等于给了它一个值，而任何值都不等于「跟随」。
-
-可用位置：`config.toml` 的 `input.temp_english`、`input.temp_pinyin`、`input.url`、
-`schema.mix_modes[]`（每实例独立），以及**方案文件**的 `[overlay]` 段（每方案独立，
-见[引导键特殊模式](/docs/guides/special-modes#注释模板)）。
+旧的 `input.temp_english` / `temp_pinyin` / `url` / `email` / `unicode` 与 `schema.mix_modes[]` 里的 `comment_template_vertical` / `_horizontal` 不再读取、不迁移，见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)。
 快捷加词面板不支持——它走独立绘制路径，本就不渲染注释。
 
-典型用法见[候选注释 · 分模式设置](/docs/settings/appearance/candidate-comment#分模式设置)。
+完整说明见[候选注释 · 模板、两态与分配](/docs/settings/appearance/candidate-comment#assign)与[分模式设置](/docs/settings/appearance/candidate-comment#分模式设置)。
 
 ## 快捷加词（input.add_word）
 

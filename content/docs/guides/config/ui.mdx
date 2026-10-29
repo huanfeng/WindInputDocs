@@ -25,9 +25,6 @@ layout = "horizontal"           # 候选排布方向
 hide_window = false             # 隐藏候选窗
 double_click_screenshot = false # 双击候选窗空白处截图到剪贴板
 index_labels = []               # 自定义序号标签
-comment_enabled = true          # 候选注释总开关
-comment_template_vertical   = "${code_hint|code_rev|shuangpin}"   # 竖排候选注释模板
-comment_template_horizontal = "${code_hint|code_rev|shuangpin}"   # 横排候选注释模板
 comment_max_chars_vertical   = 0   # 竖排候选注释最大字数
 comment_max_chars_horizontal = 0   # 横排候选注释最大字数
 comment_above = false   # 注释首行（模板里第一个 \n 之前）显示在候选上方
@@ -43,17 +40,45 @@ comment_above = false   # 注释首行（模板里第一个 \n 之前）显示�
 | `hide_window` | 布尔 | — | `false` | 隐藏候选窗（不显示候选列表） |
 | `double_click_screenshot` <Since v="0.123" /> | 布尔 | — | `false` | 双击候选窗的**编码栏或空白处**，把候选窗当前画面复制到剪贴板（与右键菜单「截图到剪贴板」同一效果）。候选词与翻页键按下即生效，不参与双击判定；双击间隔与位移容差跟随系统鼠标设置。仅 Windows |
 | `index_labels` | 字符串数组 <Since v="0.117" /> | — | `[]` | 自定义序号标签，一槽一项（如 `["a","s","d"]`、`["Ⅰ","Ⅱ","Ⅲ"]`）。**每项是一个完整标签**，可含多个字符；空表 = 默认 `1`–`9`，第 10 个显示 `0`（与选它的数字键对应，0.128 起）。槽内空串或槽位不足处让位主题 `index.labels`，主题也未定义才回退数字 |
-| `comment_enabled` <Since v="0.125" /> | 布尔 | — | `true` | 候选注释总开关。关掉后候选不再显示注释（含 `${code_hint}` 编码提示与 `comment_above` 上方注释条），全局、方案级、模式级三层注释模板一律不生效；关掉后不再计算注释，也不再为它预载反查编码、拆字等数据，省内存。此时 `input.alt_commit = "comment"` 按 `off` 处理：Alt+数字 / Alt+空格不再被认领，照常归程序（`pinyin` / `pinyin_plain` 不受影响）。设置位置：外观 → 候选标注 → 显示候选注释 |
-| `comment_template_vertical` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **竖排**候选注释（候选右侧的小字）模板。语法与变量见[候选注释](/docs/settings/appearance/candidate-comment)；留空 = 不显示 |
-| `comment_template_horizontal` | 字符串 | — | `"${code_hint\|code_rev\|shuangpin}"` | **横排**候选注释模板。横排宽度由全部候选共享，放注音/字根易撑宽窗口 |
 | `comment_max_chars_vertical` | 整数 <Since v="0.119" /> | — | `0` | **竖排**候选注释最大字数，超出截断并加省略号（`0` = 不限）。竖排每行独占，通常可比横排放宽。开启 `comment_above` 后按上下两段各自计算 |
 | `comment_max_chars_horizontal` | 整数 <Since v="0.119" /> | — | `0` | **横排**候选注释最大字数。开启 `comment_above` 后按上下两段各自计算 |
-| `comment_above` | 布尔 <Since v="0.124" /> | — | `false` | 注释首行显示在候选上方：模板里**字面写的第一个 `\n`** 把注释拆成两段，上段在候选上方一行，下段仍在右侧；变量值自带的换行不算。写法约束与版面见[注释显示在候选上方](/docs/settings/appearance/candidate-comment#comment-above)；上方条样式见主题的 `[comment_above]` 节点。设置位置：外观 → 候选标注 → 候选注释 → 设置 |
+| `comment_above` | 布尔 <Since v="0.124" /> | — | `false` | 注释首行显示在候选上方：模板里**字面写的第一个 `\n`** 把注释拆成两段，上段在候选上方一行，下段仍在右侧；变量值自带的换行不算。写法约束与版面见[注释显示在候选上方](/docs/settings/appearance/candidate-comment#comment-above)；上方条样式见主题的 `[comment_above]` 节点。设置位置：外观 → 候选标注 → 注释切换与显示 → 设置… |
 | `auto_comment_dicts` | 布尔 <Since v="0.121" /> | — | `true` | 词库在 `columns` 中声明 `comment` 列时，自动将该列作为 `${dict}` 的注释源。判据是显式声明；`import_tables` 引入的子表逐一检测。识别结果在[注释词库](#comment-dicts)列表中标「自动」 |
+
+### 候选注释（ui.comment） <Since v="0.128" /> [#ui-comment]
+
+候选注释的总开关、两态与模板分配。取代原来的 `ui.candidate.comment_enabled` 与 `comment_template_vertical` / `_horizontal`（旧键不再读取、不迁移，见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)）。概念与解析链见[模板、两态与分配](/docs/settings/appearance/candidate-comment#assign)。
+
+```toml
+[ui.comment]
+enabled = true         # 总开关
+state = "default"      # 持久状态：default / detail
+switch_key = "f1"       # none / f1…f12 / ctrl / lctrl / rctrl / alt / lalt / ralt
+switch_mode = "session" # session / persist / hold
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `enabled` | 布尔 | — | `true` | 候选注释总开关。关掉后候选不再显示注释（含 `${code_hint}` 编码提示与 `comment_above` 上方注释条），各层分配的模板一律不生效；关掉后不再计算注释，也不再为它预载反查编码、拆字等数据，省内存。此时 `input.alt_commit = "comment"` 按 `off` 处理：Alt+数字 / Alt+空格不再被认领，照常归程序（`pinyin` / `pinyin_plain` 不受影响），切换键也不拦。设置位置：外观 → 候选标注 → 候选注释 |
+| `state` | 枚举 | `default` / `detail` | `"default"` | 持久的注释状态，全局一份。按键、命令或切换键（`persist` 档）切换时写回 |
+| `switch_key` | 枚举 | `none` / `f1`…`f12` / `ctrl` / `lctrl` / `rctrl` / `alt` / `lalt` / `ralt` | `"f1"` | 候选窗出现时，按哪个键切换注释状态（功能键按下即切；Ctrl、Alt 要单击，`ctrl`、`alt` 为左右任一）；`none` 不用切换键。与中英切换键、选词键组、会话按键绑定撞键时那些功能优先。选 Alt 时 Windows 上会装全局键盘钩子，其余不装；macOS 暂时只认 F1 |
+| `switch_mode` | 枚举 | `session` / `persist` / `hold` | `"session"` | 按切换键的作用（不用切换键请把 `switch_key` 设成 `none`）：`session` 切本次候选窗的临时状态；`persist` 切持久状态并写回；`hold` 按住期间显示另一态，松开恢复（Ctrl、Alt、功能键都可配；用 Ctrl 时按住期间按 Ctrl 组合键，如 Ctrl+C，注释会短暂闪一下） |
+
+模板与分配写在同一段里，不在出厂配置中预置（内置的在 `data/system.comments.toml`）：
+
+| 键 | 说明 |
+| --- | --- |
+| `ui.comment.templates`（`[[ui.comment.templates]]`） | 用户模板：`id`（`[a-z0-9_]+`）、`name`、`text`，可选 `desc`（一句说明，分配框选模板时显示）。与内置同 `id` 时覆盖内置 |
+| `ui.comment.assign.global` | 全局四格：`default_horizontal` / `default_vertical` / `detail_horizontal` / `detail_vertical`。值为模板 `id`、`none`（不显示）或 `inherit`（跳过本层，看下一层同排布那格）；竖排格不写：本行横排有值时同横排，否则跟随 |
+| `ui.comment.assign.type` | 方案类型一层，表名 `[ui.comment.assign.type.<类型>]`，类型取 `codetable` / `pinyin` / `shuangpin` / `mixed` / `english` |
+| `ui.comment.assign.schema` | 方案一层，表名 `[ui.comment.assign.schema.<方案id>]` |
+| `ui.comment.assign.mode` | 模式一层，表名 `[ui.comment.assign.mode.<模式>]`，模式取`temp_pinyin` / `temp_english` / `url` / `email` / `unicode` / `mix`（界面叫「快捷输入（默认）」，各融合模式没写的格落到这里） / `mix:<融合模式id>` / `special:<方案id>`；带冒号的表名要加引号，如 `[ui.comment.assign.mode."mix:quick_mix"]` |
+
+解析顺序为 模式 → 方案 → 方案类型 → 全局，第一个有值的胜出。方案文件里的 `comment_template_*` 不再读取。
 
 ### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]
 
-供注释模板 `${dict}` 变量查询的**独立注释词库**列表（如英汉释义、Emoji 名称）。`ui.comment_dicts` 是结构体数组（TOML 的 `[[ui.comment_dicts]]` 形态），**出厂为空**——词典多有版权，不随附任何内容，由用户自行放置。设置页入口在**外观 → 候选标注 → 注释词库**，也可直接写配置：
+供注释模板 `${dict}` 变量查询的**独立注释词库**列表（如英汉释义、Emoji 名称）。`ui.comment_dicts` 是结构体数组（TOML 的 `[[ui.comment_dicts]]` 形态），用户配置里**出厂为空**，由用户自行放置词库文件；另有两个随包的内置词库（`en_zh`、`zh_en`，见[内置的中英释义](/docs/settings/appearance/candidate-comment#builtin-dicts)），在设置页列表里标「内置」，只能启停与排序。设置页入口在**外观 → 候选标注 → 注释词库**，也可直接写配置：
 
 ```toml
 [[ui.comment_dicts]]
@@ -336,7 +361,8 @@ items = ["schema", "punct", "full_width", "s2t", "caps"]  # 显示哪些内容�
 | `position_mode` | 枚举 | `follow_caret` / `fixed` | `"follow_caret"` | 位置模式：`follow_caret` = 跟随光标（默认）；`fixed` = 固定屏幕坐标（`custom_x` / `custom_y`） |
 | `position_mode` 的锚点取值 <Since v="0.123" /> | 枚举 | 7 个锚点，见[下文](#status-anchor) | —— | 气泡固定在屏幕或当前窗口的某个位置，不读光标 |
 | `fallback_position` <Since v="0.123" /> | 枚举 | `last` / `hide` / 7 个锚点 | `"last"` | 跟随光标时，程序报不出光标位置的那一次气泡放哪：`last` = 上次拿到光标的位置（默认，即以前的行为）；`hide` = 不显示；锚点见[下文](#status-anchor)。只在 `position_mode = "follow_caret"` 时生效 |
-| `offset_x` | 整数 | — | `0` | `follow_caret` 下相对默认位置（光标下方居中）的水平偏移（像素，正 = 右） |
+| `caret_side` <Since v="0.129" /> | 枚举 | `below` / `above` | `"below"` | `follow_caret` 下的默认位置：`below` = 光标下方（默认）；`above` = 光标上方。放不下时翻到另一侧；与候选窗重叠时自动避让（先换到光标另一侧，还挡就贴到候选窗外侧） |
+| `offset_x` | 整数 | — | `0` | `follow_caret` 下相对默认位置（左边缘对齐光标）的水平偏移（像素，正 = 右） |
 | `offset_y` | 整数 | — | `0` | `follow_caret` 下相对默认位置的垂直偏移（像素，正 = 下） |
 | `custom_x` | 整数 | — | `0` | `fixed` 模式的固定屏幕 X（像素） |
 | `custom_y` | 整数 | — | `0` | `fixed` 模式的固定屏幕 Y（像素） |
