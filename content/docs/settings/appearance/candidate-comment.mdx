@@ -120,7 +120,7 @@ ${code_hint|code_rev}{ ${correct_pinyin}}
 
 分配框的下拉里，每个编码模板下面都有一句同样的说明。
 
-0.129 前这件事由拼音、临时拼音、混输三处各一个独立开关管，现已并入分配，旧设置升级时自动迁入，对照见[升级说明](#upgrade)。上述三处设置页只显示「当前：模板名」，要改点旁边的「去设置」跳过来。
+0.129 前这件事由拼音、临时拼音、混输三处各一个独立开关管，现已并入分配；旧开关的值**不迁移**，改过的要重新设，对照见[升级说明](#upgrade)。上述三处设置页只显示「当前：模板名」，要改点旁边的「去设置」跳过来。
 
 <Callout type="info" title="旧名 `${code}` / `${code_all}` 仍然有效">
 它们是 `${code_rev}` / `${code_rev_all}` 的别名，会一直保留，老模板不用改。
@@ -657,7 +657,7 @@ columns:
 
 引用了不存在的模板 id 时，启动日志警告一次，该格按「不写」处理，不会报错。
 
-### 默认 / 详细怎么切
+### 默认 / 详细怎么切 [#switch]
 
 - **持久状态** `ui.comment.state`：`default` / `detail`，写回配置，重启保持，所有作用范围共用。「注释切换与显示」里的「当前状态」改的就是它。
 - **临时状态**：只对当前这个候选窗，把持久状态**取反**；候选窗关闭（上屏、取消、清空）即丢弃，下一次输入回到持久状态。输入途中切进临时拼音这类模式，临时状态保留。
@@ -666,7 +666,8 @@ columns:
 
 | `switch_key` | 含义 |
 | --- | --- |
-| `ctrl`（出厂） | 左右 Ctrl 任一 |
+| `f1`（出厂） | F1，候选窗出现时按下即切换；没有候选时照常交给应用 |
+| `ctrl` | 左右 Ctrl 任一 |
 | `lctrl` / `rctrl` | 只认左 / 右 Ctrl |
 | `alt` / `lalt` / `ralt` | 左右 Alt 任一 / 只认左 / 只认右 |
 
@@ -675,14 +676,15 @@ columns:
 | `off` | 不使用 | 切换键不起作用 |
 | `session`（出厂） | 临时切换（本次候选窗） | 单击切换键，切本次候选窗的临时状态 |
 | `persist` | 切换当前状态 | 单击切换键，切持久状态并写回 `ui.comment.state` |
-| `hold` | 按住时显示另一态 | 按住期间显示另一态，松开恢复；Ctrl、Alt 都可配。用 Ctrl 时，按住期间按 Ctrl 组合键（如 Ctrl+C），注释会短暂闪一下 |
+| `hold` | 按住时显示另一态 | 按住期间显示另一态，松开恢复；只对 Ctrl、Alt 有效，F1 按「临时切换」处理。用 Ctrl 时，按住期间按 Ctrl 组合键（如 Ctrl+C），注释会短暂闪一下 |
 
-- 只在**候选窗出现时**生效；「单击」指按下到松开不超过 500ms，且中间没按别的键（Ctrl+C、Alt+Tab 之类组合不算）。
-- 切换键与中英切换键、选词键组（`lrctrl`）、会话按键绑定撞键时，那些功能优先，切换键在这时不生效，设置页会给出提示。
+- 只在**候选窗出现时**生效。Ctrl、Alt 要「单击」：按下到松开不超过 500ms，且中间没按别的键（Ctrl+C、Alt+Tab 之类组合不算）。
+- 切换键与中英切换键、选词键组（`lrctrl`）、会话按键绑定（如自己给 F1 绑了别的功能）撞键时，那些功能优先，切换键在这时不生效，设置页会给出提示。
+- macOS 上 F1 默认是调亮度，要按 fn+F1，或在系统设置里打开「将 F1、F2 等键用作标准功能键」。
 - Windows 上选 Alt 时，输入法会安装一个全局键盘钩子，只在候选窗出现时接管 Alt（并压住应用的菜单栏）；选 Ctrl 不装这个钩子。
 - `hold` 下按住 Alt 再按 Alt+数字，上屏的是眼前这份注释（配合 [`alt_commit = "comment"`](/docs/guides/config/input)）。
 - 总开关关掉时，切换键一概不拦。切换只重绘当前页，不重新查询，也不改变候选顺序和高亮。
-- 功能键（F1 等）不能作切换键：到「按键」页把它绑到 `comment_state`（切持久状态）或 `comment_state:session`（只切本次候选窗）。
+- 想用别的功能键：到「按键」页把它绑到 `comment_state`（切持久状态）或 `comment_state:session`（只切本次候选窗），F1–F12 都能绑（macOS 只认 F1）。
 
 **按键与命令**：
 
@@ -703,7 +705,7 @@ columns:
 [ui.comment]
 enabled = true            # 总开关
 state = "default"         # 持久状态：default / detail
-switch_key = "ctrl"       # ctrl（出厂）/ lctrl / rctrl / alt / lalt / ralt
+switch_key = "f1"         # f1（出厂）/ ctrl / lctrl / rctrl / alt / lalt / ralt
 switch_mode = "session"   # off / session（出厂）/ persist / hold
 
 # 用户模板；与内置同 id 时覆盖内置
@@ -785,27 +787,22 @@ default_horizontal = "none"             # 默认态不显示
 
 ## 升级说明 [#upgrade]
 
-升级后第一次启动会**自动迁移**旧配置，无需手动改：
+<Callout type="warn" title="破坏性变更：旧的注释设置不迁移">
+0.129 重做了候选注释。下列旧设置升级后**不再读取，也不会自动迁移**，需要在新界面里重新设置；
+旧键会在下次写回配置时从 `config.toml` 里清掉。没改过这些设置的，升级后效果与原来一样，不用动。
+</Callout>
 
-- `ui.candidate.comment_enabled` → `ui.comment.enabled`。
-- `ui.candidate.comment_template_vertical` / `_horizontal`、`input.temp_english` / `temp_pinyin` / `url` / `email` / `unicode` 与 `schema.mix_modes[]` 里的 `comment_template_*`：每条非空模板串生成一个用户模板（名为「旧版·全局」「旧版·临时英文」这类按来源范围起的名字，`id` 为 `migrated_1`、`migrated_2` …；内容相同的合并，与某个内置模板文本相同的直接引用内置模板、不另生成），再填进对应作用范围的「默认」格；旧的空串迁成 `none`。
-- 迁出了自定义的全局模板时，出厂里写了同名格的方案类型与模式行会补上 `inherit`，保持旧版「跟随全局」的效果。
-- 内容与旧出厂值相同的全局模板不迁移；新配置里已有的格不覆盖。
+| 旧设置（配置键） | 现在去哪设 |
+| --- | --- |
+| 候选注释开关（`ui.candidate.comment_enabled`） | 外观 › 候选标注 › 候选注释 的开关（`ui.comment.enabled`） |
+| 全局注释模板（`ui.candidate.comment_template_vertical` / `_horizontal`） | 「注释模板」里新建模板，再到「候选注释 › 设置」把全局格选成它 |
+| 各模式的注释模板（`input.temp_english` / `temp_pinyin` / `url` / `email` / `unicode` 与 `schema.mix_modes[]` 里的 `comment_template_*`） | 分配框里「添加覆盖 › 模式」 |
+| 拼音「编码提示来源」（`schema.pinyin.code_hint_source`，更早的 `show_code_hint`） | 拼音方案页「编码提示」旁的「去设置」，即拼音、双拼方案类型的默认态 |
+| 临时拼音「编码提示」（`input.temp_pinyin.code_hint_source`） | 临时拼音页「编码提示」旁的「去设置」，即「临时拼音」与「快捷输入（默认）」的默认态 |
+| 混输「拼音候选显示码表编码」（`schema.mix.pinyin_code_hint`） | 混输方案页同名项旁的「去设置」，即混输方案类型的默认态 |
+| 方案文件 / `schema_overrides\<方案ID>.toml` 里 `[candidate]`、`[overlay]` 的 `comment_template_*` | 分配框里「添加覆盖 › 方案」，或「模式」里的引导键特殊模式（`special:<方案id>`）；启动时日志会警告一次 |
 
-迁移后旧键不再生效；要查看或调整，去「候选注释」与「注释模板」两行的「设置」。
-
-<Since v="0.129" /> 三个编码来源开关并入分配，升级时按下表迁入（只迁你写过的值，目标格已有你的值时不覆盖）：
-
-| 旧键与值 | 写到的分配格（`default_horizontal`） | 值 |
-| --- | --- | --- |
-| 拼音 `code_hint_source` = `codetable` / `shuangpin` / `auto` | 拼音、双拼方案类型 | `code_rev` / `shuangpin` / `code` |
-| 临时拼音 `code_hint_source` = `off` / `codetable` / `shuangpin` | 临时拼音与快捷输入（默认）（`mix`） | `none` / `code_rev` / `shuangpin` |
-| 混输 `pinyin_code_hint` = `false` | 混输方案类型 | `code_hint` |
-
-若你自定义过全局模板，这些范围继续跟随你的全局模板，旧开关不再迁入：原先被旧开关挡住的编码变量会按你的模板照常显示。要关掉，在分配框里给对应范围选「不显示」或别的模板。
-
-**方案文件里的注释配置作废了**：方案文件（含 `schema_overrides\<方案ID>.toml`）里的 `[candidate]` 与 `[overlay]` 的 `comment_template_vertical` / `_horizontal` 不再读取，启动时日志警告一次。
-请改到分配框里添加「方案」覆盖（方案级），或「模式」覆盖（引导键特殊模式的 `special:<方案id>`）。这些旧键**不会**被自动迁移。
+另一处行为变化：注释的默认 / 详细切换键出厂是 **F1**（候选窗出现时按一下），见[默认 / 详细怎么切](#switch)。
 
 ## 长度控制
 

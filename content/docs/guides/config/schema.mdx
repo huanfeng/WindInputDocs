@@ -330,15 +330,15 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 | `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = 自动挑一个**空闲**的符号键（未被选词键、也未被本方案 `[key_actions]` 占用）：先看 `'`，再看反引号，都不空闲就不启用；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼同样支持，但 `auto` 下不会占键（`'` 是选词键、反引号归辅助码），要用得显式配 `quote` |
 
 <Callout type="warn" title="已退役的编码来源键">
-0.129 起以下三个键不再读取，升级时自动迁入[候选注释分配](/docs/settings/appearance/candidate-comment#assign)（目标格已有你写的值时不覆盖）；显示哪种编码现在只看分配到的模板：
+0.129 起以下三个键不再读取、**不迁移**，改过的要在[候选注释分配](/docs/settings/appearance/candidate-comment#assign)里重设（下表是对应关系）；显示哪种编码现在只看分配到的模板：
 
-| 旧键 | 旧值 | 迁到 |
+| 旧键 | 旧值 | 现在对应的设置 |
 | --- | --- | --- |
 | `schema.pinyin.code_hint_source` | `codetable` / `shuangpin` / `auto` | `type.pinyin`、`type.shuangpin` 的 `default_horizontal` = `code_rev` / `shuangpin` / `code` |
 | `input.temp_pinyin.code_hint_source` | `off` / `codetable` / `shuangpin` | `mode.temp_pinyin` 与 `mode.mix`（界面叫「快捷输入（默认）」）的 `default_horizontal` = `none` / `code_rev` / `shuangpin` |
 | `schema.mix.pinyin_code_hint` | `false` | `type.mixed` 的 `default_horizontal` = `code_hint` |
 
-更早的布尔键 `schema.pinyin.show_code_hint` 先折成 `code_hint_source` 再按上表迁。
+更早的布尔键 `schema.pinyin.show_code_hint` 同样不再读取。
 </Callout>
 
 ### 英文候选混入（schema.pinyin.english_merge） <Since v="0.121" /> [#pinyin-english-merge]
@@ -777,7 +777,7 @@ decimal_places = 6       # 计算器结果小数位数
 | `trigger_keys` | 字符串数组 | — | 旧写法，加载时迁移进 [`keys.key_actions`](/docs/guides/config/keys#key-actions)（`mix:<id>`），按键绑定迁移完成后不再读取。改引导键请直接写 `key_actions` |
 | `members` | 字符串数组 | — | 候选来源：有无即开关，顺序即优先级。除内置来源外也可以写方案 id，见[加入自己的码表方案](/docs/settings/input/quick-input#custom-member) |
 | `candidate_layout` | 枚举 | `follow` | 进入本实例期间的候选窗布局，退出后恢复 |
-| `comment_template_vertical` / `_horizontal` | 字符串 | 不再读取 | 旧写法，升级时自动迁入 `ui.comment.assign.mode."mix:<id>"`（见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)）。本实例的注释改在[候选注释分配](/docs/settings/appearance/candidate-comment#assign)里配 |
+| `comment_template_vertical` / `_horizontal` | 字符串 | 不再读取 | 旧写法，不再读取、不迁移，改在 `ui.comment.assign.mode."mix:<id>"` 里配（见[升级说明](/docs/settings/appearance/candidate-comment#upgrade)）。本实例的注释改在[候选注释分配](/docs/settings/appearance/candidate-comment#assign)里配 |
 | `free_input` | 枚举 | `auto` | 自由字面输入：`off` / `auto` / `always` <Since v="0.114" />。见[快捷输入 · 自由字面输入](/docs/settings/input/quick-input#free-input) |
 | `free_input_takes_select_keys` | 布尔 | `true` | 自由输入时把第 2 / 3 候选键（默认 `;` `'`）当作字面字符 <Since v="0.114" />。关掉则它们恢复选词，代价是 `rock'n'roll` 这类内容打不出。数字键 `1`–`9` 始终选词，不受本项影响 |
 | `numeric_letter_select` <Since v="0.128" /> | 布尔 | `true` | 数字或符号开头时用字母 a、b、c 选候选。关掉后字母按字面输入（`;2fa`、`;1.5x`），序号显示为数字，改用 `keys.quick_input_select`（出厂 Ctrl+数字）、空格或方向键选。见[快捷输入 · 选词键](/docs/settings/input/quick-input#select-keys) |
