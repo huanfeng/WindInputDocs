@@ -234,14 +234,19 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 | --- | --- | --- | --- | --- |
 | `session_actions` | 表（键名 → 动词） | 见下 | `{}` | 打字期间的「键 → 干什么」表，只存你显式配的键 |
 
-- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
+- **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`f1`–`f12` <Since v="0.128" />（可带 `shift+`；只在有编码或候选时生效，空闲时的裸 F 键仍归宿主）、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
 - **动词**：`page_prev` / `page_next`（翻页）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
+- **`toggle_tip`** <Since v="0.128" />：显示 / 收起当前高亮候选的悬停提示（与鼠标悬停同一个气泡），再按一次收起；移动高亮或翻页也会收起。例：`right = "toggle_tip"` 用 → 键看提示，代价是 → 不再移动高亮。
 - **`comment_state`** <Since v="0.128" />：与 `key_actions` 那份相同（`comment_state` / `comment_state:default` / `comment_state:detail`，改持久状态）。另有只在本表认的 `comment_state:session`：只翻**本次候选窗**的注释状态，候选窗关闭即丢弃，不写配置。
 - **`single_char`** <Since v="0.121" />：开关[单字输入](/docs/guides/config/schema#single-char)，动词与 `key_actions` 那份完全一样（`single_char:on` / `:off` / `:toggle` / `:follow`）。按下即开关并**就地重出候选**，不会把正在打的码上屏。写在本表意味着「只在打字时管用」——绑在 Tab 上，没打字时 Tab 仍是宿主的制表符。
 - **与翻页共用一个键**：写 `aux_code:page_next` <Since v="0.118" />，**能进辅助码就进、进不去就翻下一页**。于是 `tab = "aux_code:page_next"` 一键两用：第一次按进筛选，之后按继续翻页；辅助码没开、方案没配码表时它就是个纯翻页键，空闲无候选时仍原样交还给应用。这个形态只有本表有——`key_actions` 解析不出翻页键。
 - `commit_highlighted` <Since v="0.123" />：上屏当前高亮的候选，详见下方[上屏当前高亮候选](#commit-highlighted)
 - `commit_code` <Since v="0.127" />：上屏编码，详见下方[上屏编码](#commit-code)
 - `command:<表达式>` <Since v="0.123" />：命令直通，详见上方[命令直通](#command-action)——正在输入时按下就执行命令，当前输入原样保留；没有输入时这个键不吃
+
+<Callout type="info" title="撤销上屏与功能键绑命令">
+`"shift+backspace" = "command:ime.undo_commit()"` 写进 `key_actions`，空闲和组字中途都能撤销刚上屏的那一段。F1 等功能键绑命令则写在本表：`f1 = "command:…"`。
+</Callout>
 
 本表与下面的 `page_keys` / `highlight_keys` / `select_key_groups` / `select_char_keys` 各自独立保存，**运行时**才合并（本表写了的键优先）——改一处不会动到另一处。出厂默认留在那四项里，这样把它们清成 `[]` 就真的能关掉对应功能。撞键时按消费顺序裁决：以词定字 > 翻页 / 高亮 > 二三候选。
 
