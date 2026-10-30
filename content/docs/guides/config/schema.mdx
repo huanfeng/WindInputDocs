@@ -623,18 +623,20 @@ enabled = true         # 是否给简拼候选
 
 ## 上下文语言模型（schema.pinyin.grammar） <Since v="0.117" /> [#pinyin-grammar]
 
-整句转换的 n-gram 上下文打分。**实验性，尚未正式发布**：默认关闭，且模型文件不随安装包分发（许可与体积），需自行获取并放到 `data/schemas/pinyin/grammar/` 下。
+整句转换的 n-gram 上下文打分。桌面版**默认关闭**；随包带 `wanxiang-mini.gram`（5.3 MB，万象模型子集，CC-BY-4.0，内存映射），勾上开关即用。关闭时不读模型文件、不占内存，整句结果与没有该功能时逐位相同。设置页：**方案 → 拼音 → 候选行为 →「整句语法模型」**。
 
 ```toml
 [schema.pinyin.grammar]
-weight = 0.0   # 语言模型权重，0 = 关闭
-model = ""     # 模型文件名，空 = 不启用
+enabled = false                  # 总开关，桌面出厂关
+weight = 0.5                     # 语言模型权重，0 = 关闭
+model = "wanxiang-mini.gram"     # 模型文件名，空 = 不启用
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
-| `weight` | 浮点 | — | `0.0` <Since v="0.117" /> | 语言模型在整句打分中的权重；`0` = 关闭。关闭时不读模型文件、不占内存，整句结果与没有该功能时逐位相同 |
-| `model` | 字符串 | — | `""` <Since v="0.117" /> | 模型文件名，相对 `data/schemas/pinyin/grammar/`；空 = 不启用。`weight` 与 `model` **两个都要显式配置**才生效——只调 `weight` 不会静默启用某个默认模型 |
+| `enabled` <Since v="0.129" /> | 布尔 | `true` / `false` | `false` | 总开关。关着不读模型。只写了 `weight` 与 `model`、没写 `enabled` 的旧配置照旧生效 |
+| `weight` | 浮点 | — | `0.5` <Since v="0.117" /> | 语言模型在整句打分中的权重；`0` = 关闭 |
+| `model` | 字符串 | — | `"wanxiang-mini.gram"` <Since v="0.117" /> | 模型文件名，相对 `data/schemas/pinyin/grammar/`；空 = 不启用。`weight` 与 `model` 两个都要有值才生效 |
 
 ## 拼音自动造词（schema.pinyin.auto_learn）
 
