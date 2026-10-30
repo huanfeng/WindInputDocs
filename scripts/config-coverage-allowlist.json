@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "key": "schema.codetable.auto_phrase.draft_ttl_hours",
+    "reason": "内部字段，设置页不暴露；草稿有效期，默认 24 小时"
+  },
+  {
+    "key": "schema.codetable.auto_phrase.draft_max_entries",
+    "reason": "内部字段，设置页不暴露；草稿条目上限，默认 5 万，待真机数据重定"
+  },
+  {
+    "key": "schema.codetable.auto_phrase.draft_flush_batch",
+    "reason": "内部字段，设置页不暴露；草稿批量落库的批大小，待实测调参"
+  },
+  {
+    "key": "mobile.association.space_commits",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  },
+  {
+    "key": "mobile.association.select_keys_commit",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  },
+  {
+    "key": "mobile.association.enter_cancels_only",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  },
+  {
+    "key": "mobile.association.backspace_cancels_only",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  },
+  {
+    "key": "mobile.grammar.enabled",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  },
+  {
+    "key": "mobile.grammar.weight",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  },
+  {
+    "key": "mobile.grammar.model",
+    "reason": "移动端专用域，桌面完全不读；在手机端设置页配置"
+  }
+]

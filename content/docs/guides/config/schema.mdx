@@ -328,6 +328,10 @@ separator = "auto"          # 分隔策略：auto / quote / backtick / none
 | `use_smart_compose` | 布尔 | — | `true` | 智能组词 |
 | `single_char` <Since v="0.121" /> | 布尔 | — | `false` | [单字输入](#single-char)：候选只出单字。与码表那份是两件独立的事——拼音没有定长码，开了只是「不出词」，**无方案级覆盖**，写在这里就够了 |
 | `separator` | 字符串（隐性枚举） | `auto` / `quote` / `backtick` / `none` | `"auto"` | 拼音分隔策略。`auto` = 自动挑一个**空闲**的符号键（未被选词键、也未被本方案 `[key_actions]` 占用）：先看 `'`，再看反引号，都不空闲就不启用；`quote` = 强制 `'`；`backtick` = 强制反引号；`none` = 禁用分隔符。双拼同样支持，但 `auto` 下不会占键（`'` 是选词键、反引号归辅助码），要用得显式配 `quote` |
+| `sentence_uses_user_words` <Since v="0.123" /> | 布尔 | — | `true` | 整句（智能组词）也认用户造的词，全拼段和简拼段都认。临时词库里自动造词记下的「分步上屏拼接」也会进整句，某次分错的错词因此可能被整句用到 |
+| `sentence_count` <Since v="0.123" /> | 整数 | `1`–`8` | `1` | 候选里露几条整句。`1` = 只出最优一条；调大后次优整句也出现，整句块连续排在候选最前 |
+| `sentence_max_count` <Since v="0.123" /> | 整数 | `1`–`8` | `1` | 解码时算几条整句，供整句切换键轮换；小于 `sentence_count` 时按后者算 |
+| `sentence_cycle_key` <Since v="0.123" /> | 字符串 | `""` / `tab` / `backtick`，可带 `shift+` | `""` | 整句切换键：打拼音时按它在算出的几条整句间轮换。留空 = 关闭（出厂），键即开关。只在算出 ≥ 2 条整句时才夺取这个键；它若是当前的音节分隔符或被方案按键绑定，则让位 |
 
 <Callout type="warn" title="已退役的编码来源键">
 0.129 起以下三个键不再读取、**不迁移**，改过的要在[候选注释分配](/docs/settings/appearance/candidate-comment#assign)里重设（下表是对应关系）；显示哪种编码现在只看分配到的模板：
@@ -546,6 +550,19 @@ tone = false
 三个来源同时决定注释变量 [`${correct_pinyin}`](/docs/settings/appearance/candidate-comment#correct-pinyin) 有没有值，不依赖 `enabled` 与 `scope`。
 
 误读表不在 `config.toml` 里：用户追加条目写在用户数据目录的 `data/pinyin_misread.yaml`，格式见[误读表的写法](/docs/settings/input/correction#misread-table)。
+
+## 全局词频（schema.frequency） <Since v="0.120" /> [#schema-frequency]
+
+三个引擎共用的词频规则，全局唯一，不能被方案覆盖。
+
+```toml
+[schema.frequency]
+exclude_blocks = []   # 这些 Unicode 区块的候选不参与词频
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `exclude_blocks` | 字符串数组 | 区块名或预设组名（`emoji`、`符号`、`表情符号`、`注音符号`、`平假名`…） | `[]` | 这些区块的候选既不记录选中、也不受已有记录影响。典型写法 `["emoji"]`：emoji 多是一次性点缀，不让它挤掉常用字。拼错的名字启动日志里警告并跳过，不影响其余项 |
 
 ## 拼音调频（schema.pinyin.frequency）
 

@@ -175,7 +175,7 @@ backslash = "none"      # 本方案关掉全局配的 \ 引导键
 
 **字母键只能按方案配**，不能写进全局表：字母天然是编码键，能不能借用取决于这张码表里它是不是死码。全局表里配字母就成了无条件抢键，那个字母在所有方案里都打不出编码了。
 
-字母键只在**空缓冲**（还没敲任何编码）时当引导键，组码中间的同一个字母照常是编码。码表方案里活码前缀会让位，见下方提示；**拼音 / 混输方案不做这层判断** <Since v="0.129" />——绑了就生效，哪些字母适合借用由你自己定。全拼里 `i`、`u`、`v` 不能作音节开头，适合拿来进[快捷输入](/docs/settings/input/quick-input)之类的模式（`u = "mix:quick_mix"`）；双拼里它们往往已是声母（如小鹤的 `u` = sh），借用后那个声母就打不出来了。设置工具的方案级入口选了字母会提示「仅空缓冲生效」。
+- 字母键只在**空缓冲**（还没敲任何编码）时当引导键，组码中间的同一个字母照常是编码。码表方案里活码前缀会让位，见下方提示；**拼音 / 混输方案不做这层判断** <Since v="0.129" />——绑了就生效，哪些字母适合借用由你自己定。全拼里 `i`、`u`、`v` 不能作音节开头，适合拿来进[快捷输入](/docs/settings/input/quick-input)之类的模式（`u = "mix:quick_mix"`）；双拼里它们往往已是声母（如小鹤的 `u` = sh），借用后那个声母就打不出来了。设置工具的方案级入口选了字母会提示「仅空缓冲生效」。
 
 要在某个方案里**关掉**一个全局绑定，写显式的 `"none"`。覆盖是深合并，只能新增或改写——从覆盖文件里删掉一行是删不掉全局那条的。
 
@@ -501,6 +501,7 @@ page_key = "ignore"         # 翻页键翻不动时（首页上翻 / 末页下�
 | `number_key` | 枚举 | `ignore` / `commit` / `commit_and_input` / `clear_and_input` | `ignore` | 数字键位次超出当前页候选数量时的行为；`clear_and_input` <Since v="0.124" /> |
 | `select_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 次选/三选键（见 `select_key_groups`）候选不足时的行为 |
 | `select_char_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 以词定字键（见 `select_char_keys`）候选词长度不足时的行为 |
+| `page_key_overrides` <Since v="0.129" /> | 表 | 键名 → 策略 | `{ }` | 按键级覆盖翻页键的策略，没列出的键回落到 `page_key`。键名取 `minus` / `equal` / `comma` / `period` / `lbracket` / `rbracket`（PageUp / PageDown 不存在翻不动，不在此表）；策略值域同 `page_key`。写错的键名或非法值启动时警告并忽略。例：`page_key_overrides = { comma = "commit_and_input" }` |
 | `page_key` <Since v="0.127" /> | 枚举 | `ignore` / `commit_and_input` | `ignore` | 能出字的翻页键（见 `page_keys`）在首页上翻、末页下翻时的行为，触发条件见[下文](#page-key-overflow) |
 
 - 临时拼音里没有候选时按次选/三选键，同样按 `select_key` 处理 <Since v="0.123" />

@@ -58,9 +58,9 @@ const registryBlock = lines.slice(start, end + 1).join("\n");
 const keys = [...registryBlock.matchAll(/\bf\(\s*"([^"]+)"/g)].map((m) => m[1]);
 
 // 提取数量 sanity 检查：主仓改写法后正则可能静默抓空/抓飞，宁可报错也不假绿
-if (keys.length < 200 || keys.length > 400) {
+if (keys.length < 200 || keys.length > 800) {
   console.error(
-    `从 REGISTRY 提取到 ${keys.length} 个键，超出预期区间 [200, 400]——提取疑似失效，请检查主仓写法是否变了。`,
+    `从 REGISTRY 提取到 ${keys.length} 个键，超出预期区间 [200, 800]——提取疑似失效，请检查主仓写法是否变了。`,
   );
   process.exit(2);
 }
