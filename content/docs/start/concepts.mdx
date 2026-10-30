@@ -76,11 +76,11 @@ description: 输入方案、四种词库、词频与候选调整分别是什么�
 临时词库是自动造词的暂存区，而英文没有造词流程，所以英文方案在词库页只有「用户词库 / 词频 / 候选调整」三个子标签。
 </Callout>
 
-### 快捷短语
+### 命令短语
 
 **跨方案全局共享**的一层，用一个短编码上屏一段常用文本（邮箱、地址、签名）。它不属于任何方案——写一次，拼音、五笔、混输下都能用。
 
-系统预置了一批（`date`、`time`、`zz` 系列符号、`co` 系列命令），你也可以自建。详见[快捷短语](/docs/settings/dict/phrases)。
+系统预置了一批（`date`、`time`、`zz` 系列符号、`co` 系列命令），你也可以自建。详见[命令短语](/docs/settings/dict/phrases)。
 
 ## 词频
 
@@ -129,7 +129,7 @@ description: 输入方案、四种词库、词频与候选调整分别是什么�
 | 文件 | 在哪 | 装了什么 |
 | --- | --- | --- |
 | `config.toml` | `%APPDATA%\WindInput\` | **全局配置**。所有设置项都落在这里。采用 diff 保存，只写与默认值不同的字段，所以它可能只有几行——这是正常的 |
-| `data\` | `%APPDATA%\WindInput\` | **用户数据**（0.127.0 起）。用户词库、临时词库、词频、候选调整、快捷短语、统计等，全是可用文本编辑器打开的文件，按方案分子目录（如 `data\pinyin\user.dict.yaml`）。升级时自动从旧的 `userdata.redb` 迁入，旧库改名为 `userdata.redb.legacy` 留作兜底，确认无误后可删 |
+| `data\` | `%APPDATA%\WindInput\` | **用户数据**（0.127.0 起）。用户词库、临时词库、词频、候选调整、命令短语、统计等，全是可用文本编辑器打开的文件，按方案分子目录（如 `data\pinyin\user.dict.yaml`）。升级时自动从旧的 `userdata.redb` 迁入，旧库改名为 `userdata.redb.legacy` 留作兜底，确认无误后可删 |
 | `meta.toml` | `%APPDATA%\WindInput\` | 数据格式版本与目录标识，**不要手改** |
 | `compat.toml` | `%APPDATA%\WindInput\` | 应用兼容性规则（候选框定位修正、应用独立初始状态）。右键菜单的「应用独立配置」写的就是它 |
 | `<方案ID>.schema.toml` | `%APPDATA%\WindInput\schemas\` | 方案定义文件。放一个与内置方案同名的，就**整份替换**内置那份 |

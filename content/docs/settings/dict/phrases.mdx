@@ -1,5 +1,5 @@
 ---
-title: 快捷短语
+title: 命令短语
 description: 系统短语与自定义短语的管理、触发方式、权重与 position，以及 zz 系列符号与日期时间、农历变量
 ---
 
@@ -7,7 +7,7 @@ import { Since } from "@/components/since";
 
 短语让你用一个简短编码上屏一段常用文本：邮箱、地址、签名、常用回复等。短语**存一份、全局共享**，写入后立即生效，无需编辑方案文件。
 
-管理位置：设置工具 →「词库」，左栏选**快捷短语**，中栏分「系统短语」与「用户短语」两类。
+管理位置：设置工具 →「词库」，左栏选**命令短语**，中栏分「系统短语」与「用户短语」两类。
 
 ## 系统短语 [#system-phrases]
 
@@ -85,7 +85,7 @@ import { Since } from "@/components/since";
 | 添加 / 编辑 | 填写编码（缩写）、短语内容（支持多行）、权重 |
 | 启用开关 | 逐条开启或关闭 |
 | 删除 / 清空 | 移除条目 |
-| 导入 / 导出 | WindDict YAML（`.wdict.yaml`）格式，见[导入与导出](/docs/settings/dict/import-export#快捷短语导入导出) |
+| 导入 / 导出 | WindDict YAML（`.wdict.yaml`）格式，见[导入与导出](/docs/settings/dict/import-export#命令短语导入导出) |
 
 <Callout type="info" title="只有词、没有编码？导入到用户词库">
 短语的编码要自己定，导入文件里也必须写出编码。手上只是一份「一行一个词」的 `.txt`、想让输入法自动生成编码的，应当导入**用户词库**而不是短语：**设置 → 词库**，选中方案的用户词库后点「导入」，选那份 `.txt`，按当前方案现场出码。详见[纯词列表（自动出码）](/docs/settings/dict/import-export#plain-word-list)。
@@ -99,8 +99,8 @@ import { Since } from "@/components/since";
 
 编码可以与方案的正常编码共存：短语候选与码表 / 拼音候选一同排序，按各自权重呈现。给短语选一个不易与自然词碰撞的编码（例如较长的字母组合），能让它更稳定地出现在你想要的位置。
 
-<Callout type="warn" title="临时拼音下不查快捷短语">
-进入[临时拼音](/docs/settings/input/temp-modes#临时拼音)模式后不查询快捷短语层，输 `zzbd` 得到的是拼音候选而非字符组导航。但词库条目内嵌的 `$` 语法在临拼下仍会正常展开与执行。
+<Callout type="warn" title="临时拼音下不查命令短语">
+进入[临时拼音](/docs/settings/input/temp-modes#临时拼音)模式后不查询命令短语层，输 `zzbd` 得到的是拼音候选而非字符组导航。但词库条目内嵌的 `$` 语法在临拼下仍会正常展开与执行。
 </Callout>
 
 ### 单个方案可以不加载短语 <Since v="0.119" /> [#per-schema]

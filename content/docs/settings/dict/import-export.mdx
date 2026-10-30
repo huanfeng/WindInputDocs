@@ -18,7 +18,7 @@ import { Since } from "@/components/since";
 | 数据 | 导出格式 | 导入可接受 | 入口 |
 | --- | --- | --- | --- |
 | 方案词库（用户词 / 临时词 / 词频 / 候选调整） | WindDict `.wdict.yaml`（多段可选） | WindDict、Rime `.dict.yaml`、TSV 文本、纯词列表 `.txt`（自动出码）<Since v="0.116" /> | 设置 → 词库 |
-| 快捷短语 | WindDict `.wdict.yaml` | WindDict | 设置 → 词库 → 快捷短语 |
+| 命令短语 | WindDict `.wdict.yaml` | WindDict | 设置 → 词库 → 命令短语 |
 | 方案包（方案 + 引用资源） | `.zip`（零层级） | `.zip` / `.wpkg` <Since v="0.118" /> | 设置 → 方案，或高级 → 导入 |
 | 配置片段（配置项子集） | —— | `.toml` 文件 / 剪贴板文本 <Since v="0.118" /> | 设置 → 高级 → 导入 |
 | 方案文本（小方案纯文本） | —— | 剪贴板文本 <Since v="0.118" /> | 设置 → 高级 → 导入 |
@@ -77,7 +77,7 @@ def	有	7	1754186400
 | `temp_words` | 临时词库（自动造词的暂存区） | `code`, `text`, `weight`, `count` |
 | `freq` | 词频记录 | `code`, `text`, `count`, `last_used` |
 | `shadow` | 候选调整（置顶 / 隐藏） | `action`, `code`, `word`, `position`, `cand_id` |
-| `phrases` | 快捷短语 | `code`, `text`, `weight`, `position`, `enabled` |
+| `phrases` | 命令短语 | `code`, `text`, `weight`, `position`, `enabled` |
 
 各列语义：
 
@@ -225,9 +225,9 @@ WindDict 文件头带 `engine_type` 时，导入端会与目标方案比对，�
 
 导入前会先跑一次**预览**（不落盘），回报文件含哪些段、各段将新增 / 更新 / 未变 / 跳过多少条，确认后才执行。
 
-## 快捷短语导入导出
+## 命令短语导入导出
 
-在**设置 → 词库 → 快捷短语**中导入导出，格式同为 WindDict，只含 `phrases` 一段（默认文件名 `phrases.wdict.yaml`）。短语独有 `position` 列（同编码同权重时的先后），导入会保留该列的值。详见[自定义短语](/docs/settings/dict/phrases)。
+在**设置 → 词库 → 命令短语**中导入导出，格式同为 WindDict，只含 `phrases` 一段（默认文件名 `phrases.wdict.yaml`）。短语独有 `position` 列（同编码同权重时的先后），导入会保留该列的值。详见[自定义短语](/docs/settings/dict/phrases)。
 
 短语导入**不自动出码**，每条都得带编码。只有词、没有编码的 `.txt` 请按[纯词列表](#plain-word-list)导入到用户词库；几条短语互相分享，用[短语文本](/docs/guides/import-export#phrase-text)更省事。
 

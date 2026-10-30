@@ -75,7 +75,7 @@ import { Since } from "@/components/since";
 
 ### 如何输入特殊符号？ [#special-symbols]
 
-使用 `zz` 系列快捷编码，例如 `zzbd`（标点）、`zzsz`（圈数）、`zzpy`（拼音声调）。完整列表请参阅[快捷短语 · zz 系列符号](/docs/settings/dict/phrases#zz-symbols)。
+使用 `zz` 系列快捷编码，例如 `zzbd`（标点）、`zzsz`（圈数）、`zzpy`（拼音声调）。完整列表请参阅[命令短语 · zz 系列符号](/docs/settings/dict/phrases#zz-symbols)。
 
 也可以打开[软键盘](/docs/guides/soft-keyboard)按键位点选，或开启 [Unicode 输入](/docs/settings/input#unicode)直接打码点。
 
@@ -87,7 +87,7 @@ import { Since } from "@/components/since";
 - **zz 符号表**：打 `zzsx` 展开数学符号组，`×` 与 `√` 都在里面，翻页选取即可
 - **Emoji 候选**：在[设置 → 输入 → Emoji/OpenCC](/docs/settings/input#emoji) 打开「启用 Emoji/OpenCC 候选」后，打出「对钩」会追加 ✅ ✔，「错误」追加 ❌ ❎（默认只为首选、且至少两个字的词追加）。这些是 emoji 样式的符号，不是 `√` `×` 本身；要 `√` 可再勾上附加模块「单位与杂项」，打「根号」得到 `√`
 - **Unicode 输入**：开启 [Unicode 输入](/docs/settings/input#unicode)后，`u+221a` 得 `√`，`u+d7` 得 `×`
-- **自定义短语**：给符号配一个自己的编码。在 **设置 → 词库 → 快捷短语** 里逐条添加，或复制下面这段，走设置工具的「[从剪贴板导入配置](/docs/settings/advanced#import-export)」一次装好：
+- **自定义短语**：给符号配一个自己的编码。在 **设置 → 词库 → 命令短语** 里逐条添加，或复制下面这段，走设置工具的「[从剪贴板导入配置](/docs/settings/advanced#import-export)」一次装好：
 
   ```
   wind:p1 对错符号
@@ -136,7 +136,7 @@ import { Since } from "@/components/since";
 
 能，导入到**用户词库**：**设置 → 词库**，选中方案的用户词库后点「导入」，选那份 `.txt` 即可，编码按当前方案现场生成。文件须是 UTF-8，每行一个纯汉字的词。详见[纯词列表（自动出码）](/docs/settings/dict/import-export#plain-word-list)。
 
-[快捷短语](/docs/settings/dict/phrases)不自动出码——它的编码是你自己定的缩写，导入文件里每条都得写出编码。
+[命令短语](/docs/settings/dict/phrases)不自动出码——它的编码是你自己定的缩写，导入文件里每条都得写出编码。
 
 ### 升级到 0.127.0 后想退回旧版本？ [#downgrade]
 

@@ -8,7 +8,7 @@ import { Since } from "@/components/since";
 设置工具的「词库」页统一管理**用户数据**——你打过的字词、手动造的词、调频记录、置顶隐藏规则。所有修改即时生效。
 
 <Cards>
-  <Card title="快捷短语" href="/docs/settings/dict/phrases" description="系统短语与自定义短语、zz 系列符号、日期时间变量" />
+  <Card title="命令短语" href="/docs/settings/dict/phrases" description="系统短语与自定义短语、zz 系列符号、日期时间变量" />
   <Card title="导入与导出" href="/docs/settings/dict/import-export" description="WindDict / Rime / TSV 格式规范、方案包与整机备份的包格式" />
 </Cards>
 
@@ -24,12 +24,12 @@ import { Since } from "@/components/since";
 
 全局域有：
 
-- **快捷短语**，类别：**系统短语**与**用户短语**，见[快捷短语](/docs/settings/dict/phrases)
+- **命令短语**，类别：**系统短语**与**用户短语**，见[命令短语](/docs/settings/dict/phrases)
 - **快捷输入** <Since v="0.117" />
 - **字符集** <Since v="0.121" />，类别：**常用字** <Since v="0.119" />（逐字）与**字符分类** <Since v="0.121" />（整类）。0.127 之前这两处分别叫「字符集分类」与「字符类」
 - **输入补全** <Since v="0.122" />，类别：**邮箱后缀**、**网址历史**与**快捷输入历史**，见[输入补全](#completion)
 
-全局域与方案无关：快捷短语是一套码到内容的映射，快捷输入格式的调整则按「日期 / 月日 / 年月 / 数字 / 计算」这几个**格式类别**记账，都不挂在任何方案下。
+全局域与方案无关：命令短语是一套码到内容的映射，快捷输入格式的调整则按「日期 / 月日 / 年月 / 数字 / 计算」这几个**格式类别**记账，都不挂在任何方案下。
 
 「输入方案」组里是**全部已安装方案**，不限于已启用的，也包括自制快符表这类[特殊方案](/docs/settings/schema#special-schemas)——它们各有独立的用户词库与词频记账，与主方案互不干扰。
 
@@ -97,7 +97,7 @@ import { Since } from "@/components/since";
 
 ### 直接打开到指定方案 <Since v="0.113" /> [#open-at-current-schema]
 
-从[功能主菜单](/docs/start/first-input#context-menu)选「词库管理…」时，直接落在**你当前正在用的那套方案**上，不再停在「快捷短语」让你再选一次。
+从[功能主菜单](/docs/start/first-input#context-menu)选「词库管理…」时，直接落在**你当前正在用的那套方案**上，不再停在「命令短语」让你再选一次。
 
 要跳得更准，可以用命令行参数指定方案与数据类型：
 
