@@ -169,6 +169,7 @@ caret_use_top = true
 | `composition_placeholder` <Since v="0.125" /> | 枚举 | 不写 = `space` | 编码不显示在程序里时，输入区里临时放的占位字符：`space`（空格）/ `zwsp`（零宽空格）/ `blank`（盲文空白），见[下文](#composition-placeholder) |
 | `status_fallback_position` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用报不出光标位置时气泡落在哪，取值同全局 [`ui.status.fallback_position`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 | `multiline_commit` <Since v="0.127" /> | 枚举 | 不写 = `commit` | 含换行的文本怎么交给程序：`commit`（直接上屏）/ `paste`（经剪贴板 Ctrl+V 粘贴），见[下文](#multiline-commit) |
+| `syllable_separator` <Since v="0.129" /> | 枚举 | 不写 = 跟随全局 | 拼音编码里音节之间显示的符号：`apostrophe`（单引号 `'`）/ `space`（空格）/ `dot`（间隔号 `·`）/ `none`（不显示），见[下文](#syllable-separator) |
 
 `initial_mode` / `initial_punct` 还接受简写 `en` / `zh`。**写了个认不出的值等于没写**（不干预）——「拼错了」与「想要英文」是两回事，后者必须显式写对才成立。
 
@@ -514,6 +515,29 @@ multiline_commit = "paste"
 <Callout type="warn" title="终端这类程序不要开">
 `Ctrl+V` 在终端等程序里不是粘贴，开了多行文本就贴不进去。只给确实遇到多行上屏问题、且 `Ctrl+V` 就是粘贴的程序开。
 </Callout>
+
+## 拼音音节分隔符 syllable_separator <Since v="0.129" /> [#syllable-separator]
+
+拼音编码里音节之间默认显示单引号（`xiao'peng'you`）。有的程序不接受单引号，比如 Unreal Engine 的资产命名框，编码里带 `'` 会被拒绝或弹错。全局设置 [`ui.candidate.syllable_separator`](/docs/guides/config/ui) 管所有程序，这个字段让**某个程序**单独换一种。
+
+```toml
+[[apps]]
+process = "UnrealEditor.exe"
+syllable_separator = "none"
+```
+
+| 取值 | 效果 |
+| --- | --- |
+| `apostrophe` | 单引号 `'`（引擎原样） |
+| `space` | 空格 |
+| `dot` | 间隔号 `·` |
+| `none` | 不显示，`xiaopeng` |
+
+- **只改显示**：应用里的组合串和候选窗编码栏都换，输入、切分与手动分隔符 `'` 的用法不变。
+- **不写 = 跟随全局**：和全局用同一份四档列表，不支持其它字符。
+- 只对拼音（含混输）的主路生效，临时英文等模式里的 `'` 是正文，不动。
+- 和其它字段一样[逐字段叠加](#overlay)、可 `unset`，支持 `process = "*"` 通配与[类名 / 标题条件](#window-match)。
+- 在[应用兼容性与独立配置窗口](/docs/settings/compat)里叫「拼音音节分隔符」，在「输入行为」组；右键菜单的应用独立配置里没有这一项。
 
 ## 排查：某个程序里输入法没反应
 
