@@ -1,19 +1,19 @@
 {
-  "version": "0.128.0",
-  "tag": "v0.128.0",
+  "version": "0.129.0",
+  "tag": "v0.129.0",
   "channel": "stable",
   "debs": {
     "amd64": {
-      "url": "https://dl.windinput.com/WindInput-0.128.0-linux-amd64.deb",
-      "sha256": "8a610f73a96ec8a006438684a944661251fba8c43fc8f93873615d57600b793a",
-      "size": 27301736
+      "url": "https://dl.windinput.com/WindInput-0.129.0-linux-amd64.deb",
+      "sha256": "3756636f9f63917033270084d0de7ce3d7c68b82330c8d8a4d7135b65a2b4580",
+      "size": 29162806
     },
     "arm64": {
-      "url": "https://dl.windinput.com/WindInput-0.128.0-linux-arm64.deb",
-      "sha256": "4a1f0c563081454fbab349fe2361d4f63d472c507c478488e627120c34492386",
-      "size": 26637154
+      "url": "https://dl.windinput.com/WindInput-0.129.0-linux-arm64.deb",
+      "sha256": "6e13a9a4d744727c633afe732d18a438c8043f8cf4dc00b33b77f434de156e4a",
+      "size": 28463442
     }
   },
-  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.128.0-Release.md",
-  "publishedAt": "2026-10-24T16:32:08Z"
+  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.129.0-Release.md",
+  "publishedAt": "2026-10-31T13:52:08Z"
 }
