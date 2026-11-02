@@ -340,6 +340,12 @@ padding = [4, 4]
 radius = 6
 ```
 
+几条细则：
+
+- `vertical` 只在上面这些候选窗节点的顶层有效。提示框、状态框、Toast、工具栏、菜单不随方向换样式；写进状态补丁（`[item.selected.vertical]`）或嵌套（`[x.vertical.vertical]`）也不生效。竖排下要改悬停、选中样式，写 `[item.vertical.selected]`。
+- 先合并继承链，再套 `vertical`。派生主题只改了横排字段时，base 里写的 `[x.vertical]` 仍然压着它；想让竖排也跟着变，要同时写 `[x.vertical]`。
+- 竖排里写 `prev_char` / `next_char` 时，横排的 `prev_image` / `next_image` 会让位；想在竖排去掉继承来的图层，写 `layers = []`。
+
 候选窗会按窗口圆角轮廓裁剪内部内容：内部节点配直角时，贴着窗口边缘的高亮在四个角自动被削圆，
 不需要给首、末项单独配圆角。主题编辑器的节点属性面板有「横排 / 竖排覆盖」切换，竖排下写入的就是 `vertical` 子表。
 
