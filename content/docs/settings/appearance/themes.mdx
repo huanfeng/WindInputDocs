@@ -315,6 +315,34 @@ padding = { bottom = 2 }
 
 不打开开关时这个节点不起作用。
 
+### 竖排单独配置 <Since v="0.129" /> [#vertical-override]
+
+横排和竖排默认共用同一份节点配置。给任一候选窗节点（`window`、`item`、`index`、`text`、`comment`、
+`comment_above`、`accent_bar`、`footer_bar`、`preedit_bar`、`candidate_list`、`mode_label`）加一张
+`[节点.vertical]` 子表，竖排（含旋转排版）时它会**逐字段覆盖**该节点；没写的字段沿用横排。
+继承链上的 `vertical` 也逐字段合并，派生主题只改自己关心的几项即可。没写 `vertical` 的主题不受影响。
+
+典型用法是横排做成两端半圆的胶囊、竖排窗口又窄又高，改回小圆角：
+
+```toml
+[window]
+radius = 999          # 引擎钳到半高，得到完整半圆端
+padding = [0, 0]      # 内边距清零，高亮才贴到窗口边缘
+
+[item]
+radius = 0            # 高亮保持直角，首尾的圆头由窗口轮廓自动裁出
+
+[window.vertical]
+radius = 10
+padding = [4, 4]
+
+[item.vertical]
+radius = 6
+```
+
+候选窗会按窗口圆角轮廓裁剪内部内容：内部节点配直角时，贴着窗口边缘的高亮在四个角自动被削圆，
+不需要给首、末项单独配圆角。主题编辑器的节点属性面板有「横排 / 竖排覆盖」切换，竖排下写入的就是 `vertical` 子表。
+
 ### 标准色 <Since v="0.123" /> [#standard-colors]
 
 下面这些颜色名由内置基础主题 `_base` 给出默认值，内置主题都继承它；不继承任何主题的独立主题没写的，
