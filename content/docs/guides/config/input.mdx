@@ -668,12 +668,14 @@ enabled = false  # 繁入简出总开关
 [input.cmdbar]
 enabled = false          # 命令栏总开关
 candidate_prefix = "⚡"   # 命令候选前缀标注
+backspace_collapse_group = true  # 展开态退格先回折叠
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | 布尔 | — | `false` | 命令栏总开关 |
 | `candidate_prefix` | 字符串 | — | `"⚡"` | 副作用命令候选在候选框渲染时的前缀标注 |
+| `backspace_collapse_group` <Since v="0.129" /> | 布尔 | — | `true` | `$SS`/`$AA` 组因同码有别的候选而折叠、选中后进入展开态时，退格先回到折叠视图（编码不变），再按才删码。关闭后退格直接删码。无重码、重查仍自动展开时不吞键，与本项无关 |
 
 ## 短语（input.phrase）
 
