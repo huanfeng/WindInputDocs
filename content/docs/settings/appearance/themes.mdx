@@ -318,7 +318,7 @@ padding = { bottom = 2 }
 ### 竖排单独配置 <Since v="0.129" /> [#vertical-override]
 
 横排和竖排默认共用同一份节点配置。给任一候选窗节点（`window`、`item`、`index`、`text`、`comment`、
-`comment_above`、`accent_bar`、`footer_bar`、`preedit_bar`、`candidate_list`、`mode_label`）加一张
+`comment_above`、`accent_bar`、`footer_bar`、`preedit_bar`、`candidate_list`、`mode_label`、`divider`）加一张
 `[节点.vertical]` 子表，竖排（含旋转排版）时它会**逐字段覆盖**该节点；没写的字段沿用横排。
 继承链上的 `vertical` 也逐字段合并，派生主题只改自己关心的几项即可。没写 `vertical` 的主题不受影响。
 
@@ -350,6 +350,28 @@ radius = 6
 
 候选窗会按窗口圆角轮廓裁剪内部内容：内部节点配直角时，贴着窗口边缘的高亮在四个角自动被削圆，
 不需要给首、末项单独配圆角。主题编辑器的节点属性面板有「横排 / 竖排覆盖」切换，竖排下写入的就是 `vertical` 子表。
+
+### 编码栏分隔线 <Since v="0.129" /> [#divider]
+
+编码栏独立显示（编码不嵌入候选行）时，编码栏和候选区之间可以有一条分隔线。线用 `[divider]` 节点配置：
+
+| 字段 | 作用 | 缺省 |
+| --- | --- | --- |
+| `background` | 线的颜色 | 取全局色 `separator`；主题没有该色就不画线 |
+| `height` | 线粗 | 1dp |
+| `margin` | 外边距。下边距是和候选区的间距，左右边距是两端缩进 | 下 4dp，其余 0 |
+| `radius` | 线的圆角 | 直角 |
+| `enabled` | 写 `false` 强制不画线 | 有颜色就画 |
+
+```toml
+[divider]
+background = "${accent}"
+height = 2
+margin = [0, 12, 6, 12]   # 上 右 下 左：两端各缩进 12，下距 6
+radius = 1
+```
+
+`_qingfeng` 定义了 `separator`，继承它的主题默认就有一条极淡的线。嵌入编码时没有独立编码栏，也就没有这条线。竖排下可以写 `[divider.vertical]` 单独覆盖，见上一节。主题编辑器的结构树里有「编码栏分隔线」节点。
 
 ### 标准色 <Since v="0.123" /> [#standard-colors]
 
