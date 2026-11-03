@@ -33,7 +33,7 @@ comment_above = false   # 注释首行（模板里第一个 \n 之前）显示�
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `font_size` | 浮点 | — | `0` | 候选文本字号：`0` = 跟随主题 `behavior.font_size`；大于 0 = 自定字号，覆盖主题。<Since v="0.123" /> 起旧的 `font_size_follow_theme` 开关已并入本项，升级时自动迁移（开着跟随 → `0`；关了跟随 → 保留原字号）并从配置文件中移除 |
-| `per_page` | 整数 | — | `7` | 每页显示的候选数 |
+| `per_page` | 整数 | — | `7` | 每页显示的候选数。单个方案可在自己的 `[candidate]` 里写 `per_page` 覆盖，见[自定义方案](/docs/guides/schemas) <Since v="0.130" /> |
 | `per_page_extended` | 整数 | — | `0` | 扩展档（临拼 / 快捷 / 短语等 overlay 模式）每页候选数；`0` = 与 `per_page` 相同 |
 | `max_chars` | 整数 | — | `16` | 候选文本最大显示字数，超出截断并加省略号（`0` = 不限）；仅影响显示，上屏用完整原文 |
 | `layout` | 枚举 | `horizontal` / `vertical` | `"horizontal"` | 候选排布方向：横排 / 竖排 |

@@ -525,6 +525,7 @@ mode = "follow"        # follow（默认，跟随全局）/ chinese / english
 layout = "follow"      # follow（默认，跟随全局）/ vertical / horizontal
 text_orientation = "normal"   # 横排时文字怎么排：normal / rotated / upright
 # font_family = "Noto Sans Mongolian"   # 只改候选文字的字体（不写 = 跟随全局）
+# per_page = 9          # 本方案每页候选数（不写 = 跟随全局）
 
 [phrases]
 enabled = true                # 本方案是否加载短语
@@ -539,6 +540,7 @@ exclude_categories = []       # 排除这些分类（空 = 不限制）
 | `candidate.layout` | 枚举 | `follow` / `vertical` / `horizontal` | `"follow"` | 本方案期间的候选窗排列方向。语义同[模式级候选布局](/docs/guides/config/input#模式级候选布局)，但生效范围是「整个方案期间」而非「进入 / 退出一个临时模式」 |
 | `candidate.text_orientation` | 枚举 <Since v="0.120" /> | `normal` / `rotated` / `upright` | `"normal"` | **横排时**文字怎么排：`normal` 照常水平、`rotated` 整项顺时针转 90°、`upright` 逐字直立下行（对联式）。竖排时不生效，详见[横排时文字排列](#text-orientation) |
 | `candidate.font_family` | 字符串 <Since v="0.120" /> | — | 不写 | 本方案候选**文字**的字体；不写 = 用[全局字体](/docs/guides/config/ui#ui-font)。只作用于候选词本身，序号、编码栏、注释不跟着换。填**已安装**字体的家族名，不按文件加载，见[方案字体](#schema-font) |
+| `candidate.per_page` | 整数 <Since v="0.130" /> | ≥ 1 | 不写 | 本方案作为当前方案时的**每页候选数**；不写 = 用[全局的每页候选数](/docs/guides/config/ui)。临拼、快捷等扩展档若单独设了 `per_page_extended` 则不受影响，没设（`0`）则跟随这里的值。填 `0`、负数或非数字会被当作没写，并在方案的降级提示里列出 |
 | `phrases.enabled` | 布尔 | — | `true` | 本方案是否加载[短语](/docs/settings/dict/phrases)。关掉后不出短语候选，短语也不再占用码位 |
 | `phrases.categories` | 字符串数组 | — | `[]` | **只**加载列出的分类。空数组 = 不施加这项限制（全部加载） |
 | `phrases.exclude_categories` | 字符串数组 | — | `[]` | 在上一项的结果里再**排除**这些分类。空数组 = 不排除 |
