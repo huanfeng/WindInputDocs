@@ -76,6 +76,26 @@ switch_mode = "session" # session / persist / hold
 
 解析顺序为 模式 → 方案 → 方案类型 → 全局，第一个有值的胜出。方案文件里的 `comment_template_*` 不再读取。
 
+#### 单项读写：`config get/set` 与命令直通车 <Since v="0.130" /> [#ui-comment-cli]
+
+分配的每一格、每个用户模板都能按名字单项读写，不必整表覆盖。`config get/set`（命令行）与短语里的 `config.get` / `config.set` 用同一套键：
+
+| 键 | 含义 | 值 |
+| --- | --- | --- |
+| `ui.comment.assign.global.<格>` | 全局的一格 | 模板 `id` / `none` / `inherit` |
+| `ui.comment.assign.<type｜schema｜mode>.<名>.<格>` | 方案类型 / 方案 / 模式一层的一格；`<名>` 同上表（如 `pinyin`、`url`、`mix:quick_mix`、`special:wubi86`） | 同上 |
+| `ui.comment.template.<id>` | 用户模板的 `text`；`id` 不存在则新建（名称取 `id`） | 模板串 |
+
+`<格>` 取 `default_horizontal` / `default_vertical` / `detail_horizontal` / `detail_vertical`。**写空串＝删除**：删格＝回到下一层，删模板＝移除这条用户模板。读未写的格或未自定义的模板得到空串。模板的 `name` / `desc` 与整张分配表仍用 `ui.comment.templates` / `ui.comment.assign.<范围>`（JSON 整体覆盖）或设置页编辑。
+
+```
+config.set("ui.comment.enabled", "false")
+config.set("ui.comment.assign.global.default_horizontal", "none")
+config.set("ui.comment.assign.mode.url.default_vertical", "my_tip")
+config.set("ui.comment.template.my_tip", "${code}")
+config.set("ui.comment.assign.mode.url.default_vertical", "")
+```
+
 ### 注释词库（ui.comment_dicts） <Since v="0.114" /> [#comment-dicts]
 
 供注释模板 `${dict}` 变量查询的**独立注释词库**列表（如英汉释义、Emoji 名称）。`ui.comment_dicts` 是结构体数组（TOML 的 `[[ui.comment_dicts]]` 形态），用户配置里**出厂为空**，由用户自行放置词库文件；另有两个随包的内置词库（`en_zh`、`zh_en`，见[内置的中英释义](/docs/settings/appearance/candidate-comment#builtin-dicts)），在设置页列表里标「内置」，只能启停与排序。设置页入口在**外观 → 候选标注 → 注释词库**，也可直接写配置：

@@ -895,6 +895,10 @@ corb = $CC("重建缓存", wind.cli("schema rebuild", ok="缓存已重建", wait
 
 从短语调用时输入法服务必然在线，所以 `schema` / `dict` / `phrase` / `backup` 这些需要在线的子命令都能正常连上。
 
+<Callout type="info" title="候选注释也能单项配置">
+注释的开关、两态、切换键用 `ui.comment.enabled` / `state` / `switch_key` / `switch_mode`；分配的某一格与某个用户模板用 `ui.comment.assign.<范围>.<名>.<格>` 与 `ui.comment.template.<id>`，写空串即删除。键的完整写法与示例见[候选注释（ui.comment）](/docs/guides/config/ui#ui-comment-cli)。临时切换默认 / 详细态用 `ime.toggle("comment")` 或 `ime.set("comment", "detail")`。
+</Callout>
+
 <Callout type="info" title="改配置优先用 config.set，不要绕 wind.cli">
 `config.set(key, value)` 与 `wind.cli("config set ...")` 效果相同，但前者在进程内直接生效、错误就地返回，后者要另起一个进程再把结果读回来。改配置一律用 `config.set` / `config.toggle`；`wind.cli` 留给没有对应短语函数的子命令。
 </Callout>
