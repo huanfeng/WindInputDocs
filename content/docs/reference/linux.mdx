@@ -16,7 +16,7 @@ import { Since } from "@/components/since";
 
 - Ubuntu 22.04 及以上，或 Deepin 25（其他 Debian 系发行版理论可用，未逐一验证）
 - x64（amd64）或 ARM64（arm64）
-- 目前只提供 Debian 系的 `.deb` 安装包，rpm、Arch 等暂不提供
+- 目前只提供 Debian 系的 `.deb` 安装包，rpm 等暂不提供；Arch 系发行版见下文[第三方 AUR 包](#aur)
 - 输入法框架 **Fcitx5**（5.0.14 及以上；安装包会自动拉取依赖）
 
 X11 与 Wayland 会话均可使用，Wayland 下的差异见[已知限制](#limitations)。
@@ -32,6 +32,16 @@ X11 与 Wayland 会话均可使用，Wayland 下的差异见[已知限制](#limi
    ```
 
 3. **注销并重新登录**，让系统加载新装的输入法。
+
+### Arch 系发行版（第三方 AUR 包）[#aur]
+
+AUR 上有社区成员维护的 [`fcitx5-windinput-bin`](https://aur.archlinux.org/packages/fcitx5-windinput-bin)，可用 AUR 助手安装，例如：
+
+```bash
+yay -S fcitx5-windinput-bin
+```
+
+该包由第三方维护，**不是本项目的官方发布**，打包方式与更新节奏以包页面为准；用它安装遇到的问题请先向包维护者反馈。装好后的配置步骤与下文相同。
 
 ### 在系统里添加清风输入法 [#add-im]
 
