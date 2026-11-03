@@ -86,7 +86,7 @@ switch_mode = "session" # session / persist / hold
 | `ui.comment.assign.<type｜schema｜mode>.<名>.<格>` | 方案类型 / 方案 / 模式一层的一格；`<名>` 同上表（如 `pinyin`、`url`、`mix:quick_mix`、`special:wubi86`） | 同上 |
 | `ui.comment.template.<id>` | 用户模板的 `text`；`id` 不存在则新建（名称取 `id`） | 模板串 |
 
-`<格>` 取 `default_horizontal` / `default_vertical` / `detail_horizontal` / `detail_vertical`。**写空串＝删除**：删格＝回到下一层，删模板＝移除这条用户模板。读未写的格或未自定义的模板得到空串。模板的 `name` / `desc` 与整张分配表仍用 `ui.comment.templates` / `ui.comment.assign.<范围>`（JSON 整体覆盖）或设置页编辑。
+`<名>` 与模板 `id` 里不能带 `.`；模板 `id` 须合 `[a-z0-9_]+`，且不能是 `none` / `inherit`；格的值须是 `none` / `inherit` 或这种形状的 `id`，不合规直接报错。`<格>` 取 `default_horizontal` / `default_vertical` / `detail_horizontal` / `detail_vertical`。**写空串＝删除**：删格＝回到下一层，删模板＝移除这条用户模板。读到的是**用户层写下的值**，未写的格或未自定义的模板得到空串（内置模板与出厂分配不在其内）。给内置模板的 `id` 写文本，等于用你的文本覆盖它，名称与说明沿用内置的。这两类键只由 `config get/set` 与短语里的 `config.get/set` 认，不在设置端和 RPC 的键表里。模板的 `name` / `desc` 与整张分配表仍用 `ui.comment.templates` / `ui.comment.assign.<范围>`（JSON 整体覆盖）或设置页编辑。
 
 ```
 config.set("ui.comment.enabled", "false")
