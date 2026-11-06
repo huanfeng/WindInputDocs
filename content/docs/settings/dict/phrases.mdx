@@ -145,6 +145,15 @@ import { Since } from "@/components/since";
 干支和生肖按农历年算：元旦到春节之间仍属上一个生肖年。
 </Callout>
 
+<Callout type="info" title="更灵活的写法：命令语法的 `date()`">
+上面的 `$变量` 只能取**当前**时间。要「昨天」「明天」「下个月」，或者把公历、农历、星期混写在一个格式里，用[命令语法的 `date()`](/docs/guides/command-bar#datetime)：直接把短语内容写成 `{date("YYYY年M月D日", "-1d")}` 即可。
+
+- `date()` 支持上面表里的全部中文数字、星期、农历、时间戳变量，写法去掉 `$`，如 `date("LY年LMDLF")`。<Since v="0.131" />
+- 这些都能配合偏移，所以**新写的短语更推荐用 `date()`**；`$变量` 继续支持，不会被淘汰。
+
+现成的「昨天 / 明天 / 后天」写法见[命令直通车里的示例](/docs/guides/command-bar#date-relative)。
+</Callout>
+
 此外还有两类非日期时间变量：
 
 | 变量 | 说明 |
