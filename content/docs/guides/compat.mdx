@@ -168,6 +168,7 @@ caret_use_top = true
 | `status_position_mode` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用的状态气泡定位方式，取值同全局 [`ui.status.position_mode`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 | `status_x` / `status_y` <Since v="0.123" /> | 整数（物理像素） | `0` | `status_position_mode = "fixed"` 时本应用的气泡位置。拖动气泡自动记录，`(0,0)` = 尚未设定 |
 | `composition_placeholder` <Since v="0.125" /> | 枚举 | 不写 = `space` | 编码不显示在程序里时，输入区里临时放的占位字符：`space`（空格）/ `zwsp`（零宽空格）/ `blank`（盲文空白），见[下文](#composition-placeholder) |
+| `assoc_placeholder` <Since v="0.131" /> | 枚举 | 不写 = 跟随 `composition_placeholder` | 联想候选出现时，输入区里临时放的占位字符：`space` / `zwsp` / `blank` / `none`（不放任何占位），见[下文](#assoc-placeholder) |
 | `status_fallback_position` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用报不出光标位置时气泡落在哪，取值同全局 [`ui.status.fallback_position`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
 | `multiline_commit` <Since v="0.127" /> | 枚举 | 不写 = `commit` | 含换行的文本怎么交给程序：`commit`（直接上屏）/ `paste`（经剪贴板 Ctrl+V 粘贴），见[下文](#multiline-commit) |
 | `syllable_separator` <Since v="0.129" /> | 枚举 | 不写 = 跟随全局 | 拼音编码里音节之间显示的符号：`apostrophe`（单引号 `'`）/ `space`（空格）/ `dot`（间隔号 `·`）/ `none`（不显示），见[下文](#syllable-separator) |
@@ -445,6 +446,29 @@ composition_placeholder = "space"
 <Callout type="warn" title="不要给 WPS 这类程序改">
 WPS 等程序要靠那个空格才能给出有效的光标位置，改成零宽空格 / 盲文空白可能让候选窗找不到位置。只给确实遇到「打不上字」的程序开。
 </Callout>
+
+## 联想占位 assoc_placeholder <Since v="0.131" /> [#assoc-placeholder]
+
+联想候选出现时没有任何编码，但输入法仍要在程序里挂一个占位字符，程序才会继续把退格、回车、Esc 等按键交给输入法。有的程序会对这个字符做特殊处理——Excel、WPS 表格里联想窗一出来，单元格自己的提示就被干扰了。
+
+`assoc_placeholder` 只管**联想**这一种情形，不影响打字时的占位（那是 [`composition_placeholder`](#composition-placeholder)）。不写就跟随 `composition_placeholder`。取值：
+
+- `space` / `zwsp` / `blank`：同上文三种占位字符。
+- `none`：联想时程序里**什么都不放**，兼容性最好。按键转发改由输入法自己记住「联想窗开着」来保证，点击别的单元格或挪动光标，联想窗会立即收起。
+
+```toml
+[[apps]]
+process = "SomeApp.exe"
+assoc_placeholder = "none"
+```
+
+Excel 和 WPS 表格已内置 `none`。
+
+<Callout type="warn" title="只给确认过的程序开 none">
+没有占位就没有组合范围，候选窗位置沿用联想出现时的位置，不再跟随程序后来报的光标。WPS 文字等靠占位给出有效光标位置的程序，没有验证过，不要随手改。
+</Callout>
+
+- 在[应用兼容性与独立配置窗口](/docs/settings/compat)里叫「联想占位字符」，在「宿主」组，属于高级项（需打开「显示高级选项」）；右键菜单的应用独立配置里没有这一项。
 
 ## 宿主渲染模式 host_render <Since v="0.113" /> [#host-render]
 
