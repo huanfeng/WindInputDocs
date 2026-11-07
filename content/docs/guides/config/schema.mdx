@@ -76,6 +76,10 @@ wildcard_single_only = false  # 通配仅出单字（行内通配与反查模式
 | `wildcard` <Since v="0.124" /> | 布尔 | — | `false` | [通配输入](/docs/settings/schema/codetable#wildcard)：组码时通配键代替恰好一个码元，候选显示完整编码 |
 | `wildcard_key` <Since v="0.124" /> | 字符串 | 单个字母或 ASCII 符号 | `"z"` | 通配键。数字与空格不可用，非法则视为关闭 |
 | `wildcard_single_only` <Since v="0.125" /> | 布尔 | — | `false` | 通配结果只列单字（按显示上的一个字判断）。行内通配与[反查模式](/docs/guides/reverse-mode)都生效，与 `wildcard` 正交 |
+| `sentence_count` <Since v="0.131" /> | 整数 | `1`–`8` | `1` | [整句输入](/docs/guides/schemas#sentence-input)时候选里露几条整句。只在方案开了 `sentence_input` 时有用；与拼音那份各管各的 |
+| `sentence_max_count` <Since v="0.131" /> | 整数 | `1`–`8` | `1` | 整句解码时算几条，供切换键轮换；小于 `sentence_count` 时按后者算 |
+| `sentence_cycle_key` <Since v="0.131" /> | 字符串 | `""` / `tab` / `backtick` 等键名 | `""` | 整句切换键：在几种整句解读间轮换，需把 `sentence_max_count` 调到 ≥2。只在算出两条以上时占用这个键 |
+| `sentence_grammar_weight` <Since v="0.131" /> | 小数 | `0`–`1` | `0.5` | 整句挂语法模型的力度，`0` = 不挂。与拼音的 `schema.pinyin.grammar` 互不牵连 |
 
 - 英文方案不读 `punct_commit`，与拼音一样恒允许标点顶屏；混输方案仍读它 <Since v="0.123" />
 
