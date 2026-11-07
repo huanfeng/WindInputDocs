@@ -238,7 +238,7 @@ session_actions = {}   # 出厂为空；例：{ tab = "page_next", "shift+tab" =
 | `session_actions` | 表（键名 → 动词） | 见下 | `{}` | 打字期间的「键 → 干什么」表，只存你显式配的键 |
 
 - **键名**：`tab` / `shift+tab` / `capslock` / `pageup` / `pagedown` / `up` / `down` / `left` / `right` / `home` / `end`、`f1`–`f12` <Since v="0.129" />（可带 `shift+`；只在有编码或候选时生效，空闲时的裸 F 键仍归宿主）、`lshift` / `rshift` / `lctrl` / `rctrl`（单按一下、松开时生效），以及符号键 `minus`、`equal`、`lbracket`、`rbracket`、`comma`、`period`、`semicolon`、`quote` 等；字母只收 `z` <Since v="0.118" />。只认 `shift+` 一种前缀；带 Ctrl / Alt 的组合键请写在上面的 `key_actions` 里。
-- **动词**：`page_prev` / `page_next`（翻页；候选展开后逐行移动激活行）、`page_screen_prev` / `page_screen_next` <Since v="0.130" />（上一屏 / 下一屏：**候选展开后**翻一整屏，**未展开时与 `page_prev` / `page_next` 完全相同**）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
+- **动词**：`page_prev` / `page_next`（翻页；候选展开后逐行移动激活行。可带后缀 `:commit_and_input` / `:ignore` <Since v="0.131" /> 指定这个键翻不动时的处理，见[按键单独设置](#page-key-overflow-per-key)）、`page_screen_prev` / `page_screen_next` <Since v="0.130" />（上一屏 / 下一屏：**候选展开后**翻一整屏，**未展开时与 `page_prev` / `page_next` 完全相同**）、`highlight_up` / `highlight_down`（高亮移动）、`cancel`（放弃当前输入，等同 Esc；别名 `clear`）、`none`（在打字态禁用该键）、`select_candidate:N`（选中当前页第 N 个候选，N 从 1 起，`2` 即次选键）、`select_char:N`（以词定字，取高亮候选词的第 N 个字）。`select_candidate:N` 的取值范围是 **1–10** <Since v="0.123" />（此前 1–9，随每页候选数上限从 9 提到 10 同步放开），`select_char:N` 仍是 **1–9**。此外还有 `aux_code` <Since v="0.118" />（进[辅助码](/docs/settings/schema/pinyin#aux-code)筛选）——它同时也是 `key_actions` 的动词，两处通向同一个功能，差别只在**哪些键名解析得出来**：本表认得 `tab` / `pagedown` / 方向键，`key_actions` 只认符号键、字母 `z` 与四个修饰键。
 - **`caret_right`** <Since v="0.129" /> 可带末尾动作：`caret_right:commit`（默认，上屏高亮候选）、`caret_right:next`（高亮下移，贴近 macOS）、`caret_right:tip`（开关悬停提示）。光标没到末尾时都是右移光标。
 - **`toggle_tip`** <Since v="0.129" />：显示 / 收起当前高亮候选的悬停提示（与鼠标悬停同一个气泡），再按一次收起；移动高亮或翻页也会收起。例：`right = "toggle_tip"` 用 → 键看提示：编码区光标不在末尾时 → 仍右移光标，到末尾才开关提示；代价是 → 不再移动高亮。
 - **`comment_state`** <Since v="0.129" />：与 `key_actions` 那份相同（`comment_state` / `comment_state:default` / `comment_state:detail`，改持久状态）。另有只在本表认的 `comment_state:session`：只翻**本次候选窗**的注释状态，候选窗关闭即丢弃，不写配置。
@@ -501,7 +501,6 @@ page_key = "ignore"         # 翻页键翻不动时（首页上翻 / 末页下�
 | `number_key` | 枚举 | `ignore` / `commit` / `commit_and_input` / `clear_and_input` | `ignore` | 数字键位次超出当前页候选数量时的行为；`clear_and_input` <Since v="0.124" /> |
 | `select_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 次选/三选键（见 `select_key_groups`）候选不足时的行为 |
 | `select_char_key` | 枚举 | `ignore` / `commit` / `commit_and_input` | `ignore` | 以词定字键（见 `select_char_keys`）候选词长度不足时的行为 |
-| `page_key_overrides` <Since v="0.129" /> | 表 | 键名 → 策略 | `{ }` | 按键级覆盖翻页键的策略，没列出的键回落到 `page_key`。键名取 `minus` / `equal` / `comma` / `period` / `lbracket` / `rbracket`（PageUp / PageDown 不存在翻不动，不在此表）；策略值域同 `page_key`。写错的键名或非法值启动时警告并忽略。例：`page_key_overrides = { comma = "commit_and_input" }` |
 | `page_key` <Since v="0.127" /> | 枚举 | `ignore` / `commit_and_input` | `ignore` | 能出字的翻页键（见 `page_keys`）在首页上翻、末页下翻时的行为，触发条件见[下文](#page-key-overflow) |
 
 - 临时拼音里没有候选时按次选/三选键，同样按 `select_key` 处理 <Since v="0.123" />
@@ -530,6 +529,27 @@ page_key = "ignore"         # 翻页键翻不动时（首页上翻 / 末页下�
 
 <Callout type="warn" title="和「编码中可直接输入的符号」的关系">
 [`input.buffer_symbol_chars`](/docs/guides/config/input) 里的符号在组码中**先进编码**，优先于本项。它出厂就是 `"-"`，所以只开本项时，首页按 `-` 仍是接着打码（为了打 `sun-panel` 这类英文）；要让首页的 `-` 也顶屏出字，得把它清空。`=` 不受影响。
+</Callout>
+
+#### 按键单独设置 <Since v="0.131" /> [#page-key-overflow-per-key]
+
+`page_key` 对所有能出字的翻页键一起生效。只想让其中一个键不同（比如只让逗号在首页翻不动时上屏，`-` `=` 照旧不起作用），在[自定义按键](/docs/settings/keys#custom-keys)里给这个键绑带后缀的翻页动作：
+
+| 动作 | 翻不动时 |
+| --- | --- |
+| `page_prev` / `page_next` | 跟随 `page_key` |
+| `page_prev:commit_and_input` / `page_next:commit_and_input` | 上屏并继续输入 |
+| `page_prev:ignore` / `page_next:ignore` | 不起作用，`page_key` 开了上屏也不受影响 |
+
+```toml
+[keys]
+session_actions = { comma = "page_prev:commit_and_input" }
+```
+
+其余条件与上面相同：翻过页后照样吞键，临时拼音等模式不受影响。
+
+<Callout type="warn" title="0.129 的 page_key_overrides 已移除">
+0.129 加的 `keys.overflow.page_key_overrides` 在 0.131 移除，写了也不再生效。`page_key_overrides = { comma = "commit_and_input" }` 改成上面的 `session_actions = { comma = "page_prev:commit_and_input" }`。
 </Callout>
 
 **配方：中文里写 `->` 箭头**（如「首页->设置」）。三处一起改：
