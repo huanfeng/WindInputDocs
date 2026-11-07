@@ -1,0 +1,337 @@
+---
+title: 皮肤主题（异形窗体与动画）
+description: 用位图做任意轮廓的候选窗，伸出窗体的装饰、动画，以及随打字、上屏切换动作的写法
+---
+
+import { Since } from "@/components/since";
+
+<Since v="0.131" />
+
+普通主题的候选窗是圆角矩形，靠颜色、边框和[背景图的九宫格](/docs/settings/appearance/themes#slice-repeat)换风格。
+**皮肤主题**更进一步：整个候选窗的外形由你给的位图决定，可以是任意轮廓。
+
+- **异形窗体**：窗体背景是一张（或几张）位图，沿横竖两个方向切成「固定段」和「拉伸带」，窗体随候选内容变宽变高时，只有拉伸带伸缩，花边、针脚按整数次重复，不会被切成半个。
+- **装饰**：可以伸出窗体之外的图，比如坐在窗体角上的人物、飘在旁边的雪花。装饰不参与排版，也不挡输入。
+- **动画**：装饰可以是动图，并能跟着打字、上屏、翻页、中英切换、被点击等事件切换动作。
+
+皮肤是写在主题文件 `theme.toml` 里的 `[skin]` 表，没有图形界面，直接编辑文件。图片多，建议发布成[主题包](/docs/settings/appearance/themes#wtheme)。
+
+<Callout type="info" title="目前以 Windows 为准">
+完整功能（包括动画、点击穿透）目前只在 Windows 上。macOS / Linux 能显示静态皮肤，细节见[平台差异](#platforms)。
+主题编辑器暂不支持皮肤。
+</Callout>
+
+## 快速上手
+
+在主题目录下放好图片（图片统一放 `assets/`），`theme.toml` 里写：
+
+```toml
+[meta]
+name = "我的皮肤"
+version = "1.0"
+
+[skin]
+density = 2                          # 图片的像素密度：2 个图片像素 = 1 个逻辑像素
+
+# 横排候选窗的皮肤
+[skin.horizontal.frame]
+image = "assets/frame_h.png"         # 窗体位图
+stretch_x = [[48, 96]]               # 横向拉伸带：图中 x 从 48 到 96 这一段可伸缩
+stretch_y = [[40, 60]]               # 纵向拉伸带
+
+[skin.horizontal.content]            # 内容框：文字区域距窗体四边的距离（图片像素）
+left = 24
+top = 20
+right = 28
+bottom = 16
+
+[[skin.horizontal.decor]]            # 一个装饰
+image = "assets/mascot.png"
+anchor = "frame.top_right"           # 挂在窗体右上角
+pivot = "bottom_right"               # 装饰自己的右下角对到锚点上
+offset = [-8, 6]
+```
+
+启用皮肤后，窗体自己的背景、边框、圆角、阴影不再生效（阴影请画在图里），其余节点（编码栏、候选项、选中态等）照旧。
+通常把它们的底色设成透明，让位图透出来。
+
+所有坐标、偏移、尺寸都写**图片像素**（主图的像素），程序会按显示器缩放自动换算，见 [DPI](#dpi)。
+
+## 窗体切片 [#frame]
+
+`[skin.<变体>.frame]` 描述窗体位图：
+
+| 字段 | 说明 |
+| --- | --- |
+| `image` | 图片，写 `assets/xxx.png` |
+| `stretch_x` / `stretch_y` | 拉伸带，可写多段：`[[48, 96], [200, 240]]`。两端点是图中的像素坐标 |
+| `fill` | 拉伸带的填充方式，见下 |
+| `density` | 覆盖 `[skin]` 的 `density` |
+| `srcset` | 多分辨率图，见 [DPI](#dpi) |
+
+**拉伸带之外的部分是固定段**，按倍率 1:1 绘制、不变形；窗体比最小尺寸多出的长度，按各拉伸带原长的比例分摊。
+窗体最小尺寸就是固定段之和，内容再少也不会缩得比它小。
+
+某一轴不写 `stretch_*` 时，整轴一起拉伸；写成空数组 `[]` 表示该轴不可伸缩（固定尺寸）。
+
+### 填充方式
+
+| 取值 | 说明 |
+| --- | --- |
+| `round` | **有拉伸带时的缺省**。取最接近的整数次重复，再把单元微调到正好铺满。带里的针脚、纸纹、花边按原节奏重复，不会出现半个图案 |
+| `stretch` | 双线性拉伸。只适合沿该轴完全均匀的区域，带里有花纹会被拉长。没写拉伸带、整轴缩放时缺省用它 |
+| `tile` | 原样平铺，末尾裁掉 |
+
+`fill` 写在 `frame` 上是各带的缺省，也可以逐段覆盖：
+
+```toml
+stretch_x = [{ from = 48, to = 96, fill = "round" }, { from = 200, to = 240, fill = "stretch" }]
+```
+
+<Callout type="warn" title="拉伸带要落在外轮廓不变的那一段">
+`round` 和 `tile` 会把拉伸带重复很多次。如果带内的外轮廓在变（比如渐细的飘带尾、起伏的边缘），
+每重复一次就多一截斜边，接起来成锯齿。把拉伸带选在**每一行最外侧不透明像素位置恒定**的那一段，
+也就是上下边缘平直、只有内部花纹的区域。
+</Callout>
+
+### 内容框
+
+`[skin.<变体>.content]` 用 `left` / `top` / `right` / `bottom` 四个数，给出内容区相对窗体四边的内缩（图片像素）。
+窗体尺寸 = 内容尺寸 + 四边内缩，再与最小尺寸取较大者。
+
+### 密度 density
+
+`[skin]` 的 `density` 是「图片像素 ÷ 逻辑像素」，缺省 1。画 2 倍图就写 `density = 2`，这样图在 100% 缩放的屏幕上缩小显示，
+在 200% 屏幕上 1:1，不会糊。`frame`、`decor` 都可以单独写 `density` 覆盖。
+
+`[skin]` 里还有 `scale_with`：`"dpi"`（缺省）只随显示器缩放；`"font"` 还会随候选字号缩放，
+此时 `font_base`（缺省 16）是图片原样显示时对应的字号。
+
+## 槽位与布局 [#slots]
+
+内容框里放什么、怎么放，有两种布局。
+
+**stack（缺省）**：编码栏、分隔线、候选列表、翻页栏照普通候选窗的方式纵向堆叠，整块放进内容框。大多数皮肤用它就够了。
+
+**free**：写了 `slots.candidates` 就启用。编码栏、候选列表、翻页栏各占一个槽位，分别锚定在窗体或内容框的某个位置：
+
+```toml
+[skin.horizontal.slots.preedit]        # 编码栏；不写则叠在候选上方，一起放进候选槽
+anchor = "content.top_left"
+
+[skin.horizontal.slots.candidates]     # 必填
+anchor = "content.bottom_left"
+pivot = "bottom_left"
+
+[skin.horizontal.slots.footer]         # 翻页栏；不写则留在候选块里
+anchor = "frame.bottom_right"
+pivot = "bottom_right"
+offset = [-16, -16]
+```
+
+| 字段 | 说明 |
+| --- | --- |
+| `anchor` | 锚点，写成 `frame.<方位>` 或 `content.<方位>`，缺省 `content.top_left` |
+| `pivot` | 槽位自身的对齐点，缺省与锚点方位相同 |
+| `offset` | 偏移 `[x, y]`，图片像素 |
+
+方位有 9 个：`top_left`、`top`、`top_right`、`left`、`center`、`right`、`bottom_left`、`bottom`、`bottom_right`。
+槽位按内容的自然大小，从锚点沿 `pivot` 的反方向生长。窗体尺寸会自动撑到能装下所有槽位。
+槽位互相重叠由你负责。
+
+free 布局下，候选窗翻到光标上方时只换对齐点，不会把内容上下翻转。
+
+## 装饰 [#decor]
+
+每个 `[[skin.<变体>.decor]]` 是一个装饰：
+
+| 字段 | 说明 |
+| --- | --- |
+| `image` | 图片或动图，写 `assets/xxx.png` |
+| `anchor` | 挂在哪：`frame.<方位>` 或 `content.<方位>`，缺省 `frame.top_left` |
+| `pivot` | 装饰自己的哪个点对到锚点，缺省与锚点方位相同 |
+| `offset` | 偏移 `[x, y]`，图片像素，缺省 `[0, 0]` |
+| `size` | 目标尺寸 `[宽, 高]`，图片像素；缺省取图片自身大小 |
+| `z` | 层次，见下，缺省 0 |
+| `opacity` | 不透明度 0–1，缺省 1 |
+| `hit` | 鼠标行为，见下 |
+| `density` | 覆盖 `[skin]` 的 `density` |
+
+装饰**不拉伸**，可以伸出窗体之外；候选窗的画布会自动外扩去容纳它。
+
+**`z`**：小于 0 在窗体下面；0 到 99 在窗体之上、文字之下；100 及以上盖在文字之上。盖在文字上的装饰要自己留意别挡住候选。
+
+### 鼠标行为 hit [#hit]
+
+| 取值 | 说明 |
+| --- | --- |
+| `drag` | **缺省**。装饰不透明处接住鼠标，按住可以拖动整个候选窗；拖人物等于拖窗口 |
+| `block` | 接住鼠标但不响应，像一张贴纸 |
+| `pass` | 点击穿透到底下的应用，适合雪花、光斑这类氛围装饰。目前只有 Windows 支持 |
+
+全透明的像素不管哪种取值都是穿透的。
+
+## 避开光标与定位 [#placement]
+
+`[skin.<变体>.placement]` 决定窗口相对光标怎么摆：
+
+```toml
+[skin.horizontal.placement]
+caret = "frame.top_left"             # 窗口在光标下方时，窗体上的哪个点对齐光标
+caret_above = "frame.bottom_left"    # 窗口翻到光标上方时用的点
+avoid_caret = true
+clamp = "frame"
+```
+
+- **`caret` / `caret_above`**：缺省分别是窗体左上角、左下角，也就是窗体本身不压住光标所在行。
+  可以写成「锚点加偏移」，把对齐点指到图里任意位置：`caret = { anchor = "frame.top_left", offset = [180, 260] }`。
+  改成 `content.*` 能让文字贴近光标，代价是窗体上半截盖住正在输入的那一行。
+- **`avoid_caret`**：缺省开。窗体或装饰的不透明像素若压到光标所在行附近的一条保护带，就把窗口沿远离光标的方向推开，
+  直到保护带清空。透明区不算遮挡。可写 `false` 关掉，或 `{ before = 200, after = 40 }` 调保护带宽度：
+  光标左侧 `before`、右侧 `after`（逻辑像素，缺省 200 / 40）。
+- **`clamp`**：屏幕边缘钳制。`"frame"`（缺省）只保证窗体在屏幕内；`"all"` 连装饰一起。
+
+`window.position_offset` 仍然叠加生效。
+
+## 横竖与嵌入编码 [#variants]
+
+横排、竖排、编码嵌入各是**一整套独立定义**，互不继承、互不合并：
+
+| 变体 | 用于 |
+| --- | --- |
+| `skin.horizontal` | 横排 |
+| `skin.vertical` | 竖排 |
+| `skin.horizontal_embedded` | 横排且编码嵌入候选行 |
+| `skin.vertical_embedded` | 竖排且编码嵌入候选行 |
+
+- 嵌入变体没写时，回退到对应的非嵌入变体。
+- **竖排没写 `skin.vertical` 时不启用皮肤**，回退成普通窗口，不会硬套横排的图。
+- 子主题用 `base` 继承时，写了某个变体就**整表替换**父主题的同名变体，不逐字段合并。
+
+## DPI 与多分辨率 [#dpi]
+
+图片像素按 `显示器缩放 ÷ density` 的倍率换算成屏幕像素：切片、内容框、槽位、装饰偏移都是这个倍率。
+缩小用面积平均，放大用双线性，不会出现最近邻的锯齿。
+
+想在不同缩放下都清晰，可以多给几份图：
+
+```toml
+[skin.horizontal.frame]
+image = "assets/frame_h.png"
+density = 3
+srcset = [
+  { image = "assets/frame_h_1x.png", density = 1 },
+  { image = "assets/frame_h_2x.png", density = 2 },
+]
+```
+
+程序挑「密度够用的最小一份」；都不够就取最大的一份放大。所有坐标始终按主 `image` 的像素写，其它份自动按比例换算。
+
+## 动画 [#animation]
+
+装饰的 `image` 直接写动图即可。
+
+- **格式**：APNG、GIF、动态 WebP。APNG 和动态 WebP 有完整的 8 位透明，GIF 只有 1 位透明、256 色。
+- **帧率**：上限 30 帧每秒。`fps` 可以覆盖文件自带的帧时长（所有帧统一按 `1/fps`）：
+
+  ```toml
+  [[skin.horizontal.decor]]
+  image = "assets/mascot.webp"
+  fps = 24
+  ```
+
+  文件自带的帧时长不足 10 毫秒时按 100 毫秒算。
+- **资源预算**：一个主题所有动画帧（按显示尺寸解码后）合计最多占约 24 MiB，超出时自动隔帧丢弃以降帧，总时长不变，日志里会有提示。
+  尺寸大、帧数多的动图容易触顶，画面小一点、帧数少一点更稳。
+- **不播放的情况**：系统关闭了「动画效果」时不播放（远程桌面会话里这项常常是关着的）；窗口隐藏时暂停。不播放时装饰停在初始状态的第一帧。
+- **用户开关**：设置里「外观 → 主题」的**主题动画**开关，对应配置 `ui.theme.animation`，缺省开。关掉后装饰停在初始状态首帧，事件也不再切换。
+
+### 不写 states 和 on
+
+装饰不写 `states` / `on` 时，整个文件循环播放。
+
+## 动作与事件 [#events]
+
+想让装饰随输入切换动作，给它加上 `states`（状态）和 `on`（事件）。每个装饰各有一台状态机，互不影响。
+
+```toml
+[[skin.horizontal.decor]]
+image = "assets/mascot.png"           # 一个动图，里面按顺序放着各段动作
+anchor = "frame.top_right"
+pivot = "bottom_right"
+
+[skin.horizontal.decor.states]        # 常驻状态：循环播放
+idle   = { frames = "0-23" }
+typing = { frames = "24-35" }
+en     = { image = "assets/mascot_en.png" }   # 也可以是另一个文件，整段
+
+[skin.horizontal.decor.on]            # 事件 -> 动作
+typing  = { state = "typing" }                         # 切换到常驻状态
+backspace = { state = "typing" }
+commit  = { play = "36-47", then = "idle" }            # 播一遍一次性片段，播完转 idle
+page    = { play = "48-55" }                           # then 缺省 @prev，回到当前常驻状态
+click   = { play = { image = "assets/mascot_jump.png" } }
+mode_en = { state = "en" }
+idle_5s = { state = "idle" }
+```
+
+- **状态**：每个状态是一个片段，写帧区间 `{ frames = "0-23" }`（含两端），或另一个文件 `{ image = "..." }`。
+  初始状态取 `idle`，没有 `idle` 就取按名字排序的第一个。
+- **动作**有两种：`{ state = "名" }` 切换常驻状态；`{ play = 片段, then = "名" }` 播一遍一次性片段，播完转 `then`。
+  `then` 缺省或写 `"@prev"`，回到播放前的常驻状态。`play` 可以直接写帧区间字符串，也可以写 `{ image = "..." }`。
+- 播放中来了新事件，直接切换。同一个常驻状态再次触发不会从头播（连续打字不会每键重播）；一次性片段再次触发则从头播。
+- **帧号**是文件里的原始帧号。即使因为预算被降帧，也按原始帧号去对应。
+- 引用了不存在的状态、帧区间越界、片段文件读不出，这一条会被忽略并在日志里提示，不影响其它条目。
+
+### 事件一览
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `show` | 候选窗从隐藏变为显示 |
+| `hide` | 候选窗从显示变为隐藏（此时只有 `state` 和 `then` 生效） |
+| `typing` | 打字中，编码变化 |
+| `backspace` | 打字中，编码变短（退格） |
+| `page` | 编码没变，翻页 |
+| `empty` | 有编码但候选为空 |
+| `commit` | 有文本上屏 |
+| `mode_cn` / `mode_en` | 切换到中文 / 英文 |
+| `idle_5s` | 显示中，距最后一个事件满 5 秒；中间的数字可换成别的秒数，如 `idle_30s` |
+| `click` | 在 `drag` 或 `block` 的装饰上按下，没超过系统拖动阈值就松开 |
+
+`typing`、`backspace`、`empty` 只在「打字中」触发：上屏后进入联想、编码被清空，都不报事件。
+
+### 隐藏时的行为
+
+窗口隐藏时，`state` 类事件照样改变常驻状态（下次显示时生效）；一次性片段被丢弃，直接落到它的 `then`。
+显示时片段从头播。静态图当片段用时算 1 秒，显示 1 秒后转 `then`。
+
+### 注意事项 [#event-tips]
+
+<Callout type="warn" title="commit 的一次性片段多半看不到">
+上屏之后候选窗会立刻收起，所以 `commit = { play = ... }` 的画面往往来不及显示。
+想让上屏有反馈，宜写成 `state`，或靠 `then` 让它落到想要的状态（如 `then = "idle"`）。
+</Callout>
+
+<Callout type="warn" title="首键的 typing 动作要从第二键起才看得到">
+按第一个键时候选窗还没出现。此时 `typing` 的 `state` 照样生效，但 `play` 要从第二个键起才看得到。
+</Callout>
+
+## 打包与发布 [#packaging]
+
+皮肤主题用[主题包 `.wtheme`](/docs/settings/appearance/themes#wtheme)发布。规则：
+
+- 皮肤用到的图片**必须放在 `assets/` 里**，引用写成 `assets/文件名`（包括 `frame`、`srcset`、`decor` 的 `image`，以及 `states` / `on` 片段里的 `image`）。
+  引用越出 `assets/` 或文件不存在，导出时会报错并指出是哪一条；导入时包里缺引用的文件同样会被拦下。
+- 用 `base` 继承别的主题时，父主题不会进包。子主题皮肤用到的图要放在**自己的** `assets/` 里。
+- 大小上限：整个包解压后总计 64 MiB，单张图 16 MiB，条目不超过 200 个。
+
+## 平台差异 [#platforms]
+
+| | Windows | macOS / Linux |
+| --- | --- | --- |
+| 异形窗体与装饰 | 支持 | 支持（静态显示） |
+| `hit = "pass"` | 点击穿透 | 按 `block` 处理 |
+| 动画 | 播放，事件切换 | 只显示首帧 |
+| 装饰区不拖动（`block`） | 支持 | 暂不区分 |
+
+主题编辑器暂不支持皮肤，目前只能直接编辑 `theme.toml`。

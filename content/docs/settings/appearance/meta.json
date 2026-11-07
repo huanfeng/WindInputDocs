@@ -1,4 +1,10 @@
 {
   "title": "外观设置",
-  "pages": ["index", "candidate-comment", "candidate-tooltip", "themes"]
+  "pages": [
+    "index",
+    "candidate-comment",
+    "candidate-tooltip",
+    "themes",
+    "theme-skin"
+  ]
 }
