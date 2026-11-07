@@ -19,7 +19,7 @@ import { Since } from "@/components/since";
 - 目前只提供 Debian 系的 `.deb` 安装包，rpm 等暂不提供；Arch 系发行版见下文[第三方 AUR 包](#aur)
 - 输入法框架 **Fcitx5**（5.0.14 及以上；安装包会自动拉取依赖）
 
-X11 与 Wayland 会话均可使用，Wayland 下的差异见[已知限制](#limitations)。
+X11 与 Wayland 会话均可使用。不同桌面环境要额外做的设置见[按桌面环境的注意事项](#desktops)。
 
 ## 安装
 
@@ -50,27 +50,7 @@ yay -S fcitx5-windinput-bin
 1. 确认系统使用的输入法框架是 **Fcitx5**（Ubuntu 默认是 IBus，需要在「设置 → 区域与语言 → 管理已安装的语言」里把「键盘输入法系统」改为 Fcitx 5，或运行 `im-config` 选择 Fcitx5；Deepin 25 默认就是 Fcitx5）。改完需要注销重登。
 2. 打开 **Fcitx5 配置**（应用菜单里的「Fcitx 5 配置」，或终端运行 `fcitx5-configtool`），在「输入法」页把「清风输入法」添加到当前输入法组（左侧列表里取消勾选「仅显示当前语言」才能搜到）。
 3. 用 Fcitx5 的切换热键（默认 `Ctrl + Space`）切到清风输入法。
-
-#### KDE Plasma 的 Wayland 会话 <Since v="0.126" /> [#kde]
-
-除上面几步外，还要在「系统设置 → 键盘 → 虚拟键盘」里选择 **Fcitx 5**，然后注销重登。KDE 只把输入法接口交给它自己启动的 Fcitx5，不选这一项，Konsole、Kate、KRunner 这类 Wayland 原生应用里就不显示候选窗。
-
-另外**不要**设置 `QT_IM_MODULE`、`GTK_IM_MODULE` 环境变量（Fcitx5 官方也是这样建议的），否则候选窗可能出现在屏幕左上角。
-
-#### GNOME 的 Wayland 会话 <Since v="0.131" /> [#gnome]
-
-GNOME 不向输入法提供窗口位置，候选窗要靠随包附带的 GNOME 扩展才能跟随光标。扩展装上后默认不启用，按 GNOME 版本（「设置 → 关于」里的「GNOME 版本」）启用其中一个：
-
-```bash
-# GNOME 45 及以上（如 Ubuntu 24.04 之后的版本）
-gnome-extensions enable windinput-caret@windinput
-# GNOME 42–44（如 Ubuntu 22.04）
-gnome-extensions enable windinput-caret-legacy@windinput
-```
-
-然后注销重登。刚装好清风时 GNOME 还不认识这个扩展，上面的命令会提示「不存在」，先注销重登一次再执行即可。不启用时，最大化的窗口里候选窗大致在光标附近，不最大化的窗口会偏。
-
-改了显示器缩放后，已经打开的应用要退出重开，候选窗位置才会跟上新的缩放。
+4. 按你的桌面环境看一眼[下一节](#desktops)，GNOME 与 KDE 的 Wayland 会话还各有一步。
 
 #### 新开的应用默认不是清风 [#share-state]
 
@@ -79,6 +59,52 @@ Fcitx5 默认每个应用各自记住输入法状态，新打开的应用从键�
 #### 想用 Shift 单击切换中英 [#shift-toggle]
 
 Fcitx5 出厂把「临时在当前和第一个输入法之间切换」设成了左 Shift，会在清风之前把 Shift 单击截走，「Shift 切换中英」就不生效。这个热键是 Fcitx5 的全局设置、其他输入法也在用，所以不会替你改：需要时到 Fcitx5 配置的「全局选项」里，把它清空或换成别的键。
+
+## 按桌面环境的注意事项 [#desktops]
+
+登录界面选的会话（X11 / Wayland）决定要不要额外设置。不确定当前是哪种，在终端运行 `echo $XDG_SESSION_TYPE`。
+
+| 桌面与会话 | 额外要做的 | 说明 |
+|---|---|---|
+| GNOME · Wayland（Ubuntu 默认） | 启用随包的 GNOME 扩展，注销重登 | 见 [GNOME](#gnome) |
+| GNOME · X11（「Ubuntu on Xorg」） | 无 | |
+| KDE Plasma · Wayland | 「虚拟键盘」选 Fcitx 5；不设 `QT_IM_MODULE` / `GTK_IM_MODULE` | 见 [KDE Plasma](#kde) |
+| KDE Plasma · X11 | 无 | |
+| Deepin 25（X11 / Wayland） | 无 | 出厂就是 Fcitx5 |
+
+所有 Wayland 会话都有的几点见[Wayland 通用](#wayland)。
+
+### GNOME <Since v="0.131" /> [#gnome]
+
+GNOME 的 Wayland 会话不向输入法提供窗口位置，候选窗要靠随包附带的 GNOME 扩展才能跟随光标。扩展装上后默认不启用，按 GNOME 版本（「设置 → 关于」里的「GNOME 版本」）启用其中一个：
+
+```bash
+# GNOME 45 及以上（如 Ubuntu 24.04 及之后）
+gnome-extensions enable windinput-caret@windinput
+# GNOME 42–44（如 Ubuntu 22.04）
+gnome-extensions enable windinput-caret-legacy@windinput
+```
+
+然后注销重登。
+
+- 刚装好清风时 GNOME 还不认识这个扩展，上面的命令会提示「不存在」，先注销重登一次再执行即可。
+- 不启用时，最大化的窗口里候选窗大致在光标附近，不最大化的窗口会偏。
+- 改了显示器缩放后，已经打开的应用要退出重开，候选窗位置才会跟上新的缩放。
+- GNOME 下应用经 `GTK_IM_MODULE=fcitx`（`im-config` 选了 Fcitx5 时自动设置）连到输入法，**保留它**，不要照 KDE 的建议删掉。
+- 0.131 之前的版本在 GNOME 42–46 上没有可用的扩展，可改用「Ubuntu on Xorg」会话。
+
+### KDE Plasma <Since v="0.126" /> [#kde]
+
+Wayland 会话下，还要在「系统设置 → 键盘 → 虚拟键盘」里选择 **Fcitx 5**，然后注销重登。KDE 只把输入法接口交给它自己启动的 Fcitx5，不选这一项，Konsole、Kate、KRunner 这类 Wayland 原生应用里就不显示候选窗（0.126 之前的版本这些应用里也不显示，可改用 X11 会话）。
+
+另外**不要**设置 `QT_IM_MODULE`、`GTK_IM_MODULE` 环境变量（Fcitx5 官方也是这样建议的），否则候选窗可能出现在屏幕左上角。
+
+### Wayland 通用 [#wayland]
+
+- **候选窗的位置由桌面合成器决定**：光标位于屏幕底部时，候选窗可能被任务栏遮住；按屏幕位置摆放的提示（Toast、固定位置的状态气泡）不受影响。
+- **部分 Chromium 内核浏览器无法输入**（换用其他输入法也一样）：浏览器以原生 Wayland 方式运行、却没有开启 Wayland 输入法支持时会这样。可在启动参数里加上 `--enable-wayland-ime`，或改用 `--ozone-platform=x11` 启动。
+- **工具栏 / 软键盘记住的位置可能跳到默认角**：只在显示器缩放与 `Xft.dpi` 不一致（如显示器 150%、`Xft.dpi` 仍是 96），并且在 XWayland 应用与 Wayland 原生应用之间切换焦点时出现。
+- **全屏时隐藏工具栏只是近似效果**，见[工具栏与软键盘](#toolbar)。
 
 ## 设置程序
 
@@ -121,11 +147,8 @@ Linux 版也有和 Windows 版一样的悬浮[工具栏](/docs/settings/appearan
 
 ## 已知限制 [#limitations]
 
-- **Wayland 会话下候选窗的位置由桌面合成器决定。** 光标位于屏幕底部时，候选窗可能被任务栏遮住；按屏幕位置摆放的提示（Toast、固定位置的状态气泡）不受影响。
-- **GNOME 的 Wayland 会话下，候选窗跟随光标需要启用随包附带的 GNOME 扩展**（见[上文](#gnome)）；0.131 之前的版本在 GNOME 42–46 上没有可用的扩展，可在登录界面选择「Ubuntu on Xorg」会话（X11）使用。Deepin 的 Wayland 会话不受影响。
-- **KDE Plasma 的 Wayland 会话**：0.126 起，Wayland 原生应用（如 Konsole、Kate、KRunner）里也能显示候选窗，但要在「系统设置 → 键盘 → 虚拟键盘」里选择 Fcitx 5 并注销重登；更早的版本这些应用里不显示候选窗，可改用 X11 会话。不论哪个版本，都不要设置 `QT_IM_MODULE` 环境变量，否则候选窗可能出现在屏幕左上角。
-- **部分 Chromium 内核浏览器在 Wayland 下无法输入**（换用其他输入法也一样）：浏览器以原生 Wayland 方式运行、却没有开启 Wayland 输入法支持时会这样。可在启动参数里加上 `--enable-wayland-ime`，或改用 `--ozone-platform=x11` 启动。
+各桌面环境、Wayland 会话特有的事项见[按桌面环境的注意事项](#desktops)。
+
 - 跟随光标的状态气泡不能拖动；需要自由摆放时，把气泡位置改为「固定位置」后再拖。
 - **软键盘不跟物理 Shift 换层**：按住键盘上的 Shift 时面板不切到第二层；点面板上的 Shift 键照常切换。
-- **Wayland 下工具栏 / 软键盘记住的位置可能跳到默认角**：只在显示器缩放与 `Xft.dpi` 不一致（如显示器 150%、`Xft.dpi` 仍是 96），并且在 XWayland 应用与 Wayland 原生应用之间切换焦点时出现。
 - **没有窗口合成器的 X11 桌面上，自动隐藏的「悬停原位时重新显示」不起作用**：工具栏淡出后鼠标移过去唤不回来，要等切换中英等状态变化时再出现。
