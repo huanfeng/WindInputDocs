@@ -222,6 +222,8 @@ state_scope = "global"       # 中英状态作用域
 follow_mode = false       # 标点随中英模式切换
 smart_after_digit = true  # 数字后标点智能直出英文
 smart_list = ".,:"        # 参与「数字后智能英文标点」的标点集合
+smart_after_latin = false # 英文单词后的标点智能直出英文
+latin_smart_list = "./_:@" # 参与「英文后智能英文标点」的标点集合
 custom_enabled = false    # 自定义标点映射总开关
 # custom_mappings 为映射表，设置页表格编辑，此处不内联
 ```
@@ -231,14 +233,37 @@ custom_enabled = false    # 自定义标点映射总开关
 | `follow_mode` | 布尔 | — | `false` | 标点随中英模式切换（中文模式出中文标点，英文模式出英文标点） |
 | `smart_after_digit` | 布尔 | — | `true` | 数字后的标点智能直出英文 |
 | `smart_list` | 字符串 | — | `".,:"` | 参与「数字后智能英文标点」的标点集合 |
+| `smart_after_latin` <Since v="0.131" /> | 布尔 | — | `false` | 英文单词后的标点智能直出英文（`Node.js`、`a/b`）。「英文后」以输入法自己记下的上一笔为准，自己按过空格后不算；英文词后直接按标点顶屏同样生效。见[英文后智能标点](/docs/settings/input/punctuation#smart-after-latin) |
+| `latin_smart_list` <Since v="0.131" /> | 字符串 | — | `"./_:@"` | 参与「英文后智能英文标点」的标点集合。出厂不含 `,;!?`：中文句子里英文词后常接中文逗号 |
 | `custom_enabled` | 布尔 | — | `false` | 自定义标点映射总开关；关闭时全部走内置默认转换 |
 | `custom_mappings` | 映射表 | — | `{}`（空表） | 四态标点自定义映射：key = 源字符（引号用 `"1`/`"2`/`'1`/`'2` 区分左右），value = `[中文半角, 英文全角, 中文全角, 英文半角]`。默认空表，在设置页表格编辑 |
 
 <Callout type="info" title="这两项可以被方案整份换掉">
 从 0.119 起，方案文件可写 [`[punct.custom_mappings]`](/docs/guides/schemas#punct-mappings-replace) 声明自己的一份表。切到那个方案时，本节的 `custom_mappings` **与 `custom_enabled` 一起**不参与——是整份替换，不是逐行合并。
 
-`follow_mode` / `smart_after_digit` / `smart_list` 没有方案级，恒取本节的值。
+`follow_mode` / `smart_after_digit` / `smart_list` / `smart_after_latin` / `latin_smart_list` 没有方案级，恒取本节的值。
 </Callout>
+
+## 中英文自动加空格（input.spacing） <Since v="0.131" /> [#spacing]
+
+汉字与英文、汉字与数字**切换的地方**自动补一个空格。
+
+```toml
+[input.spacing]
+cjk_latin = false  # 汉字与英文之间（中 en 中）
+cjk_digit = false  # 汉字与数字之间（共 3 个）
+```
+
+| 键 | 类型 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- | --- |
+| `cjk_latin` | 布尔 | — | `false` | 汉字与拉丁字母之间补空格，补在切换后那一笔的前面。连续的英文之间不管（那是 `commit_space`），标点前不补，光标前已是空白时不补 |
+| `cjk_digit` | 布尔 | — | `false` | 汉字与数字之间补空格。汉字后直接打的数字（主键盘、小键盘）也会补 |
+
+- 「上一笔」只认输入法自己记下的输入序列，不读文档：退格、方向键、回车、切换窗口、鼠标点到别处之后一律当「不知道」，两边都不补。
+- 全角状态下的全角字母、数字不参与。
+- 按应用关闭：应用兼容规则 [`auto_spacing = false`](/docs/guides/compat#字段清单)。
+
+规则细节与例子见[中英文自动加空格](/docs/settings/input/punctuation#auto-spacing)。
 
 ## 智能符号（input.symbol）
 
@@ -303,7 +328,7 @@ candidate_layout = "follow"   # 候选窗布局（见本页「模式级候选布
 | `raw_candidate` | 枚举 <Since v="0.122" /> | `always` / `in_dict` / `off` | `"always"` <Since v="0.119" /> | 把**所打原文**作首候选。出厂 `always` = 保持一直以来的行为；三档语义见 [`schema.english` 那份](/docs/guides/config/schema#english)，两侧**各自独立**。⚠️ 本项为 `off`（或 `in_dict` 未命中）且下面的 `case_variants` 也关、词库又无命中时候选会是空的，此时空格上屏缓冲原文 |
 | `case_variants` | 布尔 | — | `true` | 是否在候选里补出全小写／首字母大写／全大写三种形态。它们各占一个候选位，只需要词库补全时可关闭 |（[英文方案那侧默认关](/docs/guides/config/schema#english)，两侧各自独立）
 | `case_follow_input` | 布尔 | — | `true` <Since v="0.121" /> | 词库候选跟随你打的大小写，语义同 [`schema.english` 那份](/docs/guides/config/schema#english)。⚠️ 临英由 `Shift + 字母` 进入、缓冲首字母恒大写，开着它临英候选就恒为首字母大写形态；不想要这个观感把它关掉即可 |
-| `commit_space` | 布尔 | — | `false` <Since v="0.122" /> | 临英选词上屏后补一个空格。与 [`schema.english` 那份](/docs/guides/config/schema#english)**各自独立**：长时打英文连着打词、补空格顺手；中文里插一个英文词，插完往往接中文或标点，补上的还得退格删掉。回车上屏不补 |
+| `commit_space` | 布尔 | — | `false` <Since v="0.122" /> | 临英选词上屏后补一个空格。与 [`schema.english` 那份](/docs/guides/config/schema#english)**各自独立**：长时打英文连着打词、补空格顺手；中文里插一个英文词，插完往往接中文或标点，补上的还得退格删掉。回车上屏、标点顶屏不补。<br />★ 0.131 起也作用于五笔 / 拼音等中文方案里混入的**英文候选**（同是「中文里插一个英文词」）；编码原文、短语不补 |
 | `phrase_seg` <Since v="0.122" /> | 布尔 | — | `false` | 词组分词输入：用 `'` 切开各段，每段只打前缀（`ip'max` → iPhone 15 Pro Max）。语义与 [`schema.english` 那份](/docs/guides/config/schema#phrase-seg)完全一致，开关各一份。⚠️ 开启后 `'` 在临英下不再是第三候选键，用数字键 `3` 代替 |
 | `shift_behavior` | 枚举 | `temp_english` / `direct_commit` | `"temp_english"` | Shift + 字母的行为：`temp_english` = 进入临时英文缓冲；`direct_commit` = 直接上屏该英文 |
 | `shift_when_composing` <Since v="0.125" /> | 枚举 | `buffer` / `commit_enter` | `"buffer"` | 已有编码时按 Shift + 字母的行为（`shift_behavior` 只管没有编码的情形）：`buffer` = 大写字母照常进编码缓冲；`commit_enter` = 上屏高亮候选，再以该字母进入临时英文。英文方案下不生效 |

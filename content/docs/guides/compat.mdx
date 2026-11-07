@@ -155,6 +155,7 @@ caret_use_top = true
 | `host_render` | 布尔 | `false` | 开启宿主渲染模式（加入白名单），见[下文](#host-render) |
 | `auto_pair` | 布尔 | 不写 = 跟随全局 | 本应用是否启用[符号自动配对](/docs/guides/config/input)。给表格类宿主（Excel / WPS 表格）用：它们在「输入态」下把方向键解释成「确认单元格并移动」，配对后光标退不回两个符号之间 |
 | `smart_method` | 枚举 | 不写 = 跟随全局 | 本应用的[智能符号](/docs/guides/config/input)替换方案：`delete_replace` / `hold_composition`。终端类宿主（Tabby）用后者——它全程不做删改 |
+| `auto_spacing` <Since v="0.131" /> | 布尔 | 不写 = 跟随全局 | 写 `false` 关闭本应用的[中英文 / 中数自动加空格](/docs/guides/config/input#spacing)。给自带空格处理的软件用（Markdown 编辑器的排版插件、终端、代码编辑器），免得叠出双空格。英文词的 `commit_space` 不受影响 |
 | `caret_offset_x` / `caret_offset_y` | 整数（dp） | `0` | 光标坐标的**系统性偏移**校正，正 = 右 / 下。单位是 dp 不是物理像素，同一份数值在不同缩放的屏幕上观感一致 |
 | `ignore_host_ime_close` <Since v="0.121" /> | 布尔 | 不写 = 采纳宿主请求 | 忽略本应用「关闭输入法」的请求，见[下文](#ignore-host-ime-close) |
 | `candidate_position_mode` <Since v="0.121" /> | 枚举 | 不写 = 跟随全局 | 本应用的候选窗定位方式：`follow_caret` / `fixed`，见[下文](#per-app-candidate-position) |
