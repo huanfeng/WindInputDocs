@@ -30,6 +30,11 @@
       "statusCode": 301
     },
     {
+      "source": "/privacy/",
+      "destination": "/privacy",
+      "statusCode": 301
+    },
+    {
       "source": "/whats-new/",
       "destination": "/whats-new",
       "statusCode": 301

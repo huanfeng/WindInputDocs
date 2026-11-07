@@ -325,6 +325,13 @@ export default function DownloadPage() {
         </Link>
         。
       </p>
+      <p className="mt-2 text-center text-sm text-fd-muted-foreground">
+        输入法不上传你输入的内容，联网与本地数据的说明见
+        <Link href="/privacy" className="text-fd-primary hover:underline">
+          隐私政策
+        </Link>
+        。
+      </p>
     </main>
   );
 }

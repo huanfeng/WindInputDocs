@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/whats-new": 0.6,
     "/changelog": 0.5,
     "/sponsor": 0.4,
+    "/privacy": 0.3,
   };
 
   const paths = [
@@ -23,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/whats-new",
     "/changelog",
     "/sponsor",
+    "/privacy",
     // 整页未发布的文档不收录：站点地图是主动递给搜索引擎的，
     // 页面上藏住了却在这里列出来，等于从另一头把它送进索引。
     ...source
