@@ -155,7 +155,7 @@ cods = $CC("五笔候选调整", setting.open("dict", "--schema=wubi86 --type=sh
 
 **在词库之间移动词条**：勾选若干行后点工具栏的「**移动到…**」，或某一行右键 →「移动到」，选目标——主词库或另一个分库（停用的分库会标「（已停用）」）。主词库与分库之间、分库与分库之间都能移。
 
-**文件位置**：分库是用户目录下 `data\<方案>\dicts\` 里的 `*.dict.yaml`，一个文件一个分库（不看子目录），格式与主词库的 `user.dict.yaml` 相同（列 `text, code, weight`，权重可省）。自己拷一份词库文件进去，点左栏底部「刷新」就会出现。开关记在同级的 `data\<方案>\dicts.toml` 里，按方案记**关掉的**分库：
+**文件位置**：分库是用户目录下 `data\<方案>\dicts\` 里的 `*.dict.yaml`，一个文件一个分库（不看子目录），格式与主词库的 `user.dict.yaml` 相同（列序按文件头 `columns:` 声明，程序新建的是 `code, text, weight`；没写 `columns:` 按 Rime 默认的 `text, code, weight` 读；权重可省）。自己拷一份词库文件进去，点左栏底部「刷新」就会出现。开关记在同级的 `data\<方案>\dicts.toml` 里，按方案记**关掉的**分库：
 
 ```toml
 [schemas.pinyin]
