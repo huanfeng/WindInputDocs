@@ -84,7 +84,7 @@ const editions: Edition[] = [
         {
           icon: Terminal,
           title: "Linux 版",
-          badge: "预览版",
+          badge: "Fcitx5",
           points: [
             "Fcitx5 输入法引擎，.deb 安装包（x64 / ARM64）",
             "Ubuntu 22.04+、Deepin 25；X11 与 Wayland 会话均可",
@@ -276,7 +276,7 @@ export default function DownloadPage() {
           </li>
           {linux && (
             <li>
-              Linux 版是预览版，安装包为 .deb：用{" "}
+              Linux 版安装包为 .deb：用{" "}
               <code className="font-mono">sudo apt install ./文件名.deb</code>{" "}
               安装，装完注销重登，再到 Fcitx5
               配置里添加清风输入法。步骤与已知限制见

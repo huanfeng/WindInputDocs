@@ -86,7 +86,7 @@ export default function HomePage() {
         <p className="mt-4 text-sm text-fd-muted-foreground">
           Windows 10 / 11 · macOS 12+ ·{" "}
           <Link href="/docs/reference/linux" className="hover:underline">
-            Linux（预览版）
+            Linux
           </Link>
         </p>
         {/* 实际候选窗截图。原图 1140×188，显示宽度按屏幕密度分档（见 global.css
