@@ -293,7 +293,7 @@ ignore_host_ime_switch = true
 菜单入口：在目标应用里打开[功能主菜单 → 应用独立配置](/docs/settings/menu#app-config) →「软件切换中英」。
 
 <Callout type="warn" title="全局开启有代价">
-gvim 这类软件靠这个状态保存和恢复中英（进插入模式时恢复上次的中英），全局忽略后它们的自动恢复会失灵。更推荐只对出问题的软件开启。
+gvim 这类软件靠这个状态保存和恢复中英（进插入模式时恢复上次的中英），全局忽略后它们的自动恢复会失灵；按应用锁定中英的外部工具（如 KBLSwitch、AutoHotkey 脚本）也会被一并忽略。更推荐只对出问题的软件开启。
 </Callout>
 
 <Callout type="info" title="0.121 的 ignore_host_ime_close">
