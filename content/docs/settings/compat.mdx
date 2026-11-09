@@ -85,7 +85,7 @@ import { Since } from "@/components/since";
 | 类型 | 「没设置」的表现 |
 | --- | --- |
 | 下拉、文本 | 下拉第一项「跟随全局」（文本留空）——没写就跟随全局设置 |
-| 三态开关 | 三档：跟随全局 / 开 / 关（个别字段的说法不同，如「宿主关闭输入法」是跟随内置规则 / 忽略 / 采纳） |
+| 三态开关 | 三档：跟随全局 / 开 / 关（个别字段的说法不同，如「软件切换中英」是跟随全局 / 忽略 / 采纳） |
 | 纯开关、数字 | 没有第三档：关 / 0 与没写等价 |
 
 下拉里的取值一律显示中文；它们在 `compat.toml` 里的原样写法，在「**选项说明**」里每个选项的「可选值」中列出。
@@ -166,7 +166,7 @@ import { Since } from "@/components/since";
 | 识别成对的组合帧 | `composition_start_pair_guard` | ✅ |
 | 起点漂移时钉住锚点 | `pin_anchor_when_start_drifts` | ✅ |
 | 宿主渲染模式 | `host_render` | ✅ |
-| 宿主关闭输入法 | `ignore_host_ime_close` | ✅ |
+| 软件切换中英 <Since v="0.132" /> | `ignore_host_ime_switch` | ✅ |
 | 软件自绘候选窗 | `host_drawn_candidates` | ✅ |
 | 占位字符 <Since v="0.125" /> | `composition_placeholder` | ✅ |
 | 联想占位字符 <Since v="0.131" /> | `assoc_placeholder` | |

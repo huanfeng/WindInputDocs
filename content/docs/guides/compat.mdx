@@ -157,7 +157,7 @@ caret_use_top = true
 | `smart_method` | 枚举 | 不写 = 跟随全局 | 本应用的[智能符号](/docs/guides/config/input)替换方案：`delete_replace` / `hold_composition`。终端类宿主（Tabby）用后者——它全程不做删改 |
 | `auto_spacing` <Since v="0.131" /> | 布尔 | 不写 = 跟随全局 | 写 `false` 关闭本应用的[中英文 / 中数自动加空格](/docs/guides/config/input#spacing)。给自带空格处理的软件用（Markdown 编辑器的排版插件、终端、代码编辑器），免得叠出双空格。英文词的 `commit_space` 不受影响 |
 | `caret_offset_x` / `caret_offset_y` | 整数（dp） | `0` | 光标坐标的**系统性偏移**校正，正 = 右 / 下。单位是 dp 不是物理像素，同一份数值在不同缩放的屏幕上观感一致 |
-| `ignore_host_ime_close` <Since v="0.121" /> | 布尔 | 不写 = 采纳宿主请求 | 忽略本应用「关闭输入法」的请求，见[下文](#ignore-host-ime-close) |
+| `ignore_host_ime_switch` <Since v="0.132" /> | 布尔 | 不写 = 跟随全局 | 忽略本应用自己切换中英的请求（切中文、切英文都算），见[下文](#ignore-host-ime-switch)。旧名 `ignore_host_ime_close`（0.121）仍然认 |
 | `candidate_position_mode` <Since v="0.121" /> | 枚举 | 不写 = 跟随全局 | 本应用的候选窗定位方式：`follow_caret` / `fixed`，见[下文](#per-app-candidate-position) |
 | `candidate_x` / `candidate_y` <Since v="0.121" /> | 整数（物理像素） | `0` | `fixed` 时本应用的候选窗位置。每个应用各记一份，`(0,0)` = 尚未设定 |
 | `composition_start_pair_guard` <Since v="0.121" /> | 布尔 | 不写 = 继承出厂值 | 把「组合起点降级帧 + 紧随的 selection 帧」识别为同一次采样，避免把「组合起点 → 当前插入点」的跨度当成锚点错误。只给已实测存在该交替序列的宿主开（QQNT / VS Code / 飞书已内置） |
@@ -270,23 +270,34 @@ initial_mode = "english"
 显式写的 `initial_punct` 优先于 `config.toml` 里 [`input.punct.follow_mode`](/docs/settings/keys#中英文切换) 的推导——否则你配了它却恰好开着「标点随中英文切换」时会完全无效且没有任何痕迹。
 </Callout>
 
-## 忽略宿主关闭输入法 <Since v="0.121" /> [#ignore-host-ime-close]
+## 忽略软件切换中英 <Since v="0.132" /> [#ignore-host-ime-switch]
 
-有些应用「操作几下就自动变成英文」，回到输入框也不恢复。根因不在输入法：宿主自己在关**全局**中英状态。WinForms 的 `ImeMode.Disable` 与 WPF 的 `IsInputMethodEnabled=False` 内部都是 `ImmSetOpenStatus(false)`，关的是全局开关而不是「本控件不接受输入」，于是点一次按钮就被切成英文。
+有些软件会自作主张切换中英：
+
+- 点一下按钮就变成英文，回到输入框也不恢复。WinForms 的 `ImeMode.Disable` 与 WPF 的 `IsInputMethodEnabled=False` 内部都是 `ImmSetOpenStatus(false)`，关的是**全局**中英状态，而不是「本控件不接受输入」。
+- 在软件内部切换焦点时把你切成中文，英文状态下打的第一个字母被当成编码吃掉（SQL Server Management Studio 有过这种表现）。
+
+这两种都不是输入法自己切的，是软件请求的。对出问题的软件单独开启：
 
 ```toml
 [[apps]]
 process = "SomeDotNetApp.exe"
-comment = "焦点落到按钮上就把 IME 关掉"
-ignore_host_ime_close = true
+comment = "焦点落到按钮上就把输入法关掉"
+ignore_host_ime_switch = true
 ```
 
-开启后这类请求不再采纳，中文状态保持不变。只有「宿主主动要关、且你没有按住 Ctrl」这一种情形会被拒绝，所以 `Ctrl+Space` 一律放行，你仍然可以正常切中英。
+开启后这个软件的切换请求一律不采纳，切中文、切英文两个方向都算，中英状态只随你自己的操作变化。按住 Ctrl 的系统热键 `Ctrl+Space` 照常放行，Shift 等切换键与菜单也不受影响。
 
-菜单入口：在目标应用里打开[功能主菜单 → 应用独立配置](/docs/settings/menu#app-config)。
+也可以全局开启：设置 → 按键 → 中英文切换高级设置 →「不跟随软件切换中英文」，对应 `config.toml` 的 [`input.ignore_host_ime_switch`](/docs/guides/config/input)。按应用写的值优先于全局：全局开着时，给某个软件写 `ignore_host_ime_switch = false` 就恢复采纳。
 
-<Callout type="info" title="不做成全局开关">
-「宿主要关输入法」在绝大多数场景下是应当采纳的正当请求（只读控件、真正禁用输入法的窗口）。一律忽略会让那些场景反过来出问题，所以必须逐应用开启。
+菜单入口：在目标应用里打开[功能主菜单 → 应用独立配置](/docs/settings/menu#app-config) →「软件切换中英」。
+
+<Callout type="warn" title="全局开启有代价">
+gvim 这类软件靠这个状态保存和恢复中英（进插入模式时恢复上次的中英），全局忽略后它们的自动恢复会失灵。更推荐只对出问题的软件开启。
+</Callout>
+
+<Callout type="info" title="0.121 的 ignore_host_ime_close">
+0.121 起的 `ignore_host_ime_close` 只拦「关闭输入法」这一个方向。0.132 起改名为 `ignore_host_ime_switch`，并改为两个方向都忽略。旧名仍然认，按新的语义生效；经菜单或设置页修改后会改写成新名。
 </Callout>
 
 ## 应用独立的候选窗定位 <Since v="0.121" /> [#per-app-candidate-position]
