@@ -156,6 +156,7 @@ free 布局下，候选窗翻到光标上方时只换对齐点，不会把内容
 | `opacity` | 不透明度 0–1，缺省 1 |
 | `hit` | 鼠标行为，见下 |
 | `density` | 覆盖 `[skin]` 的 `density` |
+| `flip` <Since v="0.132" /> | 镜像：`x` 左右、`y` 上下、`xy` 两向，缺省不翻，见[镜像](#decor-flip) |
 
 装饰**不拉伸**，可以伸出窗体之外；候选窗的画布会自动外扩去容纳它。
 
@@ -170,6 +171,34 @@ free 布局下，候选窗翻到光标上方时只换对齐点，不会把内容
 | `pass` | 点击穿透到底下的应用，适合雪花、光斑这类氛围装饰。目前只有 Windows 支持 |
 
 全透明的像素不管哪种取值都是穿透的。
+
+### 镜像 flip <Since v="0.132" /> [#decor-flip]
+
+人物、宠物这类有朝向的装饰，放到窗体另一侧时常要换个方向。不必再画一张，加 `flip` 即可：
+
+```toml
+# 同一张猫：右上角那只原样朝左，左上角那只镜像成朝右，都看向候选
+[[skin.horizontal.decor]]
+image = "assets/cat.png"
+anchor = "frame.top_right"
+pivot = "bottom_right"
+
+[[skin.horizontal.decor]]
+image = "assets/cat.png"
+anchor = "frame.top_left"
+pivot = "bottom_left"
+flip = "x"
+```
+
+取值 `x`（左右）、`y`（上下）、`xy`（两向），不写就是不翻；写了别的值会被忽略并在日志里告警。
+
+**只翻图片本身**，其余都按原图来写：
+
+- `anchor`、`pivot`、`offset`、`size` 不会跟着镜像。上例想换到左边，是另写了一条 `frame.top_left` 的锚点，`flip` 只管朝向。
+- 装饰占的矩形不变，`hit` 的行为也不变；拖动、穿透看的是翻转后的不透明像素。
+- 动图的每一帧都翻，`states` / `on` 里用 `{ image = "..." }` 引用的其他图也一样翻。
+
+窗体（`[skin.*.frame]`）**不支持** `flip`：拉伸带和内容框都按原图坐标写，翻了就对不上。写了会被忽略并告警，需要镜像的窗体请直接准备镜像后的图片。
 
 ## 避开光标与定位 [#placement]
 

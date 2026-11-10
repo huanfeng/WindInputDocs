@@ -148,6 +148,31 @@ slice_repeat = ["repeat", "stretch"]    # 横轴平铺、纵轴拉伸
 
 取值只有 `repeat` 与 `stretch`（不写 = `stretch`，即 0.121 及以前的行为）。**分轴写**是有用的：横轴随宽度变，纵轴通常固定，一个值管两轴会让一张宽图在 40px 高的编码条里从「压扁到条高」变成「只取顶部 40 行」。
 
+#### 图片镜像 flip <Since v="0.132" /> [#image-flip]
+
+背景图、图层（`layers`）和翻页箭头（`prev_image` / `next_image`）都可以加 `flip` 镜像，同一张图朝向不同的两处不必各画一张：
+
+```toml
+[window]
+# 右下角的小人原图朝右，镜像成朝左、看向候选
+layers = [{ ref = "assets/cat.png", anchor = "bottom-right", size = { w = 32, h = 32 }, flip = "x" }]
+```
+
+| 取值 | 效果 |
+| --- | --- |
+| `x` | 左右镜像 |
+| `y` | 上下镜像 |
+| `xy` | 两个方向都翻（等于转 180°） |
+
+不写就是不翻；写了别的值会被忽略（按不翻）。
+
+只翻图片本身：`anchor`、`offset`、`size` 照常定位，九宫格的 `slice` 仍按原图的四边切，切好、铺满之后再整块翻。所以：
+
+- 九宫格翻转后，原图左边那条边出现在右边；
+- `tile` 平铺翻转后从右缘（`x`）或下缘（`y`）起铺，末尾裁掉的那截落到另一侧。
+
+皮肤主题的装饰也有同名字段，见[皮肤主题](/docs/settings/appearance/theme-skin#decor-flip)。
+
 ### 文字角色色 <Since v="0.123" /> [#text-roles]
 
 候选注释与悬停提示里的文字，每一段都带着一个**角色**——它是哪个变量产出的（`pinyin`、`code_rev`……），
