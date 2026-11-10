@@ -14,11 +14,12 @@ import { Since } from "@/components/since";
 - **装饰**：可以伸出窗体之外的图，比如坐在窗体角上的人物、飘在旁边的雪花。装饰不参与排版，也不挡输入。
 - **动画**：装饰可以是动图，并能跟着打字、上屏、翻页、中英切换、被点击等事件切换动作。
 
-皮肤是写在主题文件 `theme.toml` 里的 `[skin]` 表，没有图形界面，直接编辑文件。图片多，建议发布成[主题包](/docs/settings/appearance/themes#wtheme)。
+皮肤是写在主题文件 `theme.toml` 里的 `[skin]` 表。可以直接编辑文件，也可以用[主题编辑器](/docs/settings/appearance/themes#theme-editor)可视化编辑：
+在窗体原图上拖出拉伸带与内容框，在预览上拖动装饰、改锚点，给动图选帧区间配动作，预览用的是与候选窗同一套渲染，可切换亮暗。
+图片多，建议发布成[主题包](/docs/settings/appearance/themes#wtheme)。
 
 <Callout type="info" title="目前以 Windows 为准">
 完整功能（包括动画、点击穿透）目前只在 Windows 上。macOS / Linux 能显示静态皮肤，细节见[平台差异](#platforms)。
-主题编辑器暂不支持皮肤。
 </Callout>
 
 ## 快速上手
@@ -63,7 +64,7 @@ offset = [-8, 6]
 
 | 字段 | 说明 |
 | --- | --- |
-| `image` | 图片，写 `assets/xxx.png` |
+| `image` | 图片，写 `assets/xxx.png`；也可写 `[resources]` 资源键（可分亮暗，见[亮色 / 暗色](#light-dark)） |
 | `stretch_x` / `stretch_y` | 拉伸带，可写多段：`[[48, 96], [200, 240]]`。两端点是图中的像素坐标 |
 | `fill` | 拉伸带的填充方式，见下 |
 | `density` | 覆盖 `[skin]` 的 `density` |
@@ -147,7 +148,7 @@ free 布局下，候选窗翻到光标上方时只换对齐点，不会把内容
 
 | 字段 | 说明 |
 | --- | --- |
-| `image` | 图片或动图，写 `assets/xxx.png` |
+| `image` | 图片或动图，写 `assets/xxx.png`；也可写 `[resources]` 资源键（可分亮暗，见[亮色 / 暗色](#light-dark)） |
 | `anchor` | 挂在哪：`frame.<方位>` 或 `content.<方位>`，缺省 `frame.top_left` |
 | `pivot` | 装饰自己的哪个点对到锚点，缺省与锚点方位相同 |
 | `offset` | 偏移 `[x, y]`，图片像素，缺省 `[0, 0]` |
@@ -379,7 +380,8 @@ idle_5s = { state = "idle" }
 
 皮肤主题用[主题包 `.wtheme`](/docs/settings/appearance/themes#wtheme)发布。规则：
 
-- 皮肤用到的图片**必须放在 `assets/` 里**，引用写成 `assets/文件名`（包括 `frame`、`srcset`、`decor` 的 `image`，以及 `states` / `on` 片段里的 `image`）。
+- 皮肤用到的图片**必须放在 `assets/` 里**，引用写成 `assets/文件名`（包括 `frame`、`srcset`、`decor` 的 `image`，以及 `states` / `on` 片段里的 `image`）；
+  写资源键时，它的亮色、暗色两张都要在 `assets/` 里。
   引用越出 `assets/` 或文件不存在，导出时会报错并指出是哪一条；导入时包里缺引用的文件同样会被拦下。
 - 用 `base` 继承别的主题时，父主题不会进包。子主题皮肤用到的图要放在**自己的** `assets/` 里。
 - 大小上限：整个包解压后总计 64 MiB，单张图 16 MiB，条目不超过 200 个。
@@ -393,4 +395,3 @@ idle_5s = { state = "idle" }
 | 动画 | 播放，事件切换 | 只显示首帧 |
 | 装饰区不拖动（`block`） | 支持 | 暂不区分 |
 
-主题编辑器暂不支持皮肤，目前只能直接编辑 `theme.toml`。
