@@ -100,7 +100,7 @@ name = "我的蓝色主题"
 primary = "#0066CC"     # 只改主色，其余外观沿用 default
 ```
 
-### 主题文件结构
+### 主题文件结构 [#theme-structure]
 
 主题由若干顶层块组成，均可选，未写的部分从被继承主题回退：
 
@@ -109,7 +109,7 @@ primary = "#0066CC"     # 只改主色，其余外观沿用 default
 | `base` | 继承的内置主题名（`default` / `msime` 或内置基础主题 `_base` / `_qingfeng`） |
 | `[meta]` | 元信息：`name`（必填）、`version`、`author` 等 |
 | `[colors]` | 颜色 token 表（扁平），语义色的唯一来源，`[views]` 通过 `${token}` 引用 |
-| `[resources]` | 图片资源引用（可选，支持亮暗分设） |
+| `[resources]` | 图片资源引用（可选，支持亮暗分设；皮肤的图也能经它分亮暗，见[皮肤的亮色 / 暗色](/docs/settings/appearance/theme-skin#light-dark)） |
 | `[views]` | 几何与布局（候选窗 / 工具栏 / 菜单的盒模型） |
 | `[behavior]` | 主题推荐的行为默认（见下） |
 

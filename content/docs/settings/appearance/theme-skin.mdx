@@ -239,6 +239,34 @@ clamp = "frame"
 - **竖排没写 `skin.vertical` 时不启用皮肤**，回退成普通窗口，不会硬套横排的图。
 - 子主题用 `base` 继承时，写了某个变体就**整表替换**父主题的同名变体，不逐字段合并。
 
+## 亮色 / 暗色 [#light-dark]
+
+皮肤没有单独的暗色写法，借用主题的 [`[resources]`](/docs/settings/appearance/themes#theme-structure) 即可：把图登记成资源键，
+亮色、暗色各指一张，皮肤里写键名而不是路径。候选窗按当前的亮暗外观（跟随系统时随系统切换）取对应那张。
+
+```toml
+[resources]
+frame_h = { light = "assets/frame_h.png", dark = "assets/frame_h_dark.png" }
+mascot  = { light = "assets/mascot.png",  dark = "assets/mascot_dark.png" }
+
+[skin.horizontal.frame]
+image = "frame_h"                    # 写资源键
+stretch_x = [[48, 96]]
+stretch_y = [[40, 60]]
+
+[[skin.horizontal.decor]]
+image = "mascot"
+anchor = "frame.top_right"
+```
+
+窗体 `image`、`srcset` 里的各份、装饰 `image`、`states` / `on` 里 `{ image = "..." }` 引用的图都可以这样写。
+只写一侧（如只写 `light`）时另一侧沿用它；亮暗共用的图照旧直接写路径。
+
+切片、拉伸带、内容框、槽位、装饰的锚点与偏移都**只写一份**，亮暗共用，所以：
+
+- 同一个键的亮色图和暗色图要**像素尺寸相同**，最好就是同一张图换了配色；动图的帧数也应一致，否则按帧号写的动作片段在暗色下可能越界被忽略。
+- 窗体图或装饰图的暗色那张尺寸与亮色不同时，暗色下改用亮色那张，并在日志里告警 <Since v="0.132" />。
+
 ## DPI 与多分辨率 [#dpi]
 
 图片像素按 `显示器缩放 ÷ density` 的倍率换算成屏幕像素：切片、内容框、槽位、装饰偏移都是这个倍率。
