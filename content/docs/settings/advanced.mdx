@@ -178,8 +178,9 @@ import { Since } from "@/components/since";
 
 对应配置键是 `debug.log_level`，见[统计与调试](/docs/guides/config/misc#日志调试)。日志文件本身还有两点：
 
+- **日志打包** <Since v="0.127" />：**打包到桌面**把整个日志目录压成一个 zip 放到桌面（Linux 上桌面不在时退到下载 / 主目录）并选中它；**清理**清空现有日志，二次确认。能稳定复现的问题，先「清理」→ 重启服务 → 复现 → 「打包」，偶发问题则不必清理、只需注明出问题的时间点
 - 目录默认为 `%LOCALAPPDATA%\WindInput\logs\`，三个模块的日志都落在这里，可从[功能主菜单](/docs/settings/menu#高级子菜单)的「高级 → 打开日志目录」直接跳过去
-- **每一份都带序号，`.1` 恒为最新** <Since v="0.121" />，见[日志文件的序号](/docs/guides/config/misc#log-numbering)。反馈问题时把整个 `logs` 目录打包发出来即可，完整流程见[反馈问题时如何提交日志](/docs/reference/report-logs)
+- **每一份都带序号，`.1` 恒为最新** <Since v="0.121" />，见[日志文件的序号](/docs/guides/config/misc#log-numbering)。反馈问题时用本节的「日志打包」即可，完整流程见[反馈问题时如何提交日志](/docs/reference/report-logs)
 
 ## 导入导出入口一览 [#entries]
 
