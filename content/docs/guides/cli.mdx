@@ -38,6 +38,7 @@ start /wait wind_input schema rebuild
 | `schema` / `dict` / `phrase` / `backup` | **需要** |
 | `restart` | 均可 |
 | `ui` <Since v="0.121" /> | **需要** |
+| `ime` <Since v="0.132" /> | **需要** |
 | `system` <Since v="0.121" /> | 不需要（但要管理员权限） |
 | `help` / `--version` | 不需要 |
 
@@ -237,6 +238,27 @@ wind_input ui toast "注意" --color #FF8800
 
 提示只能由输入法主进程弹出，故本命令**需要服务在线**。短语里的等价写法是 [`ui.toast(...)`](/docs/guides/command-bar#ui-toast)，两者共用同一套校验。
 
+## ime <Since v="0.132" /> [#ime]
+
+读写运行中输入法的输入状态开关，供脚本与外部工具使用（例如终端程序在特定场景下先切成英文）。词汇与命令栏的 [`ime.set` / `ime.toggle`](/docs/guides/command-bar) 一致，切换的是**全局**输入状态，不是某个窗口的；状态气泡、工具栏都会同步刷新。
+
+```bat
+wind_input ime get                 :: 列出全部状态
+wind_input ime get cn-en           :: 只输出一个词：zh 或 en
+wind_input ime set cn-en en        :: 切到英文
+wind_input ime toggle fullshape    :: 取反，并输出切换后的值
+```
+
+| 目标 | 含义 |
+| --- | --- |
+| `cn-en` | 中英文（不含 CapsLock 带来的临时英文） |
+| `fullshape` | 全角 / 半角 |
+| `s2t` | 简入繁出 |
+| `t2s` | 繁入简出 |
+| `toolbar` | 工具栏显示 |
+
+`set` 的值写 `on` / `off`（也认 `true` / `false`、`1` / `0`、`开` / `关`）；`cn-en` 另认 `zh`（中文，等于 `on`）与 `en`（英文，等于 `off`）。`set` 是幂等的，已是目标状态时不做事，也**默认不弹「已是…」提示**，脚本反复调用不会打扰；想要提示加 `--notify`。`get` 加 `--json` 输出 JSON。本命令**需要服务在线**。
+
 ## system <Since v="0.121" /> [#system]
 
 与操作系统集成方式相关的动作，**写 HKLM，必须以管理员权限运行**。
@@ -316,7 +338,7 @@ wind_input restart
 
 | 参数 | 说明 |
 | --- | --- |
-| `--page <id>` / `--<id>` | 定位到指定页：`schema` / `input` / `keys` / `ui` / `dict` / `advanced` / `about` |
+| `--page <id>` / `--<id>` | 定位到指定页：`schema` / `input` / `keys` / `theme` / `ui` / `dict` / `advanced` / `about`，其中 `theme`（主题页）自 0.132 起有 <Since v="0.132" /> |
 | `--tab <n>` | 定位到第 n 个标签页 |
 | `--light` / `--dark` | 强制明 / 暗主题 |
 
