@@ -345,12 +345,14 @@ latin = ["Cascadia Code"]         # 拉丁字母一律用等宽，不管雅黑�
 [ui.theme]
 name = "default"   # 主题名
 style = "system"   # 明暗风格
+animation = true   # 主题动画
 ```
 
 | 键 | 类型 | 可选值 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `name` | 字符串 | — | `"default"` | 当前主题名（对应主题包 / 主题目录） |
 | `style` | 字符串（隐性枚举） | `system` / `light` / `dark` | `"system"` | 明暗风格：`system` = 跟随系统；`light` = 浅色；`dark` = 深色 |
+| `animation` <Since v="0.131" /> | 布尔 | — | `true` | 主题动画开关：关掉后[皮肤主题](/docs/settings/appearance/theme-skin#animation)的装饰动画停在首帧，事件也不再切换。系统「减少动态效果」开着时同样不播放 |
 
 主题的具体样式定义（配色、圆角、字号基线等）见[外观与主题](/docs/settings/appearance)。
 
