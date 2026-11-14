@@ -124,6 +124,16 @@ granted = ["key.detail"]  # 授予的档位
 
 ## 自己写扩展 [#develop]
 
-扩展就是一个读写标准输入输出的程序，任何语言都能写。协议见 WindInputExtensions 仓库的 [docs/protocol.md](https://github.com/huanfeng/WindInputExtensions/blob/main/docs/protocol.md)，里面附有 Python 最小示例。
+扩展就是一个读写标准输入输出的程序，任何语言都能写。协议见 WindInputExtensions 仓库的 [docs/protocol.md](https://github.com/huanfeng/WindInputExtensions/blob/main/docs/protocol.md)，里面附有 Python 最小示例；仓库的 [`template/python`](https://github.com/huanfeng/WindInputExtensions/tree/main/template/python) 是可以直接复制起步的模板。
 
 建议给你分发的扩展签名：未签名的程序收到按键事件，容易被杀毒软件误报。
+
+### 许可：你的扩展可以闭源 [#license]
+
+| 内容 | 许可 | 说明 |
+| --- | --- | --- |
+| `template/` 扩展模板 | MIT | 随便拷、闭源商用都行 |
+| 协议文档、官方按键音 | MPL-2.0 | 自己写扩展不受约束；只有修改这些文件本身时，改动那部分要公开 |
+| `wind-hook` 库（输入法仓内的协议 Rust 实现） | MPL-2.0 | 同上，Rust 扩展可以直接依赖它 |
+
+也就是说：按协议写自己的扩展、或从模板起步，**扩展本身可以不开源**。输入法本体仍是 GPL-3.0。
