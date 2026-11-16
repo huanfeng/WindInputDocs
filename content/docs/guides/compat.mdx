@@ -163,6 +163,7 @@ caret_use_top = true
 | `composition_start_pair_guard` <Since v="0.121" /> | 布尔 | 不写 = 继承出厂值 | 把「组合起点降级帧 + 紧随的 selection 帧」识别为同一次采样，避免把「组合起点 → 当前插入点」的跨度当成锚点错误。只给已实测存在该交替序列的宿主开（QQNT / VS Code / 飞书已内置） |
 | `pin_anchor_when_start_drifts` <Since v="0.121" /> | 布尔 | `false` | 宿主报的组合起点跟着插入点漂移时，把候选窗锚点钉在首帧起点，见[下文](#pin-anchor) |
 | `host_drawn_candidates` | 布尔 | 不写 = 自动判定 | 写 `false` 可强制弹出清风自己的候选框，见[下文](#host-drawn-candidates) |
+| `launch_by_service` <Since v="0.133" /> | 布尔 | 不写 = false | 打开设置、加词编辑这类启动外部程序的操作改由输入法服务直接执行，不再交给当前软件。开始菜单、便笺等软件会忽略转发来的启动请求（表现为 Ctrl+Enter 加词窗口消失、开始菜单里打不开设置），出厂已对它们开启。代价：窗口偶尔停在后台 |
 | `schema` <Since v="0.123" /> | 字符串 | 不写 = 跟随全局 | 本应用使用的输入方案：方案 ID 表示固定用它，`"@remember"` 表示记住本应用上次用的方案，见[下文](#app-schema) |
 | `password_force_english` <Since v="0.123" /> | 布尔 | 不写 = 跟随全局 | 本应用的密码框是否强制英文，覆盖全局的 `input.password_force_english`，见[下文](#password-force-english) |
 | `status_position_mode` <Since v="0.123" /> | 枚举 | 不写 = 跟随全局 | 本应用的状态气泡定位方式，取值同全局 [`ui.status.position_mode`](/docs/guides/config/ui#status-anchor)，见[下文](#status-position) |
