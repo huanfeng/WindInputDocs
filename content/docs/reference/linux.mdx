@@ -28,6 +28,10 @@ X11 与 Wayland 会话均可使用。不同桌面环境要额外做的设置见[
 
 3. **注销并重新登录**，让系统加载新装的输入法。
 
+<Callout type="warn" title="用 GNOME（Ubuntu 默认桌面）的 Wayland 会话？还要多做一步">
+候选窗位置不准（没有出现在光标旁）是这个会话最常见的问题，原因是 GNOME 不向输入法提供窗口位置，要启用随包附带的 GNOME 扩展才能解决，**安装包不会替你启用**。装好并重新登录后，打开「清风输入法设置 → 高级 → 系统集成」，点「GNOME 候选窗定位扩展」的「启用」，再注销重登一次即可。详见 [GNOME](#gnome)。不确定会话类型时，终端运行 `echo $XDG_SESSION_TYPE`，输出 `x11` 则不需要。
+</Callout>
+
 ### Arch 系发行版（第三方 AUR 包）[#aur]
 
 AUR 上有社区成员维护的 [`fcitx5-windinput-bin`](https://aur.archlinux.org/packages/fcitx5-windinput-bin)，可用 AUR 助手安装，例如：
@@ -61,7 +65,7 @@ Fcitx5 出厂把「临时在当前和第一个输入法之间切换」设成了�
 
 | 桌面与会话 | 额外要做的 | 说明 |
 |---|---|---|
-| GNOME · Wayland（Ubuntu 默认） | 启用随包的 GNOME 扩展，注销重登 | 见 [GNOME](#gnome) |
+| GNOME · Wayland（Ubuntu 默认） | 启用随包的 GNOME 扩展（设置程序里一键启用），注销重登 | 见 [GNOME](#gnome) |
 | GNOME · X11（「Ubuntu on Xorg」） | 无 | |
 | KDE Plasma · Wayland | 「虚拟键盘」选 Fcitx 5；不设 `QT_IM_MODULE` / `GTK_IM_MODULE` | 见 [KDE Plasma](#kde) |
 | KDE Plasma · X11 | 无 | |
@@ -71,7 +75,17 @@ Fcitx5 出厂把「临时在当前和第一个输入法之间切换」设成了�
 
 ### GNOME <Since v="0.131" /> [#gnome]
 
-GNOME 的 Wayland 会话不向输入法提供窗口位置，候选窗要靠随包附带的 GNOME 扩展才能跟随光标。扩展装上后默认不启用，按 GNOME 版本（「设置 → 关于」里的「GNOME 版本」）启用其中一个：
+GNOME 的 Wayland 会话不向输入法提供窗口位置，候选窗要靠随包附带的 GNOME 扩展才能跟随光标。扩展装上后**默认不启用**，需要你自己启用一次。
+
+**方法一：在设置程序里一键启用（推荐，0.133 起提供，更早的版本请用方法二）**
+
+1. 装好清风后**先注销重登一次**（GNOME 只在登录时扫描新装的扩展）。
+2. 打开「清风输入法设置 → 高级 → 系统集成」，找到「GNOME 候选窗定位扩展」一行，点「启用」。设置程序会按你的 GNOME 版本自动选对扩展。这一行只在 GNOME 的 Wayland 会话里出现。
+3. 再**注销重登**，状态变成「已启用，候选窗会跟随光标」即生效。
+
+**方法二：命令行**
+
+按 GNOME 版本（「设置 → 关于」里的「GNOME 版本」）启用其中一个：
 
 ```bash
 # GNOME 45 及以上（如 Ubuntu 24.04 及之后）
@@ -82,11 +96,12 @@ gnome-extensions enable windinput-caret-legacy@windinput
 
 然后注销重登。
 
-- 刚装好清风时 GNOME 还不认识这个扩展，上面的命令会提示「不存在」，先注销重登一次再执行即可。
+- 刚装好清风时 GNOME 还不认识这个扩展，命令会提示「不存在」，先注销重登一次再执行即可。设置程序遇到这种情况会直接把它加进启用列表，重登后自动加载。
 - 不启用时，最大化的窗口里候选窗大致在光标附近，不最大化的窗口会偏。
 - 改了显示器缩放后，已经打开的应用要退出重开，候选窗位置才会跟上新的缩放。
 - GNOME 下应用经 `GTK_IM_MODULE=fcitx`（`im-config` 选了 Fcitx5 时自动设置）连到输入法，**保留它**，不要照 KDE 的建议删掉。
 - 0.131 之前的版本在 GNOME 42–46 上没有可用的扩展，可改用「Ubuntu on Xorg」会话。
+- 启用后位置仍不准的话，反馈时请附上：GNOME 版本、会话类型、显示器缩放比例，以及出问题的应用。
 
 ### KDE Plasma <Since v="0.126" /> [#kde]
 
