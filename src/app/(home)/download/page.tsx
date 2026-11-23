@@ -10,7 +10,7 @@ import Link from "next/link";
 import { DownloadStats } from "@/components/download-stats";
 import { ReleaseNotes } from "@/components/release-notes";
 import { TipTicker } from "@/components/tip-ticker";
-import { debFileName, linuxRelease } from "@/lib/linux-release";
+import { type LinuxRelease, linuxRelease } from "@/lib/linux-release";
 import {
   currentVersion,
   macDownloadUrl,
@@ -57,6 +57,57 @@ interface Edition {
   points: string[];
 }
 
+/** 链接卡片的一行：左边是包类型，右边是各架构的直链。 */
+interface LinkGroup {
+  label: string;
+  hint: string;
+  links: { text: string; href: string; size: number }[];
+}
+
+function sizeMb(bytes: number): string {
+  return `${Math.round(bytes / 1048576)} MB`;
+}
+
+function linuxGroups(release: LinuxRelease): LinkGroup[] {
+  const groups: LinkGroup[] = [
+    {
+      label: ".deb",
+      hint: "Ubuntu / Debian / Deepin",
+      links: [
+        {
+          text: "x64",
+          href: release.debs.amd64.url,
+          size: release.debs.amd64.size,
+        },
+        {
+          text: "ARM64",
+          href: release.debs.arm64.url,
+          size: release.debs.arm64.size,
+        },
+      ],
+    },
+  ];
+  if (release.rpms) {
+    groups.push({
+      label: ".rpm",
+      hint: "Fedora / openSUSE（实验性）",
+      links: [
+        {
+          text: "x64",
+          href: release.rpms.x86_64.url,
+          size: release.rpms.x86_64.size,
+        },
+        {
+          text: "ARM64",
+          href: release.rpms.aarch64.url,
+          size: release.rpms.aarch64.size,
+        },
+      ],
+    });
+  }
+  return groups;
+}
+
 const editions: Edition[] = [
   {
     icon: Package,
@@ -74,26 +125,10 @@ const editions: Edition[] = [
     badge: "macOS 12+",
     points: [
       "universal 安装包，Apple Silicon / Intel 通用",
-      "未做苹果签名：首次运行需到「系统设置 → 隐私与安全性」放行",
-      "标点配对、命令直通车按键合成需授权「辅助功能」",
+      "未做苹果签名：首次运行需在「隐私与安全性」放行，标点配对等需授权「辅助功能」",
       "没有工具栏（改用菜单栏指示器），菜单由系统渲染、不受主题控制",
     ],
   },
-  ...(linux
-    ? [
-        {
-          icon: Terminal,
-          title: "Linux 版",
-          badge: "Fcitx5",
-          points: [
-            "Fcitx5 输入法引擎，.deb 安装包（x64 / ARM64）；Fedora / openSUSE 有 .rpm（实验性）",
-            "Ubuntu 22.04+、Deepin 25；X11 与 Wayland 会话均可",
-            "装完注销重登，在 Fcitx5 配置里添加清风输入法",
-            "已知限制（KDE Plasma 的 Wayland 会话等）见 Linux 版文档",
-          ],
-        },
-      ]
-    : []),
   {
     icon: HardDrive,
     title: "便携模式",
@@ -142,45 +177,16 @@ export default function DownloadPage() {
           </a>
           {linux && (
             <a
-              href={linux.debs.amd64.url}
+              href="#linux"
               className="rounded-2xl border px-6 py-3 transition-colors hover:bg-fd-accent"
             >
-              <span className="block font-medium">下载 Linux 版（x64）</span>
+              <span className="block font-medium">下载 Linux 版</span>
               <span className="mt-0.5 block font-mono text-xs text-fd-muted-foreground">
-                {debFileName(linux.debs.amd64)}
+                deb / rpm · x64 / ARM64 ↓
               </span>
             </a>
           )}
         </div>
-        {linux && (
-          <p className="mt-2 text-xs text-fd-muted-foreground">
-            ARM64 设备请下载{" "}
-            <a
-              href={linux.debs.arm64.url}
-              className="font-mono text-fd-primary hover:underline"
-            >
-              {debFileName(linux.debs.arm64)}
-            </a>
-            {linux.rpms && (
-              <>
-                。Fedora / openSUSE（实验性）请下载{" "}
-                <a
-                  href={linux.rpms.x86_64.url}
-                  className="font-mono text-fd-primary hover:underline"
-                >
-                  {debFileName(linux.rpms.x86_64)}
-                </a>{" "}
-                或{" "}
-                <a
-                  href={linux.rpms.aarch64.url}
-                  className="font-mono text-fd-primary hover:underline"
-                >
-                  {debFileName(linux.rpms.aarch64)}
-                </a>
-              </>
-            )}
-          </p>
-        )}
         <div className="mt-4 flex flex-wrap justify-center gap-3">
           <Link
             href="/docs/start/installation"
@@ -248,9 +254,7 @@ export default function DownloadPage() {
         </section>
       )}
 
-      <div
-        className={`mt-12 grid grid-cols-1 gap-4 ${linux ? "md:grid-cols-2" : "md:grid-cols-3"}`}
-      >
+      <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
         {editions.map((e) => (
           <div key={e.title} className="flex flex-col rounded-lg border p-5">
             <div className="mb-3 flex items-center gap-2">
@@ -270,6 +274,71 @@ export default function DownloadPage() {
           </div>
         ))}
       </div>
+
+      {/* Linux 卡片：下载直链集中在这一张里（deb / rpm × 两个架构），顶部按钮锚到这里。
+          通栏、左说明右链接，免得 4 个链接把单列卡片撑得比别的卡片高一截。 */}
+      {linux && (
+        <section
+          id="linux"
+          className="mt-4 scroll-mt-20 rounded-lg border p-5 md:flex md:items-start md:gap-8"
+        >
+          <div className="md:flex-1">
+            <div className="mb-3 flex items-center gap-2">
+              <Terminal className="size-5 text-fd-primary" aria-hidden />
+              <h2 className="font-semibold">Linux 版</h2>
+              <span className="rounded-full bg-fd-primary/10 px-2 py-0.5 text-xs font-medium text-fd-primary">
+                Fcitx5
+              </span>
+            </div>
+            <ul className="flex flex-col gap-1.5 text-sm leading-relaxed text-fd-muted-foreground">
+              <li>
+                Ubuntu 22.04+、Deepin 25、Fedora / openSUSE；X11 与 Wayland 均可
+              </li>
+              <li>装完注销重登，在 Fcitx5 配置里添加清风输入法</li>
+              <li>
+                已知限制与各桌面的注意事项见{" "}
+                <Link
+                  href="/docs/reference/linux"
+                  className="text-fd-primary hover:underline"
+                >
+                  Linux 版文档
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 md:mt-0 md:w-96">
+            {linuxGroups(linux).map((g) => (
+              <div
+                key={g.label}
+                className="rounded-lg border bg-fd-card/50 p-3"
+              >
+                <div className="mb-2 flex items-baseline gap-2 text-sm">
+                  <span className="font-mono font-semibold text-fd-foreground">
+                    {g.label}
+                  </span>
+                  <span className="text-xs text-fd-muted-foreground">
+                    {g.hint}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {g.links.map((l) => (
+                    <a
+                      key={l.href}
+                      href={l.href}
+                      className="rounded-full border px-3 py-1 text-sm transition-colors hover:bg-fd-accent"
+                    >
+                      {l.text}
+                      <span className="ml-1.5 text-xs text-fd-muted-foreground">
+                        {sizeMb(l.size)}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="mt-12 rounded-lg border bg-fd-card/50 p-5 text-sm leading-relaxed text-fd-muted-foreground">
         <h2 className="mb-2 font-semibold text-fd-foreground">下载前须知</h2>
@@ -294,11 +363,11 @@ export default function DownloadPage() {
           </li>
           {linux && (
             <li>
-              Linux 版安装包为 .deb：用{" "}
-              <code className="font-mono">sudo apt install ./文件名.deb</code>{" "}
-              安装；Fedora / openSUSE 可用 .rpm（实验性）：
-              <code className="font-mono">sudo dnf install ./文件名.rpm</code>。
-              装完注销重登，再到 Fcitx5 配置里添加清风输入法。步骤与已知限制见
+              Linux 版：deb 用{" "}
+              <code className="font-mono">sudo apt install ./文件名.deb</code>
+              ，rpm（实验性）用{" "}
+              <code className="font-mono">sudo dnf install ./文件名.rpm</code>
+              ；装完注销重登，再到 Fcitx5 配置里添加清风输入法。步骤与已知限制见
               <Link
                 href="/docs/reference/linux"
                 className="text-fd-primary hover:underline"
