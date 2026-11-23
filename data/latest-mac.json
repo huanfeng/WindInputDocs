@@ -1,10 +1,10 @@
 {
-  "version": "0.132.0",
-  "tag": "v0.132.0",
+  "version": "0.133.0",
+  "tag": "v0.133.0",
   "channel": "stable",
-  "pkgUrl": "https://dl.windinput.com/WindInput-0.132.0-macOS.pkg",
-  "sha256": "a7971c3d4c6bb6d18fd9da5c43cfb324d6c41652b780fb0af40e046dc497ca24",
-  "size": 56059322,
-  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.132.0-Release.md",
-  "publishedAt": "2026-11-15T05:43:55Z"
+  "pkgUrl": "https://dl.windinput.com/WindInput-0.133.0-macOS.pkg",
+  "sha256": "256cba66becd695c9e3c480d7cbe5d2cc7d5334d2838c7a37b5774caa0113b1b",
+  "size": 56707796,
+  "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.133.0-Release.md",
+  "publishedAt": "2026-11-23T09:52:12Z"
 }
