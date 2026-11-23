@@ -148,7 +148,7 @@ Linux 版也有和 Windows 版一样的悬浮[工具栏](/docs/settings/appearan
 
 ## 升级与卸载
 
-- **升级**：下载新版安装包，同样用 `sudo apt install ./WindInput-…deb` 覆盖安装，然后注销重登（或在桌面终端运行 `fcitx5 -rd` 重启 Fcitx5）。设置程序会检查并提示新版本（「打开下载页」），但不会自动安装——装 .deb 需要管理员权限，由你用 apt 完成。
+- **升级**：设置程序（关于页「检查更新」）发现新版本后，deb 可以直接下载并安装：会弹出系统的管理员授权框（`pkexec`），随后用 apt 安装，装完注销重登（或在桌面终端运行 `fcitx5 -rd` 重启 Fcitx5）。没有 `pkexec` 时会交给桌面的软件安装器，也可以自己下载新包覆盖安装：`sudo apt install ./WindInput-…deb`。rpm 目前需要手动升级：`sudo dnf install ./WindInput-…rpm`。
 - **卸载**：`sudo apt remove windinput`。用户数据保留在下面的目录里，不需要了可以手动删除。清风输入法在 Fcitx5 输入法列表里的条目，可到 Fcitx5 配置里移除。
 
 ## 文件位置
@@ -166,7 +166,6 @@ Linux 版也有和 Windows 版一样的悬浮[工具栏](/docs/settings/appearan
 - 主菜单的「高级」里没有「输入诊断 HUD」；
 - 「应用兼容性与独立配置」可用（例如给某个应用设默认英文），但不带 Windows 版那些内置的应用兼容规则——它们都是针对 Windows 程序的修正；
 - 命令直通车的按键合成只作用于当前输入框所在的应用，桌面级快捷键（如 `Super+E`）不会触发；
-- 在线更新只提示、不自动安装（见上文「升级」）。
 
 ## 已知限制 [#limitations]
 
