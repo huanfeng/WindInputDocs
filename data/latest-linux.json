@@ -14,6 +14,18 @@
       "size": 30601290
     }
   },
+  "rpms": {
+    "x86_64": {
+      "url": "https://dl.windinput.com/WindInput-0.133.0-linux-x86_64.rpm",
+      "sha256": "0db210530b97b9ee3e473ea0f059b1dcc380754443c95ad2a5ae13e2cb6fed72",
+      "size": 28938145
+    },
+    "aarch64": {
+      "url": "https://dl.windinput.com/WindInput-0.133.0-linux-aarch64.rpm",
+      "sha256": "912974d74202d72410e2eb85e98bc560acf79722a79e46b23e40e7ed6d14a791",
+      "size": 27355309
+    }
+  },
   "releaseNotesUrl": "https://dl.windinput.com/WindInput-0.133.0-Release.md",
   "publishedAt": "2026-11-23T09:52:12Z"
 }

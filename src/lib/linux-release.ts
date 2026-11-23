@@ -20,6 +20,8 @@ export interface LinuxDeb {
 export interface LinuxRelease {
   version: string;
   debs: { amd64: LinuxDeb; arm64: LinuxDeb };
+  /** rpm（试验性，Fedora / openSUSE）。老元数据或这版没发 rpm 时缺失。 */
+  rpms?: { x86_64: LinuxDeb; aarch64: LinuxDeb };
 }
 
 export function linuxRelease(): LinuxRelease | null {
@@ -30,10 +32,14 @@ export function linuxRelease(): LinuxRelease | null {
   ) as Partial<LinuxRelease>;
   if (!data.version || !data.debs?.amd64?.url || !data.debs?.arm64?.url)
     return null;
-  return data as LinuxRelease;
+  const release = data as LinuxRelease;
+  // rpm 只认两个架构齐全的；残缺的当作没有，下载页不给半套入口。
+  if (!release.rpms?.x86_64?.url || !release.rpms?.aarch64?.url)
+    delete release.rpms;
+  return release;
 }
 
-/** 下载地址里的文件名（展示用）。 */
+/** 下载地址里的文件名（展示用）。deb 与 rpm 通用。 */
 export function debFileName(deb: LinuxDeb): string {
   return deb.url.slice(deb.url.lastIndexOf("/") + 1);
 }

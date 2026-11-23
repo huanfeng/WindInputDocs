@@ -51,6 +51,9 @@ LATEST_MAC_JSON = os.path.join(DATA_DIR, "latest-mac.json")
 # 客户端解析阶段被拒）。下载页据此决定要不要给出 Linux 入口；两个架构缺一个就不写。
 LATEST_LINUX_JSON = os.path.join(DATA_DIR, "latest-linux.json")
 LINUX_ARCHES = ("amd64", "arm64")
+# rpm（试验性）按 rpm 自己的架构名给出，放在 `rpms` 下。不是硬依赖：缺了不写这个键，
+# deb 照常发；已有的 `rpms` 也会随这次组装一并刷新（见 build_latest_linux）。
+RPM_ARCHES = ("x86_64", "aarch64")
 
 # 对外的下载域名。安装包仍在 R2（经 EdgeOne 前置），latest.json 与发布说明
 # 改由文档站产出，但**对外 URL 一律保持不变**——老版本客户端里这些地址是
@@ -147,6 +150,20 @@ def deb_name(version: str, arch: str) -> str:
     return f"WindInput-{version}-linux-{arch}.deb"
 
 
+def rpm_name(version: str, arch: str) -> str:
+    """rpm 文件名。口径与主仓 linux-build.yml / worker/src/env.ts 一致。"""
+    return f"WindInput-{version}-linux-{arch}.rpm"
+
+
+def _pkg_entry(asset: dict, name: str) -> dict:
+    digest = asset.get("digest") or ""
+    return {
+        "url": f"{DL_BASE}/{name}",
+        "sha256": digest.split(":", 1)[1] if digest.startswith("sha256:") else "",
+        "size": asset.get("size", 0),
+    }
+
+
 def build_latest_linux(release: dict, version: str) -> dict | None:
     """组装 Linux 元数据；两个架构的 .deb 缺任何一个都返回 None（只来一个等于没发）。"""
     assets = {a.get("name"): a for a in release.get("assets", [])}
@@ -156,20 +173,27 @@ def build_latest_linux(release: dict, version: str) -> dict | None:
         asset = assets.get(name)
         if asset is None:
             return None
-        digest = asset.get("digest") or ""
-        debs[arch] = {
-            "url": f"{DL_BASE}/{name}",
-            "sha256": digest.split(":", 1)[1] if digest.startswith("sha256:") else "",
-            "size": asset.get("size", 0),
-        }
-    return {
+        debs[arch] = _pkg_entry(asset, name)
+    # rpm 两个架构都在才给 rpms，缺一个整组不写（同 deb 的取舍）。
+    rpms = {}
+    for arch in RPM_ARCHES:
+        name = rpm_name(version, arch)
+        asset = assets.get(name)
+        if asset is None:
+            rpms = {}
+            break
+        rpms[arch] = _pkg_entry(asset, name)
+    latest = {
         "version": version,
         "tag": release.get("tag_name") or f"v{version}",
         "channel": channel_of(version),
         "debs": debs,
-        "releaseNotesUrl": f"{DL_BASE}/WindInput-{version}-Release.md",
-        "publishedAt": release.get("published_at", ""),
     }
+    if rpms:
+        latest["rpms"] = rpms
+    latest["releaseNotesUrl"] = f"{DL_BASE}/WindInput-{version}-Release.md"
+    latest["publishedAt"] = release.get("published_at", "")
+    return latest
 
 
 def write_latest_linux(release: dict, version: str) -> None:

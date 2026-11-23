@@ -11,7 +11,7 @@ import { Since } from "@/components/since";
 
 - Ubuntu 22.04 及以上，或 Deepin 25（其他 Debian 系发行版理论可用，未逐一验证）
 - x64（amd64）或 ARM64（arm64）
-- 目前只提供 Debian 系的 `.deb` 安装包，rpm 等暂不提供；Arch 系发行版见下文[第三方 AUR 包](#aur)
+- 提供 Debian 系的 `.deb` 安装包；Fedora、openSUSE 有 `.rpm` 安装包（**实验性**，x86_64 / aarch64，见下文[rpm 安装](#rpm)）；Arch 系发行版见下文[第三方 AUR 包](#aur)
 - 输入法框架 **Fcitx5**（5.0.14 及以上；安装包会自动拉取依赖）
 
 X11 与 Wayland 会话均可使用。不同桌面环境要额外做的设置见[按桌面环境的注意事项](#desktops)。
@@ -27,6 +27,19 @@ X11 与 Wayland 会话均可使用。不同桌面环境要额外做的设置见[
    ```
 
 3. **注销并重新登录**，让系统加载新装的输入法。
+
+### rpm 安装（Fedora / openSUSE，实验性） [#rpm]
+
+下载 `WindInput-x.x.x-linux-x86_64.rpm`（x64）或 `WindInput-x.x.x-linux-aarch64.rpm`（ARM64）：
+
+```bash
+# Fedora
+sudo dnf install ./WindInput-x.x.x-linux-x86_64.rpm
+# openSUSE（rpm 未签名，需跳过签名检查）
+sudo zypper --no-gpg-checks install ./WindInput-x.x.x-linux-x86_64.rpm
+```
+
+同样需要注销重登。卸载用 `sudo dnf remove windinput` / `sudo zypper remove windinput`。已在 Fedora 41、openSUSE Leap 15.6 上验证安装；RHEL / Rocky 等没有 Fcitx5 的发行版不在支持范围内。
 
 <Callout type="warn" title="用 GNOME（Ubuntu 默认桌面）的 Wayland 会话？还要多做一步">
 候选窗位置不准（没有出现在光标旁）是这个会话最常见的问题，原因是 GNOME 不向输入法提供窗口位置，要启用随包附带的 GNOME 扩展才能解决，**安装包不会替你启用**。装好并重新登录后，打开「清风输入法设置」，窗口顶部会有黄色提示条，点其中的「启用」，再注销重登一次即可。详见 [GNOME](#gnome)。不确定会话类型时，终端运行 `echo $XDG_SESSION_TYPE`，输出 `x11` 则不需要。
