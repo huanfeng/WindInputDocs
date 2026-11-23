@@ -421,6 +421,43 @@ radius = 1
 
 `_qingfeng` 定义了 `separator`，继承它的主题默认就有一条极淡的线。嵌入编码时没有独立编码栏，也就没有这条线。竖排下可以写 `[divider.vertical]` 单独覆盖，见上一节。主题编辑器的结构树里有「编码栏分隔线」节点。
 
+### 展开网格的整行与分隔线 <Since v="0.133" /> [#grid-row]
+
+候选展开成多行网格后，每一行可以单独配样式，行与行之间也可以有分隔线。两个节点只在展开网格里生效，
+没配的主题展开后和以前完全一样。
+
+**`[grid_row]`**：整行容器。
+
+| 字段 | 作用 | 缺省 |
+| --- | --- | --- |
+| `background`、`border`、`radius` | 整行的底色、边框、圆角 | 透明 |
+| `padding`、`margin` | 整行的内、外边距 | 0 |
+| `align` | 格内内容对齐：`left` 或 `center` | `left` |
+| `selected` | 高亮行的样式。高亮行就是数字键当前作用的那一行 | 同基态 |
+| `hover` | 鼠标所在行的样式 | 同基态 |
+
+整行的底色画在格子底色下面，所以可以做出“高亮行铺一层淡底、高亮格仍是实心色块”的层次。高亮行和悬停行同时成立时，显示高亮行的样式。
+
+**`[grid_divider]`**：相邻两行之间的分隔线，写法同上一节的 `[divider]`。区别是它**不会**回退到全局色 `separator`，
+必须自己写 `background` 才会画线，免得继承了 `_qingfeng` 的主题展开后凭空多出线。
+
+```toml
+[grid_row]
+align = "center"
+
+[grid_row.selected]
+background = { light = "#00B1751F", dark = "#00B17540" }   # 高亮行：主色淡底
+
+[grid_row.hover]
+background = { light = "#0000000A", dark = "#FFFFFF0F" }
+
+[grid_divider]
+background = { light = "#0000000F", dark = "#FFFFFF1F" }
+height = "1px"
+```
+
+`align = "center"` 对带“上方注释条”的格子不生效，注释条仍左对齐。主题编辑器的结构树里有「展开网格整行」和「展开网格分隔线」两个节点，预览暂时不画展开态，改完要装到输入法里看。
+
 ### 标准色 <Since v="0.123" /> [#standard-colors]
 
 下面这些颜色名由内置基础主题 `_base` 给出默认值，内置主题都继承它；不继承任何主题的独立主题没写的，
