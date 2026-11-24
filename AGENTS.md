@@ -63,6 +63,29 @@ fumadocs 拿标题文字生成 id，徽章会在末尾留下空白，得到 `#�
 
 版本发布后要回头把这些标记改成实际发布的版本号，别只是把标记删掉了事。
 
+## 安卓版：预览期不对外，开关在构建环境变量
+
+安卓版还在预发布，页面与下载入口先备好但**默认不显示**。开关是构建环境变量 `SHOW_ANDROID=1`
+（EdgeOne 项目环境变量里设；本地 `SHOW_ANDROID=1 pnpm build`），逻辑集中在 `src/lib/android-gate.ts`：
+
+- 没开：`/docs/reference/android`（及 `/docs/android/**`）按整页未发布处理——侧栏、站点地图、搜索、
+  llms 全摘掉，页面 noindex 并裹进隐藏容器；下载页的安卓卡片挂 `data-unreleased`。`?preview=1` 都看得到。
+- 开了：以上隐藏全部解除，不用改任何内容。
+
+数据由 `sync-android.yml` 从 WindInputAndroid 的 Release 同步到 `data/latest-android.json`（下载元数据，
+APK 在 R2 的 `android/` 前缀下，由安卓仓 `release-published.yml` 镜像）与 `data/releases-android.json`
+（更新记录）。**这两份文件是数据，合入不会让页面上线。**
+
+安卓文档**不用 `<Since>`**：那套版本索引按电脑版 releases.json 判断，安卓有自己的版本号，混用会污染。
+
+**正式对外前的清单**（打开开关时一并做）：
+
+1. 设 `SHOW_ANDROID=1` 并重新部署
+2. `installation.mdx` 开头的平台指引、`report-logs.mdx`、`faq.mdx`、首页与 `docs/index.mdx` 的平台描述里补安卓的入口
+   （这些页面现在没提安卓，避免在开关关闭时露出指向隐藏页的链接）
+3. 下载页顶部的平台按钮与「下载前须知」补安卓；更新记录页考虑加安卓平台切换（数据已有 `releases-android.json`）
+4. 安卓仓 README 的「官网」「使用文档」链接改指向安卓页
+
 ## 发版后的核对
 
 `data/releases.json` 更新到新版本后，拿「✨ 新功能」那一段逐条对照：每条要么能在文档里

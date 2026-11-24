@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { docs } from "collections/server";
 import type { Folder, Node, Root } from "fumadocs-core/page-tree";
 import { loader } from "fumadocs-core/source";
+import { androidPublic, isAndroidDocUrl } from "./android-gate";
 import { docsContentRoute, docsImageRoute, docsRoute } from "./shared";
 import { isUnreleasedPageText, stripUnreleased } from "./unreleased";
 
@@ -29,6 +30,11 @@ const unreleasedPages: ReadonlySet<string> = (() => {
   const set = new Set<string>();
 
   for (const page of source.getPages()) {
+    // 安卓版文档在对外开关（android-gate.ts）打开之前整页不公开，与未发布版本同一套摘除
+    if (!androidPublic && isAndroidDocUrl(page.url)) {
+      set.add(page.url);
+      continue;
+    }
     const absolutePath =
       page.absolutePath ?? join(process.cwd(), "content/docs", page.path);
     try {

@@ -144,6 +144,19 @@
       ]
     },
     {
+      "source": "/latest-android.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        }
+      ]
+    },
+    {
       "source": "/WindInput-*-Release.md",
       "headers": [
         {

@@ -3,6 +3,7 @@ import {
   HardDrive,
   type LucideIcon,
   Package,
+  Smartphone,
   Terminal,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -10,6 +11,8 @@ import Link from "next/link";
 import { DownloadStats } from "@/components/download-stats";
 import { ReleaseNotes } from "@/components/release-notes";
 import { TipTicker } from "@/components/tip-ticker";
+import { androidPublic } from "@/lib/android-gate";
+import { androidRelease } from "@/lib/android-release";
 import { type LinuxRelease, linuxRelease } from "@/lib/linux-release";
 import {
   currentVersion,
@@ -42,6 +45,10 @@ const latestGroupOldest = latestGroup[latestGroup.length - 1];
 
 // 还没发过带 Linux 包的版本时为 null：不给 Linux 入口，也不列 Linux 卡片。
 const linux = linuxRelease();
+
+// 安卓版：还没镜像过 APK 时为 null，不列卡片。对外开关见 lib/android-gate.ts——
+// 没打开时卡片仍会渲染，但挂 data-unreleased，默认被 CSS 藏起来，`?preview=1` 才看得到。
+const android = androidRelease();
 
 export const metadata: Metadata = {
   title: "下载",
@@ -336,6 +343,77 @@ export default function DownloadPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* 安卓版卡片。预览期不对外：androidPublic 为 false 时挂 data-unreleased（默认隐藏，
+          ?preview=1 可见）。打开开关见 lib/android-gate.ts。 */}
+      {android && (
+        <section
+          id="android"
+          {...(androidPublic ? {} : { "data-unreleased": "" })}
+          className="mt-4 scroll-mt-20 rounded-lg border p-5 md:flex md:items-start md:gap-8"
+        >
+          <div className="md:flex-1">
+            <div className="mb-3 flex items-center gap-2">
+              <Smartphone className="size-5 text-fd-primary" aria-hidden />
+              <h2 className="font-semibold">Android 版</h2>
+              <span className="rounded-full bg-fd-primary/10 px-2 py-0.5 text-xs font-medium text-fd-primary">
+                {android.channel === "preview" ? "预览版" : "Android 8.0+"}
+              </span>
+            </div>
+            <ul className="flex flex-col gap-1.5 text-sm leading-relaxed text-fd-muted-foreground">
+              <li>
+                Android 8.0（API {android.minSdk}）及以上，仅 64 位（
+                {android.abi}）
+              </li>
+              <li>安装后在系统设置里启用清风输入法，并切换为当前输入法</li>
+              <li>输入法本身不联网，不会自己检查更新；新版本请回到本页下载</li>
+              <li>
+                详细说明见{" "}
+                <Link
+                  href="/docs/reference/android"
+                  className="text-fd-primary hover:underline"
+                >
+                  Android 版文档
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 md:mt-0 md:w-96">
+            <div className="rounded-lg border bg-fd-card/50 p-3">
+              <div className="mb-2 flex items-baseline gap-2 text-sm">
+                <span className="font-mono font-semibold text-fd-foreground">
+                  v{android.version}
+                </span>
+                <span className="text-xs text-fd-muted-foreground">
+                  {android.abi}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href={android.apkUrl}
+                  className="rounded-full border px-3 py-1 text-sm transition-colors hover:bg-fd-accent"
+                >
+                  下载 APK
+                  <span className="ml-1.5 text-xs text-fd-muted-foreground">
+                    {sizeMb(android.size)}
+                  </span>
+                </a>
+                <a
+                  href={android.releaseNotesUrl}
+                  className="rounded-full border px-3 py-1 text-sm transition-colors hover:bg-fd-accent"
+                >
+                  更新说明
+                </a>
+              </div>
+              {android.sha256 && (
+                <p className="mt-2 break-all font-mono text-xs text-fd-muted-foreground">
+                  sha256 {android.sha256}
+                </p>
+              )}
+            </div>
           </div>
         </section>
       )}

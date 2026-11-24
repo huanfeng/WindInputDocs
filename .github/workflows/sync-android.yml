@@ -1,0 +1,87 @@
+name: Sync Android Release
+
+# 安卓仓 WindInputAndroid 发布 Release（并镜像 APK 到 R2）后通过 repository_dispatch 触发，
+# 把下载元数据写入 data/latest-android.json、更新记录写入 data/releases-android.json。
+# schedule 是兜底：跨仓 dispatch 事件偶发丢失时，第二天定时任务会补上。
+#
+# 这两个文件只是数据：安卓版的页面与下载卡片是否对外显示，由 src/lib/android-gate.ts 决定。
+
+on:
+  repository_dispatch:
+    types:
+      - android-release-updated
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要同步的 Release tag（留空则取最新已发布）"
+        required: false
+        type: string
+  schedule:
+    - cron: "30 20 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-android
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.client_payload.tag || inputs.tag }}
+        run: |
+          if [ -n "$TAG" ]; then
+            gh api "repos/huanfeng/WindInputAndroid/releases/tags/$TAG" > /tmp/release.json
+          else
+            # 安卓版目前都是预发布，所以不按 prerelease 过滤，只排除草稿
+            gh api "repos/huanfeng/WindInputAndroid/releases?per_page=20" \
+              --jq 'map(select(.draft | not)) | .[0]' > /tmp/release.json
+          fi
+          RESOLVED=$(jq -r '.tag_name // empty' /tmp/release.json)
+          if [ -z "$RESOLVED" ]; then
+            echo "::notice::没有可同步的已发布 Release。"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Resolved tag: $RESOLVED"
+          echo "tag=$RESOLVED" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        if: steps.release.outputs.tag != ''
+        with:
+          python-version: "3.x"
+
+      - name: Sync into data/*-android.json
+        if: steps.release.outputs.tag != ''
+        run: python3 scripts/sync_android_release.py /tmp/release.json
+
+      - name: Create PR
+        id: create-pr
+        if: steps.release.outputs.tag != ''
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
+          title: "docs: 同步安卓版元数据 ${{ steps.release.outputs.tag }}"
+          branch: auto/sync-android
+          commit-message: "docs: 同步安卓版元数据 ${{ steps.release.outputs.tag }}"
+          body: |
+            自动从 WindInputAndroid 的 GitHub Release 提取，写入 `data/latest-android.json`（下载元数据）
+            与 `data/releases-android.json`（更新记录）。
+
+            安卓版页面与下载卡片是否对外显示由 `src/lib/android-gate.ts` 控制，合入本 PR 不会让它们上线。
+          labels: documentation
+
+      - name: Enable auto-merge (rebase)
+        if: steps.create-pr.outputs.pull-request-operation != 'none' && steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.WINDINPUT_REPO_DISPATCH_TOKEN }}
+        run: gh pr merge --rebase --auto ${{ steps.create-pr.outputs.pull-request-number }}

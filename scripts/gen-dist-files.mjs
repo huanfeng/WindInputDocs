@@ -114,6 +114,16 @@ function main() {
     );
   }
 
+  // 安卓版：APK 在 R2 的 android/ 下，这份元数据只服务下载页（安卓版没有联网权限、没有应用内升级）。
+  // 缺失时静默跳过：首个镜像过 APK 的版本之前本就没有。
+  const android = tryReadJson("latest-android.json");
+  if (android) {
+    writeFileSync(
+      join(OUT, "latest-android.json"),
+      `${JSON.stringify(android, null, 2)}\n`,
+    );
+  }
+
   const releases = readJson("releases.json");
   for (const entry of releases) {
     writeFileSync(
@@ -126,6 +136,7 @@ function main() {
     `分发文件已生成：latest.json（v${latest.version}）` +
       `${mac ? ` + latest-mac.json（v${mac.version}）` : ""}` +
       `${linux ? ` + latest-linux.json（v${linux.version}）` : ""}` +
+      `${android ? ` + latest-android.json（v${android.version}）` : ""}` +
       ` + ${releases.length} 份发布说明`,
   );
 }
