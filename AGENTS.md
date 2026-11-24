@@ -81,6 +81,9 @@ APK 镜像在 R2 桶根（`WindInputAndroid-<版本>.apk`，经下载网关计�
 **正式对外前的清单**（打开开关时一并做）：
 
 1. 设 `SHOW_ANDROID=1` 并重新部署
+1. **隐私页 `src/app/(home)/privacy/page.tsx` 同步改**：现在写的是「安卓版没有网络权限」，带「检查更新」的版本发布时改成
+   「只在点检查更新时联网（请求官网 `windinput.com/latest-android.json`，不带输入内容与设备标识），权限可收回」，
+   应用内隐私政策（`PrivacySection.kt`）已先改好，两处口径要一致
 2. `installation.mdx` 开头的平台指引、`report-logs.mdx`、`faq.mdx`、首页与 `docs/index.mdx` 的平台描述里补安卓的入口
    （这些页面现在没提安卓，避免在开关关闭时露出指向隐藏页的链接）
 3. 下载页顶部的平台按钮与「下载前须知」补安卓；更新记录页考虑加安卓平台切换（数据已有 `releases-android.json`）

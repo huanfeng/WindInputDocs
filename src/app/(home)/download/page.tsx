@@ -369,7 +369,7 @@ export default function DownloadPage() {
                 {android.abi}）
               </li>
               <li>安装后在系统设置里启用清风输入法，并切换为当前输入法</li>
-              <li>输入法本身不联网，不会自己检查更新；新版本请回到本页下载</li>
+              <li>应用内「设置 → 关于 → 检查更新」可查询新版本，点了才联网</li>
               <li>
                 详细说明见{" "}
                 <Link
