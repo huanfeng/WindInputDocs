@@ -1,0 +1,12 @@
+{
+  "version": "0.5.3",
+  "tag": "v0.5.3",
+  "channel": "preview",
+  "apkUrl": "https://dl.windinput.com/WindInputAndroid-0.5.3.apk",
+  "sha256": "15bb2d29c4fab46a9388d48600611e9c55211740ba01e8657356b2115b8ef8c0",
+  "size": 43929240,
+  "minSdk": 26,
+  "abi": "arm64-v8a",
+  "releaseNotesUrl": "https://github.com/huanfeng/WindInputAndroid/releases/tag/v0.5.3",
+  "publishedAt": "2026-11-18T08:36:50Z"
+}
