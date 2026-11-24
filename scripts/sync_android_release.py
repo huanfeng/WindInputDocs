@@ -15,7 +15,7 @@
 - **预发布也收**。安卓版目前都是 GitHub 预发布；电脑版排除预发布是因为 latest.json 是应用内
   升级的开关，而安卓版没有联网权限、没有应用内升级，元数据只服务于下载页。channel 字段
   记 preview / stable，展示侧据此标注。
-- APK 在 R2 的 android/ 前缀下（安卓仓 release-published.yml 镜像上传），与电脑版安装包互不干扰。
+- APK 镜像在 R2 桶根（WindInputAndroid-<版本>.apk，经下载网关计数），文件名与电脑版安装包不重叠。
 - Release 正文没有 user-facing 标记块：用户向说明是正文里「## 校验」之前的部分
   （见安卓仓 release.yml 的「生成 Release Notes」）。
 - 只写 data/，**不决定页面显不显示**——那是 src/lib/android-gate.ts 的事。
@@ -61,7 +61,7 @@ def build_latest(release: dict, version: str) -> dict | None:
         "version": version,
         "tag": release.get("tag_name") or f"v{version}",
         "channel": channel_of(release, version),
-        "apkUrl": f"{DL_BASE}/android/{name}",
+        "apkUrl": f"{DL_BASE}/{name}",
         "sha256": digest.split(":", 1)[1] if digest.startswith("sha256:") else "",
         "size": asset.get("size", 0),
         "minSdk": 26,

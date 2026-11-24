@@ -73,7 +73,7 @@ fumadocs 拿标题文字生成 id，徽章会在末尾留下空白，得到 `#�
 - 开了：以上隐藏全部解除，不用改任何内容。
 
 数据由 `sync-android.yml` 从 WindInputAndroid 的 Release 同步到 `data/latest-android.json`（下载元数据，
-APK 在 R2 的 `android/` 前缀下，由安卓仓 `release-published.yml` 镜像）与 `data/releases-android.json`
+APK 镜像在 R2 桶根（`WindInputAndroid-<版本>.apk`，经下载网关计数），由安卓仓 `release-published.yml` 镜像）与 `data/releases-android.json`
 （更新记录）。**这两份文件是数据，合入不会让页面上线。**
 
 安卓文档**不用 `<Since>`**：那套版本索引按电脑版 releases.json 判断，安卓有自己的版本号，混用会污染。
