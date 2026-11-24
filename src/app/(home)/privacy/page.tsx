@@ -8,7 +8,7 @@ import { contactEmail } from "@/lib/sponsor";
 export const metadata: Metadata = {
   title: "隐私政策",
   description:
-    "清风输入法不收集、不上传你输入的内容。输入法本身不联网；电脑版只有设置程序在你同意或操作后才联网，安卓版没有网络权限。本页逐项说明每一处联网与本地数据。",
+    "清风输入法不收集、不上传你输入的内容。输入法本身不联网；电脑版只有设置程序在你同意或操作后才联网，安卓版只在你点「检查更新」时才联网。本页逐项说明每一处联网与本地数据。",
 };
 
 /**
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
  *   `app/src/main/java/com/windinput/ime/settings/PrivacySection.kt`）保持一致。
  * - 下载计数：WindInputSite 仓 `worker/src/download.ts`。
  */
-const effectiveDate = "2026 年 11 月 7 日";
+const effectiveDate = "2026 年 11 月 24 日";
 
 const notCollected = [
   "你输入的文字、候选与按键，不会被上传到任何地方",
@@ -174,6 +174,10 @@ const desktopNet: NetFeature[] = [
 
 const androidPermissions = [
   {
+    title: "网络",
+    body: "只用于检查更新，你点了才请求，可在系统设置里收回。",
+  },
+  {
     title: "振动",
     body: "按键振动反馈，强度可在设置里调，也可以关闭。",
   },
@@ -236,7 +240,7 @@ export default function PrivacyPage() {
         清风输入法
         <strong className="font-semibold">不收集、不上传你输入的内容</strong>
         。输入法本身不联网；电脑版只有设置程序在你同意或主动操作后才联网（检查更新、下载主题与方案），
-        安卓版没有网络权限。你的设置、词库与统计都只存在你自己的设备上。
+        安卓版只在你点「检查更新」时才联网。你的设置、词库与统计都只存在你自己的设备上。
       </p>
       <p className="mt-3 text-sm leading-relaxed text-fd-muted-foreground">
         本页覆盖电脑版（Windows、macOS、Linux）与安卓版，以及本网站。清风输入法开源，
@@ -336,11 +340,13 @@ export default function PrivacyPage() {
       <section className="mt-14">
         <SectionTitle id="android">安卓版</SectionTitle>
         <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">
-          安卓版
+          安卓版申请了网络权限，但
           <strong className="font-semibold text-fd-foreground">
-            没有申请网络权限
+            只用于「设置 → 关于 → 检查更新」，你点了才联网
           </strong>
-          ，程序本身无法连接互联网。App 内「隐私政策」页与本节内容一致。
+          ：向 <code className="font-mono">windinput.com</code>{" "}
+          请求一份公开的版本信息，与用浏览器打开网页相同，请求里不带输入内容和设备标识。启动、打字、打开设置页时都不联网；发现新版本后只把下载链接交给浏览器，由你自己决定是否下载。不需要时可以在系统设置里收回网络权限，输入功能不受影响，只是检查更新会失败。App
+          内「隐私政策」页与本节内容一致。
         </p>
 
         <h3 className="mt-6 font-semibold">申请的权限</h3>
